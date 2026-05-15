@@ -341,13 +341,19 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec) by (topic)",
-              "legendFormat": "{{ "{{topic}}" }}",
+              "legendFormat": "East {{ "{{topic}}" }}",
               "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec) by (topic)",
+              "legendFormat": "West {{ "{{topic}}" }}",
+              "refId": "B"
             }
           ],
-          "title": "Kafka messages in per sec (gauge: kafka_server_brokertopicmetrics_messagesinpersec)",
+          "title": "Kafka messages in per sec (East + West)",
           "type": "timeseries"
         },
         {
@@ -397,19 +403,31 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec) by (topic)",
-              "legendFormat": "in {{ "{{topic}}" }}",
+              "legendFormat": "East in {{ "{{topic}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec) by (topic)",
-              "legendFormat": "out {{ "{{topic}}" }}",
+              "legendFormat": "East out {{ "{{topic}}" }}",
               "refId": "B"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec) by (topic)",
+              "legendFormat": "West in {{ "{{topic}}" }}",
+              "refId": "C"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec) by (topic)",
+              "legendFormat": "West out {{ "{{topic}}" }}",
+              "refId": "D"
             }
           ],
-          "title": "Kafka topic bytes in/out",
+          "title": "Kafka topic bytes in/out (East + West)",
           "type": "timeseries"
         },
         {
@@ -436,13 +454,19 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(kafka_server_socketservermetrics_connection_count)",
-              "legendFormat": "connections",
+              "legendFormat": "East",
               "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_socketservermetrics_connection_count)",
+              "legendFormat": "West",
+              "refId": "B"
             }
           ],
-          "title": "Kafka broker socket connections (total)",
+          "title": "Kafka broker connections (East + West)",
           "type": "stat"
         },
         {
@@ -485,26 +509,69 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
+              "legendFormat": "East sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus"},
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
               "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
+              "legendFormat": "East recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
               "refId": "B"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
+              "legendFormat": "West sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
+              "refId": "C"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
+              "legendFormat": "West recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
+              "refId": "D"
             }
           ],
-          "title": "Istio TCP bytes (ambient / ztunnel when present)",
+          "title": "Istio TCP bytes (East + West)",
           "type": "timeseries"
         }
       ],
       "refresh": "30s",
       "schemaVersion": 39,
       "tags": ["istio", "east-west", "kafka", "hub-gateway"],
-      "templating": {"list": []},
+      "templating": {
+        "list": [
+          {
+            "current": {"selected": false, "text": "Prometheus-East", "value": "Prometheus-East"},
+            "hide": 0,
+            "includeAll": false,
+            "label": "East datasource",
+            "multi": false,
+            "name": "ds_east",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "/East/",
+            "skipUrlSync": false,
+            "type": "datasource"
+          },
+          {
+            "current": {"selected": false, "text": "Prometheus-West", "value": "Prometheus-West"},
+            "hide": 0,
+            "includeAll": false,
+            "label": "West datasource",
+            "multi": false,
+            "name": "ds_west",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "/West/",
+            "skipUrlSync": false,
+            "type": "datasource"
+          }
+        ]
+      },
       "time": {"from": "now-6h", "to": "now"},
       "timepicker": {},
       "timezone": "browser",
