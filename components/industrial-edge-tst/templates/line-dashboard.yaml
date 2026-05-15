@@ -64,3 +64,4 @@ spec:
     targetPort: 8080
   tls:
     termination: edge
+    insecureEdgeTerminationPolicy: Allow

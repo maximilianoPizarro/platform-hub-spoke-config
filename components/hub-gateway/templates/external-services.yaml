@@ -10,41 +10,9 @@ spec:
   type: ExternalName
   externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
   ports:
-    - port: 443
+    - port: 80
       protocol: TCP
-      targetPort: 443
----
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: industrial-edge-east
-  namespace: hub-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  hosts:
-    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
-  location: MESH_EXTERNAL
-  ports:
-    - number: 443
-      name: https
-      protocol: TLS
-  resolution: DNS
----
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: industrial-edge-east-tls
-  namespace: hub-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  host: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
-  trafficPolicy:
-    tls:
-      mode: SIMPLE
-      sni: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
-      insecureSkipVerify: true
+      targetPort: 80
 {{- end }}
 ---
 {{- if .Values.clusters.west.domain }}
@@ -59,39 +27,7 @@ spec:
   type: ExternalName
   externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
   ports:
-    - port: 443
+    - port: 80
       protocol: TCP
-      targetPort: 443
----
-apiVersion: networking.istio.io/v1
-kind: ServiceEntry
-metadata:
-  name: industrial-edge-west
-  namespace: hub-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  hosts:
-    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
-  location: MESH_EXTERNAL
-  ports:
-    - number: 443
-      name: https
-      protocol: TLS
-  resolution: DNS
----
-apiVersion: networking.istio.io/v1
-kind: DestinationRule
-metadata:
-  name: industrial-edge-west-tls
-  namespace: hub-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  host: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
-  trafficPolicy:
-    tls:
-      mode: SIMPLE
-      sni: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
-      insecureSkipVerify: true
+      targetPort: 80
 {{- end }}

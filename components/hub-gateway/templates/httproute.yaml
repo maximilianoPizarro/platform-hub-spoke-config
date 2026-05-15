@@ -15,18 +15,18 @@ spec:
     - backendRefs:
         {{- if and .Values.clusters.east.domain .Values.clusters.west.domain }}
         - name: industrial-edge-east
-          port: 443
+          port: 80
           weight: {{ .Values.gateway.weights.east }}
         - name: industrial-edge-west
-          port: 443
+          port: 80
           weight: {{ .Values.gateway.weights.west }}
         {{- else if .Values.clusters.east.domain }}
         - name: industrial-edge-east
-          port: 443
+          port: 80
           weight: 100
         {{- else if .Values.clusters.west.domain }}
         - name: industrial-edge-west
-          port: 443
+          port: 80
           weight: 100
         {{- else }}
         - name: hub-gateway-istio
