@@ -342,12 +342,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(kafka_server_brokertopicmetrics_messagesinpersec[5m])) by (topic)",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec) by (topic)",
               "legendFormat": "{{ "{{topic}}" }}",
               "refId": "A"
             }
           ],
-          "title": "Kafka messages in per second (kafka_server_brokertopicmetrics_messagesinpersec)",
+          "title": "Kafka messages in per sec (gauge: kafka_server_brokertopicmetrics_messagesinpersec)",
           "type": "timeseries"
         },
         {
@@ -398,13 +398,13 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesinpersec[5m])) by (topic)",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec) by (topic)",
               "legendFormat": "in {{ "{{topic}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesoutpersec[5m])) by (topic)",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec) by (topic)",
               "legendFormat": "out {{ "{{topic}}" }}",
               "refId": "B"
             }

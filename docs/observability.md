@@ -64,6 +64,8 @@ This repository configures:
 
 After syncing, confirm the datasource in the Grafana UI (**Connections → Data sources → Prometheus → Save & test**) and use **Explore** with `up` or `istio_requests_total`.
 
+**Anonymous Grafana (workshop / demo):** the `Grafana` CR enables `[auth.anonymous]` with **`org_role = Admin`** and hides the login form. Anyone with the Route URL can use Grafana; do **not** use this pattern on production clusters without network controls.
+
 ## Multi-cluster patterns
 
 - **Hub Kiali** only shows workloads running **on the hub cluster**. HTTP you see toward `industrial-edge-east` / `industrial-edge-west` is traffic from the hub gateway to **external** OpenShift routes; it is not the same as rendering east/west pod graphs inside hub Kiali unless you add **multi-cluster Kiali** (remote kubeconfigs / ACM integration) or **federated metrics**.

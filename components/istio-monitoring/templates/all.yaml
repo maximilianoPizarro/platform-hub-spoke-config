@@ -2,10 +2,11 @@
 {{- $promSa := "prometheus-user-workload" }}
 {{- $meshNamespaces := list "hub-gateway-system" "industrial-edge-tst-all" "industrial-edge-data-lake" "industrial-edge-stormshift-messaging" }}
 {{- $rbacNamespaces := concat (list "istio-system") $meshNamespaces }}
+{{- /* Strimzi labels Kafka broker pods with strimzi.io/name=<cluster>-kafka (not the node pool name). */}}
 {{- $kafkaScrapes := list
-      (dict "namespace" "industrial-edge-data-lake" "strimziName" "prod-cluster-broker")
-      (dict "namespace" "industrial-edge-tst-all" "strimziName" "dev-cluster-broker")
-      (dict "namespace" "industrial-edge-stormshift-messaging" "strimziName" "factory-cluster-broker")
+      (dict "namespace" "industrial-edge-data-lake" "strimziName" "prod-cluster-kafka")
+      (dict "namespace" "industrial-edge-tst-all" "strimziName" "dev-cluster-kafka")
+      (dict "namespace" "industrial-edge-stormshift-messaging" "strimziName" "factory-cluster-kafka")
 }}
 ---
 apiVersion: monitoring.coreos.com/v1
