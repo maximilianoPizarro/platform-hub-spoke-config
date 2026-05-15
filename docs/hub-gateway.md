@@ -25,6 +25,25 @@ The hub gateway routes traffic to spoke cluster OpenShift Routes via `ExternalNa
 Browser → Hub OpenShift Router (HTTPS) → Istio Gateway (port 8080) → ExternalName Service → Spoke OpenShift Router (HTTP port 80) → Backend Pod
 ```
 
+### Front / API split
+
+Traffic is split into separate `Service` objects per cluster and traffic type to give Kiali and Grafana finer-grained visibility:
+
+| Service | Purpose |
+| ------- | ------- |
+| `industrial-edge-east-front` | Static frontend assets for east spoke |
+| `industrial-edge-east-api` | Socket.IO / API backend for east spoke |
+| `industrial-edge-west-front` | Static frontend assets for west spoke |
+| `industrial-edge-west-api` | Socket.IO / API backend for west spoke |
+
+All four services use `ExternalName` pointing to the same spoke Route hostname, but Istio tracks them as distinct destinations. In Kiali's traffic graph, each appears as a separate node.
+
+The `HTTPRoute` uses two rules:
+1. **`/api` prefix** → routed to `*-api` services (defaults to east 100%, west 0% for Socket.IO session affinity).
+2. **Catch-all** → routed to `*-front` services (split by `gateway.weights.east` / `west`).
+
+Override API weights with `gateway.apiWeights` in values when your application supports cross-cluster API load balancing.
+
 ### Key requirements
 
 1. **HTTP port 80, not HTTPS** — Istio ambient mode gateways do not apply `DestinationRule` TLS settings. Using HTTPS causes `CERTIFICATE_VERIFY_FAILED` errors. Spoke Routes must set `insecureEdgeTerminationPolicy: Allow`.
@@ -33,9 +52,40 @@ Browser → Hub OpenShift Router (HTTPS) → Istio Gateway (port 8080) → Exter
 
 3. **Per-backend Host header rewrite** — the spoke OpenShift router routes by `Host` header. Use `RequestHeaderModifier` filters on each `backendRef` in the HTTPRoute.
 
-4. **Session affinity for Socket.IO** — when load-balancing across multiple backends, Socket.IO polling and WebSocket upgrade must reach the same backend. Split the HTTPRoute into:
-   - `/api` prefix → pinned to single backend (session affinity)
-   - Everything else → weighted across east/west (load-balanced static content)
+4. **Session affinity for Socket.IO** — when load-balancing across multiple backends, Socket.IO polling and WebSocket upgrade must reach the same backend. The `/api` rule pins to a single spoke by default.
+
+## Circuit breaking
+
+Each `ExternalName` service gets a `DestinationRule` with `outlierDetection` and `connectionPool` settings, enforced by the `hub-gateway-system-waypoint` proxy (Istio ambient L7).
+
+### Default configuration (aggressive / demo)
+
+| Parameter | Default | Purpose |
+| --------- | ------- | ------- |
+| `connectionPool.tcp.maxConnections` | 100 | Max concurrent TCP connections |
+| `connectionPool.http.h2UpgradePolicy` | `DO_NOT_UPGRADE` | Spokes expect HTTP/1.1 |
+| `connectionPool.http.maxRequestsPerConnection` | 10 | Force connection recycling |
+| `outlierDetection.consecutive5xxErrors` | 3 | Eject after 3 consecutive 5xx |
+| `outlierDetection.interval` | 10s | Health check interval |
+| `outlierDetection.baseEjectionTime` | 30s | Minimum ejection duration |
+| `outlierDetection.maxEjectionPercent` | 100 | Allow ejecting the only endpoint |
+
+`maxEjectionPercent: 100` is required because each ExternalName service resolves to a single endpoint; without it, Istio refuses to eject the last remaining host.
+
+### Overriding circuit breaker values
+
+Set `gateway.circuitBreaking.*` in the hub-gateway values:
+
+```yaml
+gateway:
+  circuitBreaking:
+    enabled: true
+    outlierDetection:
+      consecutive5xxErrors: 5
+      baseEjectionTime: 60s
+```
+
+Set `enabled: false` to disable circuit breaking entirely.
 
 ## Relationship to Connectivity Link
 
@@ -45,9 +95,9 @@ Connectivity Link (Kuadrant) layers DNS automation, TLS policies, and advanced c
 
 The Industrial Edge `line-dashboard` (iot-frontend) requires an `iot-consumer` sidecar to display sensor data:
 
-- **iot-consumer** bridges MQTT → WebSocket via Socket.IO
+- **iot-consumer** bridges MQTT to WebSocket via Socket.IO
 - Mount a ConfigMap `config.json` with `websocketHost: ""` (empty = same origin)
-- Path-based Route `/api` → port 3000 (iot-consumer)
+- Path-based Route `/api` to port 3000 (iot-consumer)
 - The hub gateway proxies `/api` requests to the correct spoke backend where iot-consumer handles the Socket.IO connection
 
 ## Operational notes
@@ -60,5 +110,6 @@ The Industrial Edge `line-dashboard` (iot-frontend) requires an `iot-consumer` s
 
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 - [Connectivity Link documentation](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/)
+- [Istio DestinationRule](https://istio.io/latest/docs/reference/config/networking/destination-rule/)
 
 Implementation chart: `components/hub-gateway`.

@@ -1,0 +1,44 @@
+{{- $cb := .Values.gateway.circuitBreaking | default dict }}
+{{- if ne (toString (index $cb "enabled" | default true)) "false" }}
+{{- $cp := $cb.connectionPool | default dict }}
+{{- $cpTcp := $cp.tcp | default dict }}
+{{- $cpHttp := $cp.http | default dict }}
+{{- $od := $cb.outlierDetection | default dict }}
+
+{{- $services := list }}
+{{- if .Values.clusters.east.domain }}
+  {{- $services = append $services "industrial-edge-east-front" }}
+  {{- $services = append $services "industrial-edge-east-api" }}
+{{- end }}
+{{- if .Values.clusters.west.domain }}
+  {{- $services = append $services "industrial-edge-west-front" }}
+  {{- $services = append $services "industrial-edge-west-api" }}
+{{- end }}
+
+{{- range $i, $svc := $services }}
+{{- if $i }}
+---
+{{- end }}
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: cb-{{ $svc }}
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  host: {{ $svc }}.hub-gateway-system.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: {{ $cpTcp.maxConnections | default 100 }}
+      http:
+        h2UpgradePolicy: {{ $cpHttp.h2UpgradePolicy | default "DO_NOT_UPGRADE" }}
+        maxRequestsPerConnection: {{ $cpHttp.maxRequestsPerConnection | default 10 }}
+    outlierDetection:
+      consecutive5xxErrors: {{ $od.consecutive5xxErrors | default 3 }}
+      interval: {{ $od.interval | default "10s" }}
+      baseEjectionTime: {{ $od.baseEjectionTime | default "30s" }}
+      maxEjectionPercent: {{ $od.maxEjectionPercent | default 100 }}
+{{- end }}
+{{- end }}

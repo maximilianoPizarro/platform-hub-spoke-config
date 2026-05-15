@@ -1,0 +1,149 @@
+/* Red Hat Design System overrides for Just the Docs */
+@import url('https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Red+Hat+Text:wght@400;500;700&family=Red+Hat+Mono:wght@400;500;700&display=swap');
+
+:root {
+  --rh-color-brand-red-on-light: #EE0000;
+  --rh-color-brand-red-on-dark: #FF4136;
+  --rh-color-black-900: #151515;
+  --rh-color-black-800: #1F1F1F;
+  --rh-color-black-700: #292929;
+  --rh-color-black-600: #3C3F42;
+  --rh-color-black-500: #6A6E73;
+  --rh-color-black-400: #8A8D90;
+  --rh-color-black-300: #B8BBBE;
+  --rh-color-black-200: #D2D2D2;
+  --rh-color-black-150: #E0E0E0;
+  --rh-color-black-100: #F0F0F0;
+  --rh-color-white: #FFFFFF;
+  --rh-color-surface-darkest: #0C0C0C;
+  --rh-color-surface-dark: #1F1F1F;
+  --rh-color-interactive-blue: #0066CC;
+  --rh-color-interactive-blue-lighter: #73BCF7;
+}
+
+/* ── Dark scheme (default) ── */
+.site-title {
+  font-family: 'Red Hat Display', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+body {
+  font-family: 'Red Hat Text', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.nav-list .nav-list-item a,
+.site-title {
+  font-family: 'Red Hat Display', sans-serif !important;
+}
+
+code, pre, .highlight {
+  font-family: 'Red Hat Mono', monospace !important;
+}
+
+/* Dark mode colors */
+body.dark,
+body[data-theme="dark"],
+.side-bar {
+  background-color: var(--rh-color-surface-darkest) !important;
+}
+
+.main-content {
+  background-color: var(--rh-color-surface-dark) !important;
+}
+
+/* Links */
+a,
+.nav-list .nav-list-item a.active,
+.breadcrumb-nav a {
+  color: var(--rh-color-interactive-blue-lighter) !important;
+}
+
+a:hover {
+  color: var(--rh-color-white) !important;
+}
+
+/* Brand accent: top border on sidebar */
+.side-bar {
+  border-top: 3px solid var(--rh-color-brand-red-on-dark) !important;
+}
+
+/* Navigation active state */
+.nav-list .nav-list-item a.active {
+  border-left: 3px solid var(--rh-color-brand-red-on-dark) !important;
+  font-weight: 700;
+}
+
+/* Headings */
+h1 {
+  color: var(--rh-color-white) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  color: var(--rh-color-black-200) !important;
+  border-bottom-color: var(--rh-color-black-700) !important;
+  font-weight: 500 !important;
+}
+
+/* Tables */
+th {
+  background-color: var(--rh-color-black-800) !important;
+  color: var(--rh-color-white) !important;
+  font-family: 'Red Hat Display', sans-serif !important;
+  font-weight: 500 !important;
+}
+
+td {
+  border-color: var(--rh-color-black-700) !important;
+}
+
+/* Code blocks */
+pre.highlight,
+.highlight pre {
+  background-color: var(--rh-color-black-900) !important;
+  border: 1px solid var(--rh-color-black-700) !important;
+  border-radius: 4px;
+}
+
+code {
+  background-color: var(--rh-color-black-800) !important;
+  color: var(--rh-color-interactive-blue-lighter) !important;
+  border-radius: 3px;
+  padding: 0.15em 0.35em;
+}
+
+pre code {
+  background-color: transparent !important;
+  color: var(--rh-color-black-200) !important;
+  padding: 0;
+}
+
+/* Search input */
+.search-input {
+  background-color: var(--rh-color-black-800) !important;
+  border-color: var(--rh-color-black-600) !important;
+  color: var(--rh-color-white) !important;
+  font-family: 'Red Hat Text', sans-serif !important;
+}
+
+/* Footer */
+.site-footer {
+  border-top-color: var(--rh-color-brand-red-on-dark) !important;
+  color: var(--rh-color-black-400) !important;
+  font-size: 0.85rem;
+}
+
+/* Buttons and back-to-top */
+.btn,
+.back-to-top {
+  font-family: 'Red Hat Text', sans-serif !important;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  background-color: var(--rh-color-black-900) !important;
+  border-radius: 6px;
+  padding: 1rem;
+}

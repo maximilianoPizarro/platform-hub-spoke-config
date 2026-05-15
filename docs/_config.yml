@@ -10,16 +10,20 @@ baseurl: "/platform-hub-spoke-config"
 
 color_scheme: dark
 
+logo: "https://www.redhat.com/cms/managed-files/styles/wysiwyg_full_width/s3/Logo-Red_Hat-A-Reverse-RGB.svg"
+
 aux_links:
   "GitHub":
     - "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
+  "Red Hat Docs":
+    - "https://docs.redhat.com"
 
 nav_enabled: true
 search_enabled: true
 heading_anchors: true
 back_to_top: true
 back_to_top_text: "Back to top"
-footer_content: "Red Hat Products | Hub-Spoke GitOps Platform"
+footer_content: '<span style="color:#EE0000;font-weight:700;">Red Hat</span> &bull; Platform Hub-Spoke GitOps'
 
 mermaid:
   version: "10.9.0"

@@ -6,15 +6,16 @@ nav_order: 1
 
 # Platform Hub-Spoke Config
 
-**Multi-cluster GitOps platform using Red Hat products** — a hub-spoke topology that centralizes governance with Red Hat Advanced Cluster Management (ACM), delivers Industrial Edge workloads on regional spokes, uses OpenShift Service Mesh in ambient mode for east-west connectivity, layers Connectivity Link (Kuadrant) for API-aware ingress policy, exposes Grafana dashboards for cross-cluster visibility, and integrates Advanced Cluster Security (ACS) for vulnerability and runtime protection.
+**Multi-cluster GitOps platform using Red Hat products** -- a hub-spoke topology that centralizes governance with Red Hat Advanced Cluster Management (ACM), delivers Industrial Edge workloads on regional spokes, uses OpenShift Service Mesh in ambient mode for east-west connectivity, layers Connectivity Link (Kuadrant) for API-aware ingress policy, exposes Grafana dashboards for cross-cluster visibility, and integrates Advanced Cluster Security (ACS) for vulnerability and runtime protection.
 
 ## Overview
 
 This repository models a **GitOps-first platform** where:
 
-- **Hub cluster** runs ACM, OpenShift GitOps (Argo CD), observability aggregation, optional Developer Hub, ACS Central, and gateway-style HTTP routing for shared services.
+- **Hub cluster** runs ACM, OpenShift GitOps (Argo CD), observability aggregation, Developer Hub, ACS Central, Mailpit for notifications, and gateway-style HTTP routing with **circuit breaking** for shared services.
 - **Spoke clusters** (east/west regions) host **Industrial Edge** patterns: sensor and MQTT-style ingestion, Kafka pipelines, optional ML scoring, and dashboards fed by Prometheus-compatible metrics.
 - **Service Mesh 3 ambient** reduces sidecar overhead while retaining ztunnel-based L4 and waypoint-based L7 policy where needed.
+- **Hub Gateway** splits traffic into **front** and **API** services per spoke, with per-service **circuit breaking** via `DestinationRule` (outlier detection + connection pools enforced by the waypoint proxy).
 - **Connectivity Link** aligns with Kubernetes Gateway API and Kuadrant policies (often introduced gradually; policies may start disabled).
 - **Grafana dashboards** roll up cluster and application signals for operators.
 - **ACS** provides centralized policy, CVE visibility, and SecuredCluster agents on spokes.
@@ -27,9 +28,10 @@ flowchart TB
     OBS["Observability / Grafana"]
     GW["Hub Gateway / Gateway API"]
     ACS_C["ACS Central"]
+    MAIL["Mailpit"]
   end
 
-  subgraph East["East spoke — Industrial Edge"]
+  subgraph East["East spoke -- Industrial Edge"]
     IE_E["Factories / sensors"]
     MQTT_E["MQTT"]
     K_E["Kafka"]
@@ -37,7 +39,7 @@ flowchart TB
     D_E["Dashboards"]
   end
 
-  subgraph West["West spoke — Industrial Edge"]
+  subgraph West["West spoke -- Industrial Edge"]
     IE_W["Factories / sensors"]
     MQTT_W["MQTT"]
     K_W["Kafka"]
@@ -51,8 +53,8 @@ flowchart TB
   ACM --> West
   IE_E --> MQTT_E --> K_E --> ML_E --> D_E
   IE_W --> MQTT_W --> K_W --> ML_W --> D_W
-  Hub --> East
-  Hub --> West
+  GW -->|"front/api split + circuit breaking"| East
+  GW -->|"front/api split + circuit breaking"| West
   OBS --> East
   OBS --> West
 ```
@@ -83,4 +85,5 @@ flowchart TB
 - Red Hat build of Apache Camel / Camel K
 - Red Hat OpenShift Pipelines (Tekton)
 - Red Hat Developer Hub (Backstage)
-- Observability stack (Prometheus-compatible metrics, Grafana, OpenTelemetry, Kiali where deployed)
+- Mailpit (SMTP testing for notifications)
+- Observability stack (Prometheus-compatible metrics, Grafana, OpenTelemetry, Kiali)

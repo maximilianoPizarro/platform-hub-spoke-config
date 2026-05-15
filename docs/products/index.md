@@ -23,3 +23,4 @@ This platform composes multiple Red Hat operators and patterns. Use the child pa
 | [AMQ Streams](amq-streams.md) | Kafka for telemetry pipelines |
 | [Apache Camel / Camel K](camel-k.md) | Integrations (MQTT, S3, Kafka) |
 | [OpenShift Pipelines](pipelines.md) | Tekton CI/CD for Industrial Edge |
+| [Mailpit](mailpit.md) | SMTP testing server for notification pipelines |
