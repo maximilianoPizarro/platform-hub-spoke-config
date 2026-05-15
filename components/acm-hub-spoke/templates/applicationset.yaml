@@ -63,6 +63,9 @@ spec:
                 - id: rhcl-operator
                   path: components/rhcl-operator
                   namespace: redhat-connectivity-link-operator
+                - id: kiali
+                  path: components/kiali
+                  namespace: openshift-cluster-observability-operator
   template:
     metadata:
       name: '{{`{{.id}}-{{.clusterName}}`}}'
@@ -90,6 +93,10 @@ spec:
                 namespace: openshift-operators
                 channel: v5
                 source: community-operators
+              - name: kiali-ossm
+                namespace: openshift-operators
+                channel: stable
+                source: redhat-operators
             global:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}
