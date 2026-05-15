@@ -25,5 +25,5 @@ spec:
   channel: stable
   installPlanApproval: Automatic
   name: kuadrant-operator
-  source: redhat-operators
+  source: community-operators
   sourceNamespace: openshift-marketplace
