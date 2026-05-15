@@ -58,7 +58,7 @@ Grafana **11** often ships with **HTTP basic auth to the Grafana API disabled**.
 
 This repository configures:
 
-1. **`[auth.basic] enabled`** on the `Grafana` CR via `spec.config.auth.basic` as a **string** (INI snippet), because the Grafana Operator CRD expects `auth.basic` to be a string, not a nested object.
+1. **`[auth.basic] enabled`** on the `Grafana` CR via `spec.config.auth.basic` as a **string** containing a small INI snippet (`[auth.basic]` / `enabled = true`), because the Grafana Operator CRD expects `auth.basic` to be a string, not a nested object.
 2. A **ServiceAccount** (`grafana-thanos-reader`) bound to **`cluster-monitoring-view`**, plus a **`kubernetes.io/service-account-token`** Secret.
 3. **`GrafanaDatasource.valuesFrom`** so the Thanos `Authorization: Bearer …` header is built from that token (instead of the non-functional `${GRAFANA_SA_TOKEN}` placeholder).
 
