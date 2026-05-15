@@ -10,7 +10,7 @@ argocd:
 # Multi-cluster configuration
 clusters:
   hub:
-    domain: ""
+    domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
   east:
     domain: ""
   west:
@@ -199,7 +199,7 @@ connectivityLink:
       skipDryRunOnMissingResource: true
 
 deployer:
-  domain: ""
+  domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
 
 fieldContent:
   deploymentType: "helm"
