@@ -122,15 +122,48 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+  {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
+  {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
+  {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
+  {{- $westDomain := $.Values.clusters.west.domain | default "" }}
   source:
+    {{- if .chart }}
+    repoURL: {{ .repoURL }}
+    chart: {{ .chart }}
+    targetRevision: {{ .targetRevision }}
+    {{- else }}
     repoURL: {{ $.Values.gitops.repoUrl }}
     targetRevision: {{ $.Values.gitops.revision }}
     path: {{ $.Values.gitops.basePath | default "." }}/components/{{ .path }}
-    {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
-    {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
-    {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
-    {{- $westDomain := $.Values.clusters.west.domain | default "" }}
-    {{- if eq .path "namespaces" }}
+    {{- end }}
+    {{- if eq .id "gitea-chart" }}
+    helm:
+      valuesObject:
+        global:
+          compatibility:
+            openshift:
+              adaptSecurityContext: force
+        gitea:
+          admin:
+            username: gitea_admin
+            password: openshift
+            email: admin@gitea.local
+        postgresql-ha:
+          enabled: false
+        postgresql:
+          enabled: true
+        redis-cluster:
+          enabled: false
+        redis:
+          enabled: true
+        persistence:
+          enabled: true
+          size: 10Gi
+        service:
+          http:
+            type: ClusterIP
+            port: 3000
+    {{- else if eq .path "namespaces" }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
@@ -198,6 +231,7 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain }}
         clusterRole: hub
     {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3") }}
     helm:

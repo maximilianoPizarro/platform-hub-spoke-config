@@ -94,6 +94,7 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain }}
         clusterRole: spoke
     {{- else }}
     helm:

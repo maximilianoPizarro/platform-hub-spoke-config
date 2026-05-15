@@ -203,6 +203,17 @@ connectivityLink:
       selfHeal: true
       skipDryRunOnMissingResource: true
     # Gitea (centralized on hub)
+    - id: gitea-chart
+      enabled: true
+      path: ""
+      repoURL: "https://dl.gitea.com/charts/"
+      chart: gitea
+      targetRevision: "12.5.0"
+      destinationNamespace: gitea
+      syncWave: "3"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: false
     - id: gitea
       enabled: true
       path: gitea

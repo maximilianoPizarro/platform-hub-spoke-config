@@ -1,5 +1,20 @@
 {{- $domain := .Values.clusterDomain -}}
+{{- $hubDomain := .Values.hubClusterDomain | default $domain -}}
 {{- $role := .Values.clusterRole | default "hub" -}}
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-industrial-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTIxIDNoLThjLS41NSAwLTEgLjQ1LTEgMXY5YzAgLjU1LjQ1IDEgMSAxaDhjLjU1IDAgMS0uNDUgMS0xVjRjMC0uNTUtLjQ1LTEtMS0xem0tMSAxMGgtNlY1aDZ2OHpNNCAxM2MtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDIgMi0uOSAyLTItLjktMi0yLTJ6bTAgMTFjLTEuMSAwLTIgLjktMiAycy45IDIgMiAyIDItLjkgMi0yLS45LTItMi0yem0wLTVjLTEuMSAwLTIgLjktMiAycy45IDIgMiAyIDItLjkgMi0yLS45LTItMi0yem0xMi0ySDd2Mmg5djd6Ii8+PC9zdmc+"
+    section: "Platform Hub-Spoke"
+  href: "https://industrial-edge.{{ $hubDomain }}"
+  location: ApplicationMenu
+  text: "Industrial Edge"
 ---
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
@@ -11,7 +26,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0Y0NjgwMCI+PHBhdGggZD0iTTIyIDloLTR2LTJoNHYyem0tNi0ydi0ySDh2Mmg4em0tMTAgMHYtMkgzdjJoM3ptMTYgNGgtOHYtMmg4djJ6bS0xMCAwdi0ySDV2Mmg3em0tOSAwdi0ySDJ2Mmgxem0xNiA0SDR2LTJoMTV2MnptLTYgNEg2di0yaDd2MnptLTkgMEg0di0yaDR2MnoiLz48L3N2Zz4="
     section: "Platform Hub-Spoke"
-  href: "https://grafana.{{ $domain }}"
+  href: "https://grafana.{{ $hubDomain }}"
   location: ApplicationMenu
   text: "Grafana Dashboards"
 ---
@@ -25,7 +40,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0tMS02aDJ2Mmgtdjd6bTAtNGgydjJoLTJ6Ii8+PC9zdmc+"
     section: "Platform Hub-Spoke"
-  href: "https://kiali-openshift-cluster-observability-operator.{{ $domain }}"
+  href: "https://kiali-openshift-cluster-observability-operator.{{ $hubDomain }}"
   location: ApplicationMenu
   text: "Kiali Service Mesh"
 {{- if eq $role "hub" }}
@@ -85,20 +100,4 @@ spec:
   href: "https://minio-console-industrial-edge-ml-workspace.{{ $domain }}"
   location: ApplicationMenu
   text: "MinIO Console"
-{{- end }}
-{{- if eq $role "spoke" }}
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-devspaces
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTkuNCAzLjUtNi44OSA2Ljg5TDQgMTEuODhsLTEuNDktMS40OUwxIDExLjg4bDMgMyA4LjM5LTguMzktMS40OS0xLjVMMTIgM2wtMi42LjV6TTIxIDEyaDl2Mmg5di0yek0yMSA4aDl2MmgtOVY4eiIvPjwvc3ZnPg=="
-    section: "Platform Hub-Spoke"
-  href: "https://devspaces.{{ $domain }}"
-  location: ApplicationMenu
-  text: "Dev Spaces"
 {{- end }}
