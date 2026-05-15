@@ -6,7 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  version: v1.24.3
+  version: v1.24.1
   namespace: istio-system
   profile: ambient
   values:
@@ -31,7 +31,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
-  version: v1.24.3
+  version: v1.24.1
   namespace: istio-cni
 ---
 apiVersion: v1
