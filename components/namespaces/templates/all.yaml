@@ -14,6 +14,12 @@
   "devspaces"
   "redhat-connectivity-link-operator"
 }}
+{{- $waypointNamespaces := list
+  "industrial-edge-tst-all"
+  "industrial-edge-stormshift-messaging"
+  "industrial-edge-data-lake"
+  "hub-gateway-system"
+}}
 {{- range $namespaces }}
 ---
 apiVersion: v1
@@ -22,6 +28,25 @@ metadata:
   name: {{ . }}
   labels:
     istio.io/dataplane-mode: ambient
+    {{- if has . $waypointNamespaces }}
+    istio.io/use-waypoint: {{ . }}-waypoint
+    {{- end }}
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+{{- end }}
+{{- range $waypointNamespaces }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ . }}-waypoint
+  namespace: {{ . }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
 {{- end }}

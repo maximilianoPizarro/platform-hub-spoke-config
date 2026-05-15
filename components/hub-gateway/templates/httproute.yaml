@@ -30,6 +30,6 @@ spec:
           weight: 100
         {{- else }}
         - name: hub-gateway-istio
-          port: 80
+          port: 8080
           weight: 100
         {{- end }}
