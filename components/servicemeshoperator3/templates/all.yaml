@@ -40,3 +40,27 @@ metadata:
   name: istio-cni
   annotations:
     argocd.argoproj.io/sync-wave: "0"
+{{- $waypointNamespaces := list
+  "industrial-edge-tst-all"
+  "industrial-edge-stormshift-messaging"
+  "industrial-edge-data-lake"
+  "hub-gateway-system"
+}}
+{{- range $waypointNamespaces }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ . }}-waypoint
+  namespace: {{ . }}
+  labels:
+    istio.io/waypoint-for: service
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+{{- end }}
