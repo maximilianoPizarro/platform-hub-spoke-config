@@ -153,7 +153,7 @@ connectivityLink:
     - id: rhcl-operator
       enabled: true
       path: rhcl-operator
-      destinationNamespace: kuadrant-system
+      destinationNamespace: redhat-connectivity-link-operator
       syncWave: "6"
       prune: true
       selfHeal: true

@@ -12,6 +12,7 @@
   "developer-hub"
   "gitea"
   "devspaces"
+  "redhat-connectivity-link-operator"
 }}
 {{- range $namespaces }}
 ---
