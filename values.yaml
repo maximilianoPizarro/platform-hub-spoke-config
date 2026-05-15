@@ -14,7 +14,7 @@ clusters:
   east:
     domain: "apps.cluster-2847b.dynamic2.redhatworkshops.io"
   west:
-    domain: ""
+    domain: "apps.cluster-5zjkk.dynamic2.redhatworkshops.io"
 
 connectivityLink:
   operators:
