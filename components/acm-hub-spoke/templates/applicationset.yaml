@@ -78,6 +78,15 @@ spec:
             clusterName: '{{`{{.clusterName}}`}}'
             clusterRole: spoke
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
+            subscriptions:
+              - name: skupper-operator
+                namespace: openshift-operators
+                channel: stable-2
+                source: redhat-operators
+              - name: grafana-operator
+                namespace: openshift-operators
+                channel: v5
+                source: community-operators
             global:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}

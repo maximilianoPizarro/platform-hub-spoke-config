@@ -7,20 +7,6 @@ metadata:
   labels:
     app.kubernetes.io/part-of: platform-hub-spoke
 ---
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: skupper-operator
-  namespace: openshift-operators
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-spec:
-  channel: stable-2
-  installPlanApproval: Automatic
-  name: skupper-operator
-  source: redhat-operators
-  sourceNamespace: openshift-marketplace
----
 apiVersion: skupper.io/v2alpha1
 kind: Site
 metadata:

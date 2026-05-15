@@ -1,17 +1,3 @@
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: grafana-operator
-  namespace: openshift-operators
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
-spec:
-  channel: v5
-  installPlanApproval: Automatic
-  name: grafana-operator
-  source: community-operators
-  sourceNamespace: openshift-marketplace
----
 apiVersion: v1
 kind: ServiceAccount
 metadata:
