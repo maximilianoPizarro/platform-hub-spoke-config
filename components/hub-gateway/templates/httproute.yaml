@@ -17,17 +17,41 @@ spec:
         - name: industrial-edge-east
           port: 80
           weight: {{ .Values.gateway.weights.east }}
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         - name: industrial-edge-west
           port: 80
           weight: {{ .Values.gateway.weights.west }}
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
         {{- else if .Values.clusters.east.domain }}
         - name: industrial-edge-east
           port: 80
           weight: 100
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         {{- else if .Values.clusters.west.domain }}
         - name: industrial-edge-west
           port: 80
           weight: 100
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
         {{- else }}
         - name: hub-gateway-istio
           port: 8080
