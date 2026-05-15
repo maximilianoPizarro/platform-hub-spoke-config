@@ -30,6 +30,10 @@ operators:
       namespace: openshift-operators
       channel: stable
       source: redhat-operators
+    - name: devspaces
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
 
 apps:
   - id: namespaces
@@ -60,3 +64,7 @@ apps:
     path: components/acs-secured-cluster
     destinationNamespace: stackrox
     syncWave: "4"
+  - id: devspaces
+    path: components/devspaces
+    destinationNamespace: devspaces
+    syncWave: "7"

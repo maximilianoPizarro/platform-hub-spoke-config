@@ -84,6 +84,12 @@ spec:
         clusterName: {{ $.Values.clusterName }}
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
+    {{- else if eq .id "devspaces" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain }}
+        userCount: 200
     {{- else }}
     helm:
       valuesObject:

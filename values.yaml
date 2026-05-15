@@ -200,6 +200,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    # Gitea (centralized on hub)
+    - id: gitea
+      enabled: true
+      path: gitea
+      destinationNamespace: gitea
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     # Grafana Dashboards
     - id: grafana-dashboards
       enabled: true
