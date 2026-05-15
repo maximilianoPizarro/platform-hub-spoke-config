@@ -260,6 +260,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    # Mailpit (email testing)
+    - id: mailpit
+      enabled: true
+      path: mailpit
+      destinationNamespace: mailpit
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: false
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

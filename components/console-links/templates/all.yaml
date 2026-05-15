@@ -114,4 +114,18 @@ spec:
   href: "https://minio-console-industrial-edge-ml-workspace.{{ $domain }}"
   location: ApplicationMenu
   text: "MinIO Console"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-mailpit
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwOTZENiI+PHBhdGggZD0iTTIwIDRINGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCAyLTggNS0yLTggNXoiLz48L3N2Zz4="
+    section: "Platform Hub-Spoke"
+  href: "https://mailpit.{{ $domain }}"
+  location: ApplicationMenu
+  text: "Mailpit (Email)"
 {{- end }}
