@@ -44,6 +44,7 @@ spec:
     tls:
       mode: SIMPLE
       sni: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
+      insecureSkipVerify: true
 {{- end }}
 ---
 {{- if .Values.clusters.west.domain }}
@@ -92,4 +93,5 @@ spec:
     tls:
       mode: SIMPLE
       sni: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
+      insecureSkipVerify: true
 {{- end }}

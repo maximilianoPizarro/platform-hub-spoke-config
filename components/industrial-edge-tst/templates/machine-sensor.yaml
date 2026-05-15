@@ -33,13 +33,15 @@ spec:
               value: "sensor-1"
             - name: SENSOR_GPS
               value: "40.4,-3.7"
+            - name: JAVA_MAX_MEM_RATIO
+              value: "50"
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 256Mi
             limits:
-              cpu: 200m
-              memory: 128Mi
+              cpu: 500m
+              memory: 512Mi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -76,10 +78,12 @@ spec:
               value: "sensor-2"
             - name: SENSOR_GPS
               value: "41.4,-2.2"
+            - name: JAVA_MAX_MEM_RATIO
+              value: "50"
           resources:
             requests:
               cpu: 50m
-              memory: 64Mi
+              memory: 256Mi
             limits:
-              cpu: 200m
-              memory: 128Mi
+              cpu: 500m
+              memory: 512Mi
