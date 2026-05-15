@@ -61,14 +61,14 @@ flowchart TB
 
 | Topic | Page |
 | ------ | ------ |
-| Architecture deep dive | [Architecture]({% link architecture.md %}) |
-| Install flow | [Getting Started]({% link getting-started.md %}) |
-| ACM + GitOps | [Deploy with ACM and GitOps]({% link deploy-acm-gitops.md %}) |
-| Red Hat products | [Red Hat Products]({% link products/index.md %}) |
-| Hub Gateway | [Hub Gateway]({% link hub-gateway.md %}) |
-| Observability | [Observability]({% link observability.md %}) |
-| Industrial Edge | [Industrial Edge]({% link industrial-edge.md %}) |
-| Branch strategy | [Branch Strategy]({% link branch-strategy.md %}) |
+| Architecture deep dive | [Architecture](architecture.md) |
+| Install flow | [Getting Started](getting-started.md) |
+| ACM + GitOps | [Deploy with ACM and GitOps](deploy-acm-gitops.md) |
+| Red Hat products | [Red Hat Products](products/) |
+| Hub Gateway | [Hub Gateway](hub-gateway.md) |
+| Observability | [Observability](observability.md) |
+| Industrial Edge | [Industrial Edge](industrial-edge.md) |
+| Branch strategy | [Branch Strategy](branch-strategy.md) |
 
 ## Red Hat products used
 
