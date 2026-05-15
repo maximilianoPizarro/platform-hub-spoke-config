@@ -6,27 +6,52 @@ nav_order: 9
 
 # Branch Strategy
 
-This repository uses **Git branches** to align GitOps revisions with **hub vs regional spokes**.
+This repository follows a **single-branch model**: all configuration lives on `main` and spoke-specific overrides are handled via separate **values files** and the **ACM ApplicationSet**.
 
-## Branch layout
+## How it works
 
-| Branch | Typical consumers | Values file |
-| ------ | ----------------- | ----------- |
-| `main` | Hub cluster bootstrap | `values.yaml` (`gitops.revision: main`) |
-| `east` | East-region spoke | `values-east.yaml` (`gitops.revision: east`) |
-| `west` | West-region spoke | `values-west.yaml` (`gitops.revision: west`) |
+| Values file | Purpose |
+| ----------- | ------- |
+| `values.yaml` | Hub cluster bootstrap — operators, observability, gateway, hub-only components |
+| `values-east.yaml` | East spoke overlay — subscriptions and app list for the east region |
+| `values-west.yaml` | West spoke overlay — subscriptions and app list for the west region |
+| `values-lite.yaml` | Minimal profile — fewer subscriptions, lighter footprint for demos |
 
-Argo CD Applications reference `spec.source.targetRevision` matching these branches so each fleet slice tracks appropriate overlays without duplicating repositories.
+The **ACM ApplicationSet** (`components/acm-hub-spoke/templates/applicationset.yaml`) generates one ArgoCD Application per component per spoke cluster. All applications point to `targetRevision: main` and receive cluster-specific values (`clusterDomain`, `clusterName`, `clusterRole`, `hubClusterDomain`) via the `valuesObject`.
+
+```yaml
+# Simplified view of the ApplicationSet matrix generator
+generators:
+  - matrix:
+      generators:
+        - list:
+            elements:
+              - clusterName: east
+                clusterDomain: apps.east.example.com
+              - clusterName: west
+                clusterDomain: apps.west.example.com
+        - list:
+            elements:
+              - id: operators
+                path: components/operators
+              - id: observability
+                path: components/observability
+              # ... all spoke components
+```
 
 ## Adding a new cluster
 
 1. **Provision** the OpenShift cluster and import it into ACM.
 2. **Label** the `ManagedCluster` for placement selectors (`region`, `site`, etc.).
-3. **Decide branch model**: extend existing regional branches or add `site-foo` with a new values file.
-4. **Copy** an existing spoke values file (for example `values-east.yaml`) and adjust `gitops.revision`, domains, and enabled `connectivityLink.apps[]` entries.
-5. **Extend** `Placement` / **ApplicationSet** generators if you introduced new label keys.
-6. **Run** `helm template` and CI (`helm lint`, `yamllint`) against the new profile before merging.
+3. **Add the cluster** to the ApplicationSet generator list in `components/acm-hub-spoke/templates/applicationset.yaml`.
+4. **Add domains** to `values.yaml` under `clusters.<name>.domain`.
+5. **Create a values file** (optional) — copy `values-east.yaml` and adjust domains and subscriptions.
+6. **Run** `helm template` and CI (`helm lint`, `yamllint`) to validate.
 
 ## Minimal profiles
 
-For constrained environments, test `values-lite.yaml`: fewer subscriptions and disabled heavy components while preserving GitOps bootstrap paths.
+For constrained environments, use `values-lite.yaml`: fewer subscriptions and disabled heavy components while preserving GitOps bootstrap paths.
+
+```bash
+helm template test . -f values-lite.yaml
+```

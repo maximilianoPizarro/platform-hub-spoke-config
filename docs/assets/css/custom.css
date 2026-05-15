@@ -21,7 +21,7 @@
   --rh-color-interactive-blue-lighter: #73BCF7;
 }
 
-/* ── Dark scheme (default) ── */
+/* ── Typography ── */
 .site-title {
   font-family: 'Red Hat Display', sans-serif !important;
   font-weight: 700 !important;
@@ -41,14 +41,36 @@ code, pre, .highlight {
   font-family: 'Red Hat Mono', monospace !important;
 }
 
-/* Dark mode colors */
-body.dark,
-body[data-theme="dark"],
+/* ── Layout fix: ensure main content uses full available width ── */
+.main-content-wrap {
+  max-width: 100% !important;
+  padding-left: 2rem;
+  padding-right: 2rem;
+}
+
+.main-content {
+  max-width: 1200px !important;
+  margin: 0 auto;
+}
+
+@media (min-width: 66.5rem) {
+  .side-bar {
+    width: 264px !important;
+    min-width: 264px !important;
+  }
+
+  .main {
+    margin-left: 264px !important;
+  }
+}
+
+/* ── Dark mode colors ── */
+body,
 .side-bar {
   background-color: var(--rh-color-surface-darkest) !important;
 }
 
-.main-content {
+.main-content-wrap {
   background-color: var(--rh-color-surface-dark) !important;
 }
 
@@ -97,6 +119,11 @@ th {
 
 td {
   border-color: var(--rh-color-black-700) !important;
+}
+
+table {
+  width: 100% !important;
+  display: table !important;
 }
 
 /* Code blocks */
