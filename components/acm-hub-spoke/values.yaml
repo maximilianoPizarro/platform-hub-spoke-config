@@ -1,0 +1,8 @@
+clusterDomain: ""
+gitops:
+  repoUrl: ""
+clusters:
+  east:
+    domain: ""
+  west:
+    domain: ""

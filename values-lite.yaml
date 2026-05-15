@@ -1,0 +1,192 @@
+gitops:
+  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config.git"
+  revision: "main"
+  basePath: "."
+
+argocd:
+  namespace: openshift-gitops
+  project: default
+
+clusters:
+  hub:
+    domain: ""
+  east:
+    domain: ""
+  west:
+    domain: ""
+
+# Minimal profile: GitOps bootstrap, namespaces, operators, Service Mesh 3, and basic Industrial Edge TST.
+# Disables ACS, hub gateway, Grafana dashboards, RHODS/DataScience components, ACM-heavy paths, observability add-ons, and Connectivity Link operator.
+connectivityLink:
+  operators:
+    channel: stable-4.20
+    version: 4.20.4
+    subscriptions:
+      - name: amq-broker-rhel8
+        namespace: industrial-edge-tst-all
+        channel: 7.12.x
+        source: redhat-operators
+      - name: camel-k
+        namespace: openshift-operators
+        channel: stable-v2
+        source: community-operators
+
+  apps:
+    - id: openshift-gitops
+      enabled: true
+      path: openshift-gitops
+      destinationNamespace: openshift-gitops
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: namespaces
+      enabled: true
+      path: namespaces
+      destinationNamespace: openshift-gitops
+      syncWave: "1"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: false
+    - id: operators
+      enabled: true
+      path: operators
+      destinationNamespace: openshift-operators
+      syncWave: "2"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: servicemeshoperator3
+      enabled: true
+      path: servicemeshoperator3
+      destinationNamespace: openshift-operators
+      syncWave: "3"
+      prune: false
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: acm-operator
+      enabled: false
+      path: acm-operator
+      destinationNamespace: open-cluster-management
+      syncWave: "3"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: acs-operator
+      enabled: false
+      path: acs-operator
+      destinationNamespace: stackrox
+      syncWave: "3"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: developer-hub
+      enabled: false
+      path: developer-hub
+      destinationNamespace: developer-hub
+      syncWave: "3"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: acm-hub-spoke
+      enabled: false
+      path: acm-hub-spoke
+      destinationNamespace: openshift-gitops
+      syncWave: "4"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: observability
+      enabled: false
+      path: observability
+      destinationNamespace: openshift-cluster-observability-operator
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: kiali
+      enabled: false
+      path: kiali
+      destinationNamespace: openshift-cluster-observability-operator
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: opentelemetry
+      enabled: false
+      path: opentelemetry
+      destinationNamespace: openshift-opentelemetry
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: rhcl-operator
+      enabled: false
+      path: rhcl-operator
+      destinationNamespace: kuadrant-system
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-minio
+      enabled: false
+      path: industrial-edge-minio
+      destinationNamespace: industrial-edge-ml-workspace
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-data-science-cluster
+      enabled: false
+      path: industrial-edge-data-science-cluster
+      destinationNamespace: redhat-ods-applications
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-data-lake
+      enabled: false
+      path: industrial-edge-data-lake
+      destinationNamespace: industrial-edge-data-lake
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-data-science-project
+      enabled: false
+      path: industrial-edge-data-science-project
+      destinationNamespace: ml-development
+      syncWave: "7"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-tst
+      enabled: true
+      path: industrial-edge-tst
+      destinationNamespace: industrial-edge-tst-all
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: hub-gateway
+      enabled: false
+      path: hub-gateway
+      destinationNamespace: hub-gateway-system
+      syncWave: "7"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: grafana-dashboards
+      enabled: false
+      path: grafana-dashboards
+      destinationNamespace: openshift-cluster-observability-operator
+      syncWave: "8"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+
+deployer:
+  domain: ""
+
+fieldContent:
+  deploymentType: "helm"

@@ -1,0 +1,84 @@
+name: Helm Validate & ArgoCD Preflight
+
+on:
+  push:
+    branches: [main, east, west]
+  pull_request:
+    branches: [main, east, west]
+
+jobs:
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.0'
+      - name: Lint parent chart
+        run: helm lint .
+      - name: Lint all component charts
+        run: |
+          for chart in components/*/; do
+            if [ -f "$chart/Chart.yaml" ]; then
+              echo "Linting $chart..."
+              helm lint "$chart" || true
+            fi
+          done
+
+  helm-template:
+    runs-on: ubuntu-latest
+    needs: helm-lint
+    strategy:
+      matrix:
+        profile:
+          - name: hub
+            values: values.yaml
+            domain: apps.hub.example.com
+          - name: east
+            values: values-east.yaml
+            domain: apps.east.example.com
+          - name: west
+            values: values-west.yaml
+            domain: apps.west.example.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.0'
+      - name: Template ${{ matrix.profile.name }}
+        run: |
+          helm template test-release . \
+            -f ${{ matrix.profile.values }} \
+            --set deployer.domain=${{ matrix.profile.domain }} \
+            > /dev/null
+          echo "Template ${{ matrix.profile.name }} rendered successfully"
+
+  yaml-validate:
+    runs-on: ubuntu-latest
+    needs: helm-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install yamllint
+      - name: Validate YAML
+        run: |
+          yamllint -d relaxed values.yaml
+          yamllint -d relaxed values-east.yaml
+          yamllint -d relaxed values-west.yaml
+
+  argocd-preflight:
+    runs-on: ubuntu-latest
+    needs: helm-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: 'v3.15.0'
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      - name: ArgoCD preflight checks
+        run: bash scripts/argocd-preflight.sh

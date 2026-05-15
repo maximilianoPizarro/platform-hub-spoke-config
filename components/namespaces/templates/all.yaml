@@ -1,0 +1,21 @@
+{{- $namespaces := list
+  "industrial-edge-tst-all"
+  "industrial-edge-stormshift-messaging"
+  "industrial-edge-data-lake"
+  "industrial-edge-ml-workspace"
+  "industrial-edge-ci"
+  "ml-development"
+  "hub-gateway-system"
+  "stackrox"
+}}
+{{- range $namespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+  labels:
+    istio.io/dataplane-mode: ambient
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+{{- end }}

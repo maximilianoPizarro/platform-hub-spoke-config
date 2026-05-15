@@ -1,0 +1,33 @@
+{{- if .Values.clusters.east.domain }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: industrial-edge-east
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 443
+{{- end }}
+---
+{{- if .Values.clusters.west.domain }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: industrial-edge-west
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 443
+{{- end }}

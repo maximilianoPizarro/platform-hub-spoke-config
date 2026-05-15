@@ -1,0 +1,95 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: industrial-edge-spoke
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=zero"]
+  generators:
+    - matrix:
+        generators:
+          - list:
+              elements:
+                - clusterName: east
+                  targetRevision: east
+                  clusterDomain: {{ .Values.clusters.east.domain | quote }}
+                - clusterName: west
+                  targetRevision: west
+                  clusterDomain: {{ .Values.clusters.west.domain | quote }}
+          - list:
+              elements:
+                - id: industrial-edge-tst
+                  path: components/industrial-edge-tst
+                  namespace: industrial-edge-tst-all
+                - id: industrial-edge-stormshift
+                  path: components/industrial-edge-stormshift
+                  namespace: industrial-edge-stormshift-messaging
+                - id: industrial-edge-pipelines
+                  path: components/industrial-edge-pipelines
+                  namespace: industrial-edge-ci
+                - id: acs-secured-cluster
+                  path: components/acs-secured-cluster
+                  namespace: stackrox
+  template:
+    metadata:
+      name: '{{`{{.id}}-{{.clusterName}}`}}'
+      labels:
+        app.kubernetes.io/part-of: platform-hub-spoke
+        apps.open-cluster-management.io/cluster-set: global
+    spec:
+      project: default
+      source:
+        repoURL: {{ .Values.gitops.repoUrl }}
+        targetRevision: '{{`{{.targetRevision}}`}}'
+        path: '{{`{{.path}}`}}'
+        helm:
+          valuesObject:
+            clusterDomain: '{{`{{.clusterDomain}}`}}'
+            clusterName: '{{`{{.clusterName}}`}}'
+            hubClusterDomain: {{ .Values.clusterDomain | quote }}
+            global:
+              localClusterDomain: '{{`{{.clusterDomain}}`}}'
+              hubClusterDomain: {{ .Values.clusterDomain | quote }}
+      destination:
+        name: '{{`{{.clusterName}}`}}'
+        namespace: '{{`{{.namespace}}`}}'
+      ignoreDifferences:
+        - group: route.openshift.io
+          kind: Route
+          jsonPointers:
+            - /spec/host
+            - /status
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/template/metadata/annotations
+        - group: ""
+          kind: Service
+          jsonPointers:
+            - /spec/clusterIP
+            - /spec/clusterIPs
+        - group: ""
+          kind: Secret
+          jsonPointers:
+            - /data
+        - group: kafka.strimzi.io
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+        - group: platform.stackrox.io
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+      syncPolicy:
+        automated:
+          selfHeal: true
+          prune: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - RespectIgnoreDifferences=true

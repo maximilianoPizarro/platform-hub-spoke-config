@@ -1,0 +1,31 @@
+---
+layout: default
+title: Advanced Cluster Management
+parent: Red Hat Products
+nav_order: 1
+---
+
+# Advanced Cluster Management
+
+Red Hat **Advanced Cluster Management for Kubernetes (ACM)** provides fleet-wide visibility and lifecycle for OpenShift and Kubernetes clusters. In this repository it anchors **hub-spoke registration**, **policy placement**, and integration with **OpenShift GitOps** via `GitOpsCluster` and related APIs.
+
+## Role in this solution
+
+- Inventory managed clusters and apply governance policies consistently.
+- Drive **which spokes** receive Industrial Edge and platform components through placement rules.
+- Coordinate secrets and addons required for klusterlet agents on spokes.
+
+## Notable APIs / CRDs (overview)
+
+Typical objects you will encounter:
+
+- `MultiClusterHub` — hub installation status.
+- `ManagedCluster`, `ManagedClusterSet` — membership grouping.
+- `Placement`, `PlacementDecision` — dynamic cluster selection.
+- `GitOpsCluster` — binds placement results to Argo CD managed clusters.
+
+Install specifics live in the `acm-operator` and `acm-hub-spoke` component charts in `components/`.
+
+## Documentation
+
+- [Red Hat ACM 2.16 documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.16)

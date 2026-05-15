@@ -1,0 +1,190 @@
+{{- range .Values.connectivityLink.apps }}
+{{- if and . .enabled }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $.Release.Name }}-{{ .id }}
+  namespace: {{ $.Values.argocd.namespace }}
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ $.Values.argocd.project }}
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+        - /spec/ipFamilies
+        - /spec/ipFamilyPolicy
+        - /spec/internalTrafficPolicy
+    - group: route.openshift.io
+      kind: Route
+      jsonPointers:
+        - /spec/host
+        - /spec/wildcardPolicy
+        - /status
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/metadata/annotations
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Namespace
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
+    - group: networking.istio.io
+      kind: "*"
+      jsonPointers:
+        - /spec
+        - /metadata/annotations
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: sailoperator.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: operator.istio.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: kuadrant.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: kafka.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: datasciencecluster.opendatahub.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: serving.kserve.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: camel.apache.org
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: ""
+      kind: ConfigMap
+      jsonPointers:
+        - /metadata/annotations
+    - group: platform.stackrox.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: operator.open-cluster-management.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+  source:
+    repoURL: {{ $.Values.gitops.repoUrl }}
+    targetRevision: {{ $.Values.gitops.revision }}
+    path: {{ $.Values.gitops.basePath }}/components/{{ .path }}
+    {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
+    {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
+    {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
+    {{- $westDomain := $.Values.clusters.west.domain | default "" }}
+    {{- if eq .path "namespaces" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .path "operators" }}
+    helm:
+      valuesObject:
+        channel: {{ $.Values.connectivityLink.operators.channel | quote }}
+        version: {{ $.Values.connectivityLink.operators.version | quote }}
+        subscriptions: {{ $.Values.connectivityLink.operators.subscriptions | toJson }}
+    {{- else if eq .path "developer-hub" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .path "acm-hub-spoke" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        gitops:
+          repoUrl: {{ $.Values.gitops.repoUrl | quote }}
+        clusters:
+          east:
+            domain: {{ $eastDomain | quote }}
+          west:
+            domain: {{ $westDomain | quote }}
+    {{- else if eq .path "hub-gateway" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusters:
+          east:
+            domain: {{ $eastDomain | quote }}
+          west:
+            domain: {{ $westDomain | quote }}
+    {{- else if eq .path "acs-operator" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .path "acm-operator" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .path "grafana-dashboards" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if has .path (list "industrial-edge-tst" "industrial-edge-stormshift" "industrial-edge-data-lake" "industrial-edge-data-science-project" "industrial-edge-pipelines" "industrial-edge-minio" "industrial-edge-data-science-cluster") }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        global:
+          localClusterDomain: {{ $domain }}
+          hubClusterDomain: {{ $hubDomain }}
+    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3") }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .destinationNamespace }}
+  syncPolicy:
+    automated:
+      prune: {{ .prune }}
+      selfHeal: {{ .selfHeal }}
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+      {{- if .skipDryRunOnMissingResource }}
+      - SkipDryRunOnMissingResource=true
+      {{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,86 @@
+gitops:
+  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config.git"
+  revision: "west"
+  basePath: "."
+
+argocd:
+  namespace: openshift-gitops
+  project: default
+
+clusters:
+  hub:
+    domain: ""
+  east:
+    domain: ""
+  west:
+    domain: ""
+
+connectivityLink:
+  operators:
+    channel: stable-4.20
+    version: 4.20.4
+    subscriptions:
+      - name: amq-broker-rhel8
+        namespace: industrial-edge-tst-all
+        channel: 7.12.x
+        source: redhat-operators
+      - name: camel-k
+        namespace: openshift-operators
+        channel: stable-v2
+        source: community-operators
+
+  apps:
+    - id: namespaces
+      enabled: true
+      path: namespaces
+      destinationNamespace: openshift-gitops
+      syncWave: "1"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: false
+    - id: operators
+      enabled: true
+      path: operators
+      destinationNamespace: openshift-operators
+      syncWave: "2"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: servicemeshoperator3
+      enabled: true
+      path: servicemeshoperator3
+      destinationNamespace: openshift-operators
+      syncWave: "3"
+      prune: false
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-tst
+      enabled: true
+      path: industrial-edge-tst
+      destinationNamespace: industrial-edge-tst-all
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-stormshift
+      enabled: true
+      path: industrial-edge-stormshift
+      destinationNamespace: industrial-edge-stormshift-messaging
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: industrial-edge-pipelines
+      enabled: true
+      path: industrial-edge-pipelines
+      destinationNamespace: industrial-edge-ci
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+
+deployer:
+  domain: ""
+
+fieldContent:
+  deploymentType: "helm"

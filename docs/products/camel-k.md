@@ -1,0 +1,24 @@
+---
+layout: default
+title: Apache Camel
+parent: Red Hat Products
+nav_order: 9
+---
+
+# Apache Camel (Camel K)
+
+The Red Hat build of **Apache Camel K** runs lightweight integration code as Kubernetes resources, ideal for **MQTT-to-Kafka** bridging and **Kafka-to-object storage** (for example S3-compatible **MinIO**) pipelines.
+
+## Patterns here
+
+| Flow | Description |
+| ---- | ----------- |
+| **MQTT → Kafka** | Normalize factory telemetry into Kafka topics with schema discipline. |
+| **Kafka → S3** | Archive cold paths or feed batch analytics without blocking real-time dashboards. |
+
+Camel K is typically installed via Operator Lifecycle Manager subscription; see `connectivityLink.operators.subscriptions` for channel pinning.
+
+## Links
+
+- [Red Hat build of Apache Camel K](https://developers.redhat.com/products/red-hat-build-of-apache-camel/overview)
+- [Apache Camel K documentation](https://camel.apache.org/camel-k/next/)

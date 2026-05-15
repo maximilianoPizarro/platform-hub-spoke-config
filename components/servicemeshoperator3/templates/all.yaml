@@ -1,0 +1,42 @@
+apiVersion: sailoperator.io/v1alpha1
+kind: Istio
+metadata:
+  name: default
+  namespace: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  version: v1.24.3
+  namespace: istio-system
+  profile: ambient
+  values:
+    pilot:
+      env:
+        PILOT_ENABLE_AMBIENT: "true"
+    global:
+      platform: openshift
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: sailoperator.io/v1alpha1
+kind: IstioCNI
+metadata:
+  name: default
+  namespace: istio-cni
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  version: v1.24.3
+  namespace: istio-cni
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-cni
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"

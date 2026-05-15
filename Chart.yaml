@@ -1,0 +1,9 @@
+apiVersion: v2
+name: platform-hub-spoke-config
+description: App of Apps - Multi-cluster GitOps platform with ACM, Connectivity Link, and Industrial Edge
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: Maximiliano Pizarro
+    email: developer@redhat.com

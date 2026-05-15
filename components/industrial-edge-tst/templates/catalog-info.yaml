@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: industrial-edge-catalog
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "7"
+    backstage.io/techdocs-ref: dir:.
+data:
+  catalog-info.yaml: |
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: industrial-edge-tst
+      title: Industrial Edge Test
+      description: Industrial Edge factory test environment with sensors, Kafka, and ML inference
+      annotations:
+        backstage.io/kubernetes-namespace: industrial-edge-tst-all
+        argocd/app-name: industrial-edge-tst
+        acs/deployment-name: line-dashboard
+        kafka.apache.org/consumer-groups: line-dashboard
+      tags:
+        - industrial-edge
+        - iot
+        - kafka
+    spec:
+      type: service
+      lifecycle: production
+      owner: platform-team

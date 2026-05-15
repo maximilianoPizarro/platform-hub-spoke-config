@@ -1,0 +1,10 @@
+clusterDomain: ""
+clusters:
+  east:
+    domain: ""
+  west:
+    domain: ""
+gateway:
+  weights:
+    east: 50
+    west: 50

@@ -1,0 +1,17 @@
+remote_theme: just-the-docs/just-the-docs
+title: "Platform Hub-Spoke Config"
+description: "Multi-cluster GitOps platform with ACM, Connectivity Link, and Industrial Edge on Red Hat OpenShift"
+url: "https://maximilianoPizarro.github.io"
+baseurl: "/platform-hub-spoke-config"
+color_scheme: dark
+aux_links:
+  "GitHub":
+    - "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
+nav_enabled: true
+search_enabled: true
+heading_anchors: true
+back_to_top: true
+back_to_top_text: "Back to top"
+footer_content: "Red Hat Products | Hub-Spoke GitOps Platform"
+mermaid:
+  version: "10.9.0"

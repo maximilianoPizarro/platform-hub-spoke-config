@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: line-dashboard
+  namespace: industrial-edge-tst-all
+  labels:
+    app: line-dashboard
+    app.kubernetes.io/part-of: industrial-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: line-dashboard
+  template:
+    metadata:
+      labels:
+        app: line-dashboard
+    spec:
+      containers:
+        - name: line-dashboard
+          image: quay.io/maximilianopizarro/iot-frontend:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REACT_APP_GIT_COMMIT
+              value: "hub-spoke"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: line-dashboard
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  selector:
+    app: line-dashboard
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: line-dashboard
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  host: line-dashboard-industrial-edge-tst-all.{{ include "industrial-edge.domain" . }}
+  to:
+    kind: Service
+    name: line-dashboard
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
