@@ -112,3 +112,45 @@ spec:
       tlsSkipVerify: true
     secureJsonData:
       httpHeaderValue1: "Bearer ${token}"
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus-east
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: Prometheus-East
+    type: prometheus
+    access: proxy
+    url: https://prometheus-east.service-interconnect.svc.cluster.local:9091
+    isDefault: false
+    jsonData:
+      timeInterval: 5s
+      tlsSkipVerify: true
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDatasource
+metadata:
+  name: prometheus-west
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  instanceSelector:
+    matchLabels:
+      dashboards: grafana
+  datasource:
+    name: Prometheus-West
+    type: prometheus
+    access: proxy
+    url: https://prometheus-west.service-interconnect.svc.cluster.local:9091
+    isDefault: false
+    jsonData:
+      timeInterval: 5s
+      tlsSkipVerify: true
