@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: line-dashboard
-          image: quay.io/maximilianopizarro/iot-frontend:latest
+          image: quay.io/hybridcloudpatterns/iot-frontend:latest
           ports:
             - containerPort: 8080
           env:

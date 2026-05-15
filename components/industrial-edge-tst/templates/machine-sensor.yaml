@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: machine-sensor
-          image: quay.io/maximilianopizarro/iot-software-sensor:latest
+          image: quay.io/hybridcloudpatterns/iot-software-sensor:latest
           env:
             - name: MQTT_HOSTNAME
               value: messaging
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
         - name: machine-sensor
-          image: quay.io/maximilianopizarro/iot-software-sensor:latest
+          image: quay.io/hybridcloudpatterns/iot-software-sensor:latest
           env:
             - name: MQTT_HOSTNAME
               value: messaging
