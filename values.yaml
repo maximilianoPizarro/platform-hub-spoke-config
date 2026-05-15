@@ -12,7 +12,7 @@ clusters:
   hub:
     domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
   east:
-    domain: ""
+    domain: "apps.cluster-2847b.dynamic2.redhatworkshops.io"
   west:
     domain: ""
 

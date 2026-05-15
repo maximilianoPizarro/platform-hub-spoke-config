@@ -13,8 +13,8 @@ clusters:
     domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
 
 deployer:
-  domain: ""
-  apiUrl: ""
+  domain: "apps.cluster-2847b.dynamic2.redhatworkshops.io"
+  apiUrl: "https://api.cluster-2847b.dynamic2.redhatworkshops.io:6443"
 
 operators:
   subscriptions:
