@@ -4,20 +4,6 @@
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
-  name: platform-argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VGNzUyMSI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0wLTE0Yy0zLjMxIDAtNiAyLjY5LTYgNnMyLjY5IDYgNiA2IDYtMi42OSA2LTYtMi42OS02LTYtNnptMCA4Yy0xLjEgMC0yLS45LTItMnMuOS0yIDItMiAyIC45IDIgMi0uOSAyLTIgMnoiLz48L3N2Zz4="
-    section: "Platform Hub-Spoke"
-  href: "https://openshift-gitops-server-openshift-gitops.{{ $domain }}"
-  location: ApplicationMenu
-  text: "ArgoCD GitOps"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
   name: platform-grafana
   annotations:
     argocd.argoproj.io/sync-wave: "10"
@@ -25,7 +11,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0Y0NjgwMCI+PHBhdGggZD0iTTIyIDloLTR2LTJoNHYyem0tNi0ydi0ySDh2Mmg4em0tMTAgMHYtMkgzdjJoM3ptMTYgNGgtOHYtMmg4djJ6bS0xMCAwdi0ySDV2Mmg3em0tOSAwdi0ySDJ2Mmgxem0xNiA0SDR2LTJoMTV2MnptLTYgNEg2di0yaDd2MnptLTkgMEg0di0yaDR2MnoiLz48L3N2Zz4="
     section: "Platform Hub-Spoke"
-  href: "https://grafana-observability.{{ $domain }}"
+  href: "https://grafana.{{ $domain }}"
   location: ApplicationMenu
   text: "Grafana Dashboards"
 ---
@@ -75,20 +61,6 @@ spec:
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
-  name: platform-acm
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0xIDE3LjkzYy0zLjk1LS40OS03LTMuODUtNy03LjkzIDAtLjYyLjA4LTEuMjEuMjEtMS43OUw5IDE1djFjMCAxLjEuOSAyIDIgMnYxLjkzem02LjktMi41NGMtLjI2LS44MS0xLTEuMzktMS45LTEuMzloLTF2LTNjMC0uNTUtLjQ1LTEtMS0xSDh2LTJoMmMuNTUgMCAxLS40NSAxLTFWN2gyYzEuMSAwIDItLjkgMi0ydi0uNDFjMi45MyAxLjE5IDUgNC4wNiA1IDcuNDEgMCAxLjgyLS42IDMuNDktMS42IDQuODR6Ii8+PC9zdmc+"
-    section: "Platform Hub-Spoke"
-  href: "https://multicloud-console.{{ $domain }}"
-  location: ApplicationMenu
-  text: "ACM Multi-Cluster"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
   name: platform-gitea
   annotations:
     argocd.argoproj.io/sync-wave: "10"
@@ -113,20 +85,6 @@ spec:
   href: "https://minio-console-industrial-edge-ml-workspace.{{ $domain }}"
   location: ApplicationMenu
   text: "MinIO Console"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-connectivity-link
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTMuOSAxMmMwLTEuNzEgMS4xMS0zLjA4IDIuNjQtMy41MUwxMi40IDJsNS44NiA2LjQ5Yy0xLjUzLjQzLTIuNjQgMS44LTIuNjQgMy41MSAwIDEuNzEgMS4xMSAzLjA4IDIuNjQgMy41MUwxMi40IDIybC01Ljg2LTYuNDlDOC4wMSAxNS4wOCA2LjkgMTMuNzEgNi45IDEySDMuOXoiLz48L3N2Zz4="
-    section: "Platform Hub-Spoke"
-  href: "https://console-plugin-rhcl-operator-redhat-connectivity-link-operator.{{ $domain }}"
-  location: ApplicationMenu
-  text: "Connectivity Link"
 {{- end }}
 {{- if eq $role "spoke" }}
 ---
