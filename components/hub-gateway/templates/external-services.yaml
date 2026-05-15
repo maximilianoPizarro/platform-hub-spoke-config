@@ -13,6 +13,23 @@ spec:
     - port: 80
       protocol: TCP
       targetPort: 80
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: industrial-edge-east
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  hosts:
+    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
+  location: MESH_EXTERNAL
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+  resolution: DNS
 {{- end }}
 ---
 {{- if .Values.clusters.west.domain }}
@@ -30,4 +47,21 @@ spec:
     - port: 80
       protocol: TCP
       targetPort: 80
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: industrial-edge-west
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  hosts:
+    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
+  location: MESH_EXTERNAL
+  ports:
+    - number: 80
+      name: http
+      protocol: HTTP
+  resolution: DNS
 {{- end }}
