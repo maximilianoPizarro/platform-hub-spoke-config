@@ -16,3 +16,38 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   linkAccess: route
+---
+apiVersion: skupper.io/v2alpha1
+kind: AccessGrant
+metadata:
+  name: spoke-link
+  namespace: service-interconnect
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  redemptionsAllowed: 10
+  expirationWindow: 720h
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: ie-gateway-east
+  namespace: service-interconnect
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  routingKey: ie-gateway-east
+  host: ie-gateway-east
+  port: 8080
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: ie-gateway-west
+  namespace: service-interconnect
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  routingKey: ie-gateway-west
+  host: ie-gateway-west
+  port: 8080

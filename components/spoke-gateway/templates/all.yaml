@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+    istio.io/dataplane-mode: ambient
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: spoke-gateway
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    networking.istio.io/service-type: ClusterIP
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 8080
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: line-dashboard
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: line-dashboard.industrial-edge-tst-all.svc.cluster.local
+  ports:
+    - name: frontend
+      port: 8080
+      protocol: TCP
+    - name: api
+      port: 3000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: messaging
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: messaging.industrial-edge-tst-all.svc.cluster.local
+  ports:
+    - name: mqtt
+      port: 1883
+      protocol: TCP
+    - name: amqp
+      port: 5672
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: modelmesh-serving
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: modelmesh-serving.industrial-edge-tst-all.svc.cluster.local
+  ports:
+    - name: grpc
+      port: 8008
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-bootstrap
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: factory-cluster-kafka-bootstrap.industrial-edge-stormshift-messaging.svc.cluster.local
+  ports:
+    - name: kafka
+      port: 9092
+      protocol: TCP
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ie-frontend
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  parentRefs:
+    - name: spoke-gateway
+      namespace: spoke-gateway-system
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: line-dashboard
+          port: 3000
+    - backendRefs:
+        - name: line-dashboard
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ie-anomaly-detection
+  namespace: spoke-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  parentRefs:
+    - name: spoke-gateway
+      namespace: spoke-gateway-system
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /inference
+      backendRefs:
+        - name: modelmesh-serving
+          port: 8008

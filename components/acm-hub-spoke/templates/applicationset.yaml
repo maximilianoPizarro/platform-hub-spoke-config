@@ -54,6 +54,12 @@ spec:
                 - id: console-links
                   path: components/console-links
                   namespace: openshift-gitops
+                - id: spoke-gateway
+                  path: components/spoke-gateway
+                  namespace: spoke-gateway-system
+                - id: spoke-interconnect
+                  path: components/spoke-interconnect
+                  namespace: service-interconnect
   template:
     metadata:
       name: '{{`{{.id}}-{{.clusterName}}`}}'
@@ -122,6 +128,16 @@ spec:
           jsonPointers:
             - /metadata/annotations
             - /metadata/labels
+        - group: skupper.io
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+        - group: gateway.networking.k8s.io
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
       syncPolicy:
         automated:
           selfHeal: true
