@@ -23,7 +23,7 @@ search_enabled: true
 heading_anchors: true
 back_to_top: true
 back_to_top_text: "Back to top"
-footer_content: '<span style="color:#EE0000;font-weight:700;">Red Hat</span> &bull; Platform Hub-Spoke GitOps'
+footer_content: "Platform Hub-Spoke GitOps"
 
 mermaid:
   version: "10.9.0"
