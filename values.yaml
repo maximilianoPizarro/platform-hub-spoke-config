@@ -59,6 +59,10 @@ connectivityLink:
         namespace: openshift-operators
         channel: fast-1.9
         source: redhat-operators
+      - name: skupper-operator
+        namespace: openshift-operators
+        channel: stable-2
+        source: redhat-operators
 
   apps:
     # Core platform
@@ -245,6 +249,14 @@ connectivityLink:
       path: istio-monitoring
       destinationNamespace: istio-system
       syncWave: "8"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: service-interconnect
+      enabled: true
+      path: service-interconnect
+      destinationNamespace: service-interconnect
+      syncWave: "10"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true

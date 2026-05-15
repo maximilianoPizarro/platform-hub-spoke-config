@@ -27,7 +27,7 @@ spec:
           "type": "row"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "thresholds"},
@@ -49,7 +49,7 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "total",
               "refId": "A"
@@ -59,7 +59,7 @@ spec:
           "type": "stat"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -98,13 +98,13 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m])) by (destination_cluster)",
               "legendFormat": "{{ "{{destination_cluster}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m])) by (destination_service_name)",
               "legendFormat": "{{ "{{destination_service_name}}" }}",
               "refId": "B",
@@ -116,7 +116,7 @@ spec:
           "description": "Primary series groups by destination_cluster when present in scraped Istio metrics; enable hidden query if your mesh only exposes destination_service_name."
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -157,13 +157,13 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "5xx error ratio",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"4..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "4xx error ratio",
               "refId": "B"
@@ -173,7 +173,7 @@ spec:
           "type": "timeseries"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -211,13 +211,13 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
               "legendFormat": "p50",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
               "legendFormat": "p99",
               "refId": "B"
@@ -235,7 +235,7 @@ spec:
           "type": "row"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -273,19 +273,19 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-east\"}[5m]))",
               "legendFormat": "east ExternalName backend",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-west\"}[5m]))",
               "legendFormat": "west ExternalName backend",
               "refId": "B"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_namespace=\"hub-gateway-system\"}[5m])) by (destination_service_name)",
               "legendFormat": "{{ "{{destination_service_name}}" }} (via hub-gateway-system)",
               "refId": "C"
@@ -303,7 +303,7 @@ spec:
           "type": "row"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -341,7 +341,7 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(kafka_server_brokertopicmetrics_messagesinpersec[5m])) by (topic)",
               "legendFormat": "{{ "{{topic}}" }}",
               "refId": "A"
@@ -359,7 +359,7 @@ spec:
           "type": "row"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -397,13 +397,13 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesinpersec[5m])) by (topic)",
               "legendFormat": "in {{ "{{topic}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesoutpersec[5m])) by (topic)",
               "legendFormat": "out {{ "{{topic}}" }}",
               "refId": "B"
@@ -413,7 +413,7 @@ spec:
           "type": "timeseries"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "description": "Requires Strimzi JMX metrics and PodMonitor scraping.",
           "fieldConfig": {
             "defaults": {
@@ -436,7 +436,7 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(kafka_server_socketservermetrics_connection_count)",
               "legendFormat": "connections",
               "refId": "A"
@@ -446,7 +446,7 @@ spec:
           "type": "stat"
         },
         {
-          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "datasource": {"type": "prometheus"},
           "description": "Shows L4 mesh TCP bytes when ztunnel emits metrics; may be empty without ztunnel.",
           "fieldConfig": {
             "defaults": {
@@ -485,13 +485,13 @@ spec:
           },
           "targets": [
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
               "legendFormat": "sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "datasource": {"type": "prometheus"},
               "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
               "legendFormat": "recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
               "refId": "B"

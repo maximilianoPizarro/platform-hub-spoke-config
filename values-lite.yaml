@@ -192,6 +192,14 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: service-interconnect
+      enabled: false
+      path: service-interconnect
+      destinationNamespace: service-interconnect
+      syncWave: "10"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
 
 deployer:
   domain: ""

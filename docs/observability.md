@@ -52,16 +52,29 @@ Key metrics path differences:
 - **istiod**: `/metrics` (standard Prometheus format)
 - **Envoy proxies** (gateways, waypoints): `/stats/prometheus` (Envoy admin format)
 
+## Grafana + Thanos (dashboards with data)
+
+Grafana **11** often ships with **HTTP basic auth to the Grafana API disabled**. The Grafana Operator must authenticate to Grafana to install datasources; if that fails, the **Prometheus** datasource never syncs and dashboards show **No data** even when metrics exist in Prometheus.
+
+This repository configures:
+
+1. **`[auth.basic] enabled`** on the `Grafana` CR via `spec.config.auth.basic` as a **string** (INI snippet), because the Grafana Operator CRD expects `auth.basic` to be a string, not a nested object.
+2. A **ServiceAccount** (`grafana-thanos-reader`) bound to **`cluster-monitoring-view`**, plus a **`kubernetes.io/service-account-token`** Secret.
+3. **`GrafanaDatasource.valuesFrom`** so the Thanos `Authorization: Bearer …` header is built from that token (instead of the non-functional `${GRAFANA_SA_TOKEN}` placeholder).
+
+After syncing, confirm the datasource in the Grafana UI (**Connections → Data sources → Prometheus → Save & test**) and use **Explore** with `up` or `istio_requests_total`.
+
 ## Multi-cluster patterns
 
-- Federated **Grafana** data sources or remote Prometheus endpoints per spoke.
+- **Hub Kiali** only shows workloads running **on the hub cluster**. HTTP you see toward `industrial-edge-east` / `industrial-edge-west` is traffic from the hub gateway to **external** OpenShift routes; it is not the same as rendering east/west pod graphs inside hub Kiali unless you add **multi-cluster Kiali** (remote kubeconfigs / ACM integration) or **federated metrics**.
+- **Red Hat Service Interconnect** (`components/service-interconnect`, operator `skupper-operator`): create linked **Site** resources on hub and spokes and **expose** the spoke `Service` into the hub VAN so the hub mesh sees concrete `Service` backends (then Kiali/Grafana on the hub can observe that traffic). Linking uses access tokens generated per site; see [Using Service Interconnect](https://docs.redhat.com/en/documentation/red_hat_service_interconnect/2.1/html-single/using_service_interconnect/).
+- Federated **Grafana** data sources or **remote Prometheus** endpoints per spoke.
 - Consistent **OpenTelemetry** exporter configuration in Camel and Java workloads.
-- Hub Kiali visualizes traffic for hub-local mesh namespaces. Spoke clusters run their own Kiali instances for local visibility.
+- Spoke clusters can run their own **Kiali** instances for full local mesh graphs.
 
-## Links
 
 - [OpenShift Observability](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/monitoring/)
 - [OpenTelemetry on OpenShift](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/red_hat_build_of_opentelemetry/)
 - [Kiali Service Mesh observability](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/service_mesh/)
 
-Charts: `components/observability`, `components/grafana-dashboards`, `components/kiali`, `components/opentelemetry`.
+Charts: `components/observability`, `components/grafana-dashboards`, `components/kiali`, `components/opentelemetry`, `components/istio-monitoring`, `components/service-interconnect`.
