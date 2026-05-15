@@ -8,6 +8,8 @@
   "hub-gateway-system"
   "stackrox"
   "redhat-ods-operator"
+  "openshift-cluster-observability-operator"
+  "developer-hub"
 }}
 {{- range $namespaces }}
 ---

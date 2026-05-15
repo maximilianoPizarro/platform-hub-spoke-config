@@ -45,6 +45,18 @@ connectivityLink:
         namespace: redhat-ods-operator
         channel: stable-2.25
         source: redhat-operators
+      - name: amq-streams
+        namespace: openshift-operators
+        channel: stable
+        source: redhat-operators
+      - name: opentelemetry-product
+        namespace: openshift-operators
+        channel: stable
+        source: redhat-operators
+      - name: rhdh
+        namespace: openshift-operators
+        channel: fast-1.9
+        source: redhat-operators
 
   apps:
     # Core platform

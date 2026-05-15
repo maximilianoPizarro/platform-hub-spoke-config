@@ -13,13 +13,23 @@ spec:
     - industrial-edge.{{ .Values.clusterDomain }}
   rules:
     - backendRefs:
-        {{- if .Values.clusters.east.domain }}
+        {{- if and .Values.clusters.east.domain .Values.clusters.west.domain }}
         - name: industrial-edge-east
           port: 443
           weight: {{ .Values.gateway.weights.east }}
-        {{- end }}
-        {{- if .Values.clusters.west.domain }}
         - name: industrial-edge-west
           port: 443
           weight: {{ .Values.gateway.weights.west }}
+        {{- else if .Values.clusters.east.domain }}
+        - name: industrial-edge-east
+          port: 443
+          weight: 100
+        {{- else if .Values.clusters.west.domain }}
+        - name: industrial-edge-west
+          port: 443
+          weight: 100
+        {{- else }}
+        - name: hub-gateway-istio
+          port: 80
+          weight: 100
         {{- end }}
