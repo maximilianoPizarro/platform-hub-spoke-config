@@ -14,10 +14,10 @@ spec:
           - list:
               elements:
                 - clusterName: east
-                  targetRevision: east
+                  targetRevision: main
                   clusterDomain: {{ .Values.clusters.east.domain | quote }}
                 - clusterName: west
-                  targetRevision: west
+                  targetRevision: main
                   clusterDomain: {{ .Values.clusters.west.domain | quote }}
           - list:
               elements:

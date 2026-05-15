@@ -1,6 +1,6 @@
 gitops:
   repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
-  revision: "east"
+  revision: "main"
   basePath: "."
 
 argocd:

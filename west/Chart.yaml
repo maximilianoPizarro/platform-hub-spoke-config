@@ -1,0 +1,6 @@
+apiVersion: v2
+name: platform-hub-spoke-west
+description: West spoke cluster - Industrial Edge, service mesh ambient, ACS SecuredCluster
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

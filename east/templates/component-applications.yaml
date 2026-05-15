@@ -1,0 +1,108 @@
+{{- range .Values.apps }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ $.Values.clusterName }}-{{ .id }}
+  namespace: {{ $.Values.argocd.namespace }}
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+    cluster: {{ $.Values.clusterName }}
+  annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ $.Values.argocd.project }}
+  ignoreDifferences:
+    - group: ""
+      kind: Service
+      jsonPointers:
+        - /spec/clusterIP
+        - /spec/clusterIPs
+        - /spec/ipFamilies
+        - /spec/ipFamilyPolicy
+    - group: route.openshift.io
+      kind: Route
+      jsonPointers:
+        - /spec/host
+        - /status
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/metadata/annotations
+    - group: ""
+      kind: Secret
+      jsonPointers:
+        - /data
+    - group: ""
+      kind: Namespace
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
+    - group: kafka.strimzi.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: sailoperator.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: platform.stackrox.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: broker.amq.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+  source:
+    repoURL: {{ $.Values.gitops.repoUrl }}
+    targetRevision: {{ $.Values.gitops.revision }}
+    path: {{ .path }}
+    {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
+    {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
+    {{- if eq .id "operators" }}
+    helm:
+      valuesObject:
+        subscriptions: {{ $.Values.operators.subscriptions | toJson }}
+    {{- else if eq .id "namespaces" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .id "servicemeshoperator3" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+    {{- else if eq .id "acs-secured-cluster" }}
+    helm:
+      valuesObject:
+        clusterName: {{ $.Values.clusterName }}
+        clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain }}
+    {{- else }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterName: {{ $.Values.clusterName }}
+        global:
+          localClusterDomain: {{ $domain }}
+          hubClusterDomain: {{ $hubDomain }}
+    {{- end }}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .destinationNamespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true
+      - SkipDryRunOnMissingResource=true
+{{- end }}

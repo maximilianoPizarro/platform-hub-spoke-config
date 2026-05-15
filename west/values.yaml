@@ -1,0 +1,62 @@
+gitops:
+  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
+  revision: "main"
+
+argocd:
+  namespace: openshift-gitops
+  project: default
+
+clusterName: west
+
+clusters:
+  hub:
+    domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
+
+deployer:
+  domain: ""
+  apiUrl: ""
+
+operators:
+  subscriptions:
+    - name: amq-broker-rhel8
+      namespace: industrial-edge-tst-all
+      channel: 7.12.x
+      source: redhat-operators
+    - name: camel-k
+      namespace: openshift-operators
+      channel: stable-v2
+      source: community-operators
+    - name: amq-streams
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
+
+apps:
+  - id: namespaces
+    path: components/namespaces
+    destinationNamespace: openshift-gitops
+    syncWave: "1"
+  - id: operators
+    path: components/operators
+    destinationNamespace: openshift-operators
+    syncWave: "2"
+  - id: servicemeshoperator3
+    path: components/servicemeshoperator3
+    destinationNamespace: openshift-operators
+    syncWave: "3"
+  - id: industrial-edge-tst
+    path: components/industrial-edge-tst
+    destinationNamespace: industrial-edge-tst-all
+    syncWave: "5"
+  - id: industrial-edge-stormshift
+    path: components/industrial-edge-stormshift
+    destinationNamespace: industrial-edge-stormshift-messaging
+    syncWave: "6"
+  - id: industrial-edge-pipelines
+    path: components/industrial-edge-pipelines
+    destinationNamespace: industrial-edge-ci
+    syncWave: "5"
+  - id: acs-secured-cluster
+    path: components/acs-secured-cluster
+    destinationNamespace: stackrox
+    syncWave: "4"
