@@ -209,6 +209,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    # Console Links
+    - id: console-links
+      enabled: true
+      path: console-links
+      destinationNamespace: openshift-gitops
+      syncWave: "9"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     # Grafana Dashboards
     - id: grafana-dashboards
       enabled: true

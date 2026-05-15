@@ -171,6 +171,11 @@ spec:
         global:
           localClusterDomain: {{ $domain }}
           hubClusterDomain: {{ $hubDomain }}
+    {{- else if eq .path "console-links" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterRole: hub
     {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3") }}
     helm:
       valuesObject:

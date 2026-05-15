@@ -68,3 +68,7 @@ apps:
     path: components/devspaces
     destinationNamespace: devspaces
     syncWave: "7"
+  - id: console-links
+    path: components/console-links
+    destinationNamespace: openshift-gitops
+    syncWave: "9"

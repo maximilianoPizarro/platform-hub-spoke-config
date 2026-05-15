@@ -90,6 +90,11 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         userCount: 200
+    {{- else if eq .id "console-links" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterRole: spoke
     {{- else }}
     helm:
       valuesObject:

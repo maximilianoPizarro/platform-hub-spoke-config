@@ -160,6 +160,30 @@ data:
         disabled: false
       - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-frontend
         disabled: false
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
+        disabled: false
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-tekton:
+                mountPoints:
+                  - mountPoint: entity.page.ci/content
+                    importName: EntityTektonPipelinesContent
+      - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
+        disabled: false
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-redhat-argocd:
+                mountPoints:
+                  - mountPoint: entity.page.cd/content
+                    importName: ArgocdDeploymentLifecycle
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
+        disabled: true
+      - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-module-http-request-dynamic
+        disabled: false
 ---
 apiVersion: rhdh.redhat.com/v1alpha5
 kind: Backstage
