@@ -1,5 +1,5 @@
 gitops:
-  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config.git"
+  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
   revision: "west"
   basePath: "."
 
@@ -9,7 +9,7 @@ argocd:
 
 clusters:
   hub:
-    domain: ""
+    domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
   east:
     domain: ""
   west:
@@ -28,59 +28,16 @@ connectivityLink:
         namespace: openshift-operators
         channel: stable-v2
         source: community-operators
+      - name: amq-streams
+        namespace: openshift-operators
+        channel: stable
+        source: redhat-operators
 
-  apps:
-    - id: namespaces
-      enabled: true
-      path: namespaces
-      destinationNamespace: openshift-gitops
-      syncWave: "1"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: false
-    - id: operators
-      enabled: true
-      path: operators
-      destinationNamespace: openshift-operators
-      syncWave: "2"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: true
-    - id: servicemeshoperator3
-      enabled: true
-      path: servicemeshoperator3
-      destinationNamespace: openshift-operators
-      syncWave: "3"
-      prune: false
-      selfHeal: true
-      skipDryRunOnMissingResource: true
-    - id: industrial-edge-tst
-      enabled: true
-      path: industrial-edge-tst
-      destinationNamespace: industrial-edge-tst-all
-      syncWave: "5"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: true
-    - id: industrial-edge-stormshift
-      enabled: true
-      path: industrial-edge-stormshift
-      destinationNamespace: industrial-edge-stormshift-messaging
-      syncWave: "6"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: true
-    - id: industrial-edge-pipelines
-      enabled: true
-      path: industrial-edge-pipelines
-      destinationNamespace: industrial-edge-ci
-      syncWave: "5"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: true
+  apps: []
 
 deployer:
   domain: ""
+  apiUrl: ""
 
 fieldContent:
   deploymentType: "helm"

@@ -21,6 +21,15 @@ spec:
                   clusterDomain: {{ .Values.clusters.west.domain | quote }}
           - list:
               elements:
+                - id: namespaces
+                  path: components/namespaces
+                  namespace: openshift-gitops
+                - id: operators
+                  path: components/operators
+                  namespace: openshift-operators
+                - id: servicemeshoperator3
+                  path: components/servicemeshoperator3
+                  namespace: openshift-operators
                 - id: industrial-edge-tst
                   path: components/industrial-edge-tst
                   namespace: industrial-edge-tst-all
