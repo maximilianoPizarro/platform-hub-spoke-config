@@ -48,6 +48,20 @@ spec:
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
+  name: platform-acm
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0xIDE3LjkzYy0zLjk1LS40OS03LTMuODUtNy03LjkzIDAtLjYyLjA4LTEuMjEuMjEtMS43OUw5IDE1djFjMCAxLjEuOSAyIDIgMnYxLjkzem02LjktMi41NGMtLjI2LS44MS0xLTEuMzktMS45LTEuMzloLTF2LTNjMC0uNTUtLjQ1LTEtMS0xSDh2LTJIMTB2LTJIN1Y4aDJ2LTJIMTJ2MmMyLjIxIDAgNCAyLjI0IDQgNXY5LjkzeiIvPjwvc3ZnPg=="
+    section: "Platform Hub-Spoke"
+  href: "https://console-openshift-console.{{ $domain }}/multicloud/infrastructure/clusters"
+  location: ApplicationMenu
+  text: "ACM Clusters"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
   name: platform-acs-central
   annotations:
     argocd.argoproj.io/sync-wave: "10"
