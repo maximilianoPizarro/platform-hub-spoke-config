@@ -179,7 +179,7 @@ When routing from a hub Istio Gateway to spoke cluster OpenShift Routes:
 
 ```yaml
 backendRefs:
-  - name: industrial-edge-east
+  - name: industrial-edge-east-front
     port: 80
     weight: 50
     filters:
@@ -199,14 +199,14 @@ rules:
   - matches:
       - path: { type: PathPrefix, value: /api }
     backendRefs:
-      - name: industrial-edge-east
+      - name: industrial-edge-east-api
         port: 80
         weight: 100
   - backendRefs:
-      - name: industrial-edge-east
+      - name: industrial-edge-east-front
         port: 80
         weight: 50
-      - name: industrial-edge-west
+      - name: industrial-edge-west-front
         port: 80
         weight: 50
 ```

@@ -12,23 +12,33 @@ spec:
   hostnames:
     - industrial-edge.{{ .Values.clusterDomain }}
   rules:
+    {{- $apiW := .Values.gateway.apiWeights | default dict }}
     {{- if and .Values.clusters.east.domain .Values.clusters.west.domain }}
     - matches:
         - path:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: industrial-edge-east
+        - name: industrial-edge-east-api
           port: 80
-          weight: 100
+          weight: {{- if hasKey $apiW "east" }} {{ $apiW.east }}{{- else }} 100{{- end }}
           filters:
             - type: RequestHeaderModifier
               requestHeaderModifier:
                 set:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
+        - name: industrial-edge-west-api
+          port: 80
+          weight: {{- if hasKey $apiW "west" }} {{ $apiW.west }}{{- else }} 0{{- end }}
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
-        - name: industrial-edge-east
+        - name: industrial-edge-east-front
           port: 80
           weight: {{ .Values.gateway.weights.east }}
           filters:
@@ -37,7 +47,7 @@ spec:
                 set:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
-        - name: industrial-edge-west
+        - name: industrial-edge-west-front
           port: 80
           weight: {{ .Values.gateway.weights.west }}
           filters:
@@ -47,8 +57,22 @@ spec:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     {{- else if .Values.clusters.east.domain }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: industrial-edge-east-api
+          port: 80
+          weight: 100
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
     - backendRefs:
-        - name: industrial-edge-east
+        - name: industrial-edge-east-front
           port: 80
           weight: 100
           filters:
@@ -58,8 +82,22 @@ spec:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
     {{- else if .Values.clusters.west.domain }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: industrial-edge-west-api
+          port: 80
+          weight: 100
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: Host
+                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
-        - name: industrial-edge-west
+        - name: industrial-edge-west-front
           port: 80
           weight: 100
           filters:

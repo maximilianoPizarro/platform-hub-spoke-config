@@ -51,15 +51,13 @@ spec:
   config:
     log:
       mode: console
+    server:
+      root_url: https://grafana.{{ .Values.clusterDomain }}/
     auth:
-      disable_login_form: "true"
+      disable_login_form: "false"
       basic: |
         [auth.basic]
         enabled = true
-      anonymous: |
-        [auth.anonymous]
-        enabled = true
-        org_role = Admin
     security:
       admin_user: admin
       admin_password: admin

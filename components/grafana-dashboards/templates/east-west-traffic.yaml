@@ -274,14 +274,14 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-east\"}[5m]))",
-              "legendFormat": "east ExternalName backend",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"industrial-edge-east-.*\"}[5m]))",
+              "legendFormat": "east (front+api backends)",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-west\"}[5m]))",
-              "legendFormat": "west ExternalName backend",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"industrial-edge-west-.*\"}[5m]))",
+              "legendFormat": "west (front+api backends)",
               "refId": "B"
             },
             {

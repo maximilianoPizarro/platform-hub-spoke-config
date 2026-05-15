@@ -64,11 +64,13 @@ This repository configures:
 
 After syncing, confirm the datasource in the Grafana UI (**Connections → Data sources → Prometheus → Save & test**) and use **Explore** with `up` or `istio_requests_total`.
 
-**Anonymous Grafana (workshop / demo):** the `Grafana` CR enables `[auth.anonymous]` with **`org_role = Admin`** and hides the login form. Anyone with the Route URL can use Grafana; do **not** use this pattern on production clusters without network controls.
+**OpenShift Route and `root_url`:** if the UI shows *“failed to load its application files”* (static assets 404), set **`spec.config.server.root_url`** to the public HTTPS URL of the Grafana Route (same host as `spec.route.spec.host`, e.g. `https://grafana.<apps-domain>/`). Grafana builds asset URLs from `root_url`; without it, the SPA often breaks behind edge TLS termination.
+
+**Login:** basic auth to the UI remains enabled (`admin` / `admin` from `spec.config.security` in GitOps); do **not** ship those defaults on production clusters.
 
 ## Multi-cluster patterns
 
-- **Hub Kiali** only shows workloads running **on the hub cluster**. HTTP you see toward `industrial-edge-east` / `industrial-edge-west` is traffic from the hub gateway to **external** OpenShift routes; it is not the same as rendering east/west pod graphs inside hub Kiali unless you add **multi-cluster Kiali** (remote kubeconfigs / ACM integration) or **federated metrics**.
+- **Hub Kiali** only shows workloads running **on the hub cluster**. HTTP you see toward `industrial-edge-*-front` / `industrial-edge-*-api` (ExternalName `Service`s) is traffic from the hub gateway to **external** OpenShift routes; it is not the same as rendering east/west pod graphs inside hub Kiali unless you add **multi-cluster Kiali** (remote kubeconfigs / ACM integration) or **federated metrics**.
 - **Red Hat Service Interconnect** (`components/service-interconnect`, operator `skupper-operator`): create linked **Site** resources on hub and spokes and **expose** the spoke `Service` into the hub VAN so the hub mesh sees concrete `Service` backends (then Kiali/Grafana on the hub can observe that traffic). Linking uses access tokens generated per site; see [Using Service Interconnect](https://docs.redhat.com/en/documentation/red_hat_service_interconnect/2.1/html-single/using_service_interconnect/).
 - Federated **Grafana** data sources or **remote Prometheus** endpoints per spoke.
 - Consistent **OpenTelemetry** exporter configuration in Camel and Java workloads.
