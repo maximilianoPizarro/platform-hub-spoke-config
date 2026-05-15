@@ -47,36 +47,6 @@ spec:
   href: "https://kiali-openshift-cluster-observability-operator.{{ $hubDomain }}"
   location: ApplicationMenu
   text: "Kiali Service Mesh"
-{{- if eq $role "spoke" }}
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-spoke-gateway
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bS0xIDE3LjkzYy0zLjk1LS40OS03LTMuODUtNy03LjkzIDAtLjYyLjA4LTEuMjEuMjEtMS43OUw5IDE1djFjMCAxLjEuOSAyIDIgMnYxLjkzem02LjktMi41NGMtLjI2LS44MS0xLTEuMzktMS45LTEuMzloLTF2LTNjMC0uNTUtLjQ1LTEtMS0xSDh2LTJIMTB2LTJIN1Y4aDJ2LTJIMTJ2MmMyLjIxIDAgNCAyLjI0IDQgNXY5LjkzeiIvPjwvc3ZnPg=="
-    section: "Platform Hub-Spoke"
-  href: "https://spoke-gateway.{{ $domain }}"
-  location: ApplicationMenu
-  text: "Spoke Gateway"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-service-interconnect
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTE1IDRjLTQuNDIgMC04IDMuNTgtOCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0wIDE0Yy0zLjMxIDAtNi0yLjY5LTYtNnMyLjY5LTYgNi02IDYgMi42OSA2IDYtMi42OSA2LTYgNnpNMyAxMmMwLTIuNjEgMS42Ny00Ljg0IDQuMDEtNS42NkM1LjIgNy4xNSA0IDkuNCA0IDEycy4yIDQuODUgMi4wMSA2LjY2QzQuNjcgMTYuODQgMyAxNC42MSAzIDEyem0xOCAwYzAgMi42MS0xLjY3IDQuODQtNC4wMSA1LjY2QzE4LjggMTYuODUgMjAgMTQuNiAyMCAxMnMtMS4yLTQuODUtMy4wMS02LjY2QzE5LjMzIDcuMTYgMjEgOS4zOSAyMSAxMnoiLz48L3N2Zz4="
-    section: "Platform Hub-Spoke"
-  href: "https://console-openshift-console.{{ $domain }}/k8s/ns/service-interconnect/skupper.io~v2alpha1~Site"
-  location: ApplicationMenu
-  text: "Service Interconnect"
-{{- end }}
 {{- if eq $role "hub" }}
 ---
 apiVersion: console.openshift.io/v1
@@ -162,18 +132,4 @@ spec:
   href: "https://mailpit.{{ $domain }}"
   location: ApplicationMenu
   text: "Mailpit (Email)"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-service-interconnect
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTE1IDRjLTQuNDIgMC04IDMuNTgtOCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0wIDE0Yy0zLjMxIDAtNi0yLjY5LTYtNnMyLjY5LTYgNi02IDYgMi42OSA2IDYtMi42OSA2LTYgNnpNMyAxMmMwLTIuNjEgMS42Ny00Ljg0IDQuMDEtNS42NkM1LjIgNy4xNSA0IDkuNCA0IDEycy4yIDQuODUgMi4wMSA2LjY2QzQuNjcgMTYuODQgMyAxNC42MSAzIDEyem0xOCAwYzAgMi42MS0xLjY3IDQuODQtNC4wMSA1LjY2QzE4LjggMTYuODUgMjAgMTQuNiAyMCAxMnMtMS4yLTQuODUtMy4wMS02LjY2QzE5LjMzIDcuMTYgMjEgOS4zOSAyMSAxMnoiLz48L3N2Zz4="
-    section: "Platform Hub-Spoke"
-  href: "https://console-openshift-console.{{ $domain }}/k8s/ns/service-interconnect/skupper.io~v2alpha1~Site"
-  location: ApplicationMenu
-  text: "Service Interconnect"
 {{- end }}

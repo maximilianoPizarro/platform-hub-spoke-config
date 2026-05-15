@@ -92,24 +92,6 @@ spec:
       port: 9092
       protocol: TCP
 ---
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: spoke-gateway
-  namespace: spoke-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  host: spoke-gateway.{{ .Values.clusterDomain }}
-  to:
-    kind: Service
-    name: spoke-gateway-istio
-  port:
-    targetPort: 8080
-  tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Allow
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:

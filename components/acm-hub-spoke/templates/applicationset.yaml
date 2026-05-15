@@ -60,6 +60,9 @@ spec:
                 - id: spoke-interconnect
                   path: components/spoke-interconnect
                   namespace: service-interconnect
+                - id: rhcl-operator
+                  path: components/rhcl-operator
+                  namespace: redhat-connectivity-link-operator
   template:
     metadata:
       name: '{{`{{.id}}-{{.clusterName}}`}}'
