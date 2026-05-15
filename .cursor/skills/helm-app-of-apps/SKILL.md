@@ -192,6 +192,25 @@ backendRefs:
 
 Without this, the router returns 503 because it doesn't recognize the gateway's hostname.
 
+5. **Socket.IO requires session affinity** — when load-balancing across multiple backends, Socket.IO's polling transport creates a `sid` on one backend that is unknown on others. Split the HTTPRoute into two rules: `/api` prefix pinned to a single backend, everything else load-balanced. Without this, every other polling request returns an error and WebSocket upgrade fails.
+
+```yaml
+rules:
+  - matches:
+      - path: { type: PathPrefix, value: /api }
+    backendRefs:
+      - name: industrial-edge-east
+        port: 80
+        weight: 100
+  - backendRefs:
+      - name: industrial-edge-east
+        port: 80
+        weight: 50
+      - name: industrial-edge-west
+        port: 80
+        weight: 50
+```
+
 ### IoT dashboard requires iot-consumer sidecar
 
 The `iot-frontend` image is a static Apache app. It connects to a backend `iot-consumer` (Node.js + Socket.IO) that bridges MQTT sensor data to WebSocket. Without `iot-consumer` as a sidecar or separate deployment, the dashboard loads but sensors never appear.
@@ -200,7 +219,7 @@ Deploy `iot-consumer` alongside `line-dashboard` with:
 - `MQTT_BROKER=mqtt://messaging:1883`
 - `SOCKET_PATH=/api/service-web/socket`
 - A path-based Route (`/api`) pointing to port 3000
-- A ConfigMap overriding `conf/config.json` with the correct `websocketHost` URL
+- A ConfigMap overriding `conf/config.json` with **`websocketHost: ""`** (empty string = same origin). Never use `localhost:3000` (the image default) or an absolute cross-origin URL — Socket.IO connects to the current page's origin, and the path-based route proxies `/api` to port 3000.
 
 ### Operator deprecation: Kuadrant → Red Hat Connectivity Link
 
@@ -229,3 +248,7 @@ oc patch application <app> -n openshift-gitops --type merge -p '{
 ```
 
 Always use `ServerSideApply=true` and `SkipDryRunOnMissingResource=true` — CRDs from operators may not exist yet during dry-run, causing spurious failures.
+
+### ConfigMap volume mounts require pod restart
+
+When updating a ConfigMap that is mounted as a `subPath` volume (e.g. `config.json`), Kubernetes does **not** hot-reload the file. You must delete the pod (`oc delete pod -l app=<label>`) to pick up the new content. Plan for this in deployment workflows.

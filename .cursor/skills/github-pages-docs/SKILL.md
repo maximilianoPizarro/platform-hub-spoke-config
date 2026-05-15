@@ -20,6 +20,34 @@ Use this skill when authoring or restructuring **`docs/`** static documentation 
 - **`aux_links`**: top-right shortcuts (GitHub).
 - **`mermaid.version`**: pins Mermaid for diagrams.
 
+## Existing documentation structure
+
+```
+docs/
+├── _config.yml                  # Jekyll configuration
+├── Gemfile                      # Ruby gems
+├── index.md                     # Home page
+├── architecture.md              # Platform architecture overview
+├── getting-started.md           # Prerequisites and deployment steps
+├── deploy-acm-gitops.md         # ACM + GitOps deployment guide
+├── branch-strategy.md           # Single-branch multi-cluster strategy
+├── hub-gateway.md               # Hub gateway as F5 analog
+├── industrial-edge.md           # Industrial Edge application details
+├── observability.md             # Monitoring and observability stack
+└── products/
+    ├── index.md                 # Red Hat Products overview (has_children: true)
+    ├── acm.md                   # Advanced Cluster Management
+    ├── acs.md                   # Advanced Cluster Security
+    ├── amq-streams.md           # AMQ Streams (Kafka)
+    ├── camel-k.md               # Camel K
+    ├── connectivity-link.md     # Connectivity Link (Kuadrant)
+    ├── developer-hub.md         # Developer Hub (Backstage)
+    ├── openshift-ai.md          # OpenShift AI
+    ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
+    ├── pipelines.md             # OpenShift Pipelines (Tekton)
+    └── service-mesh.md          # Service Mesh 3 (Istio ambient)
+```
+
 ## Front matter conventions
 
 Every page should set:
@@ -51,6 +79,12 @@ Section roots use **`has_children: true`** (see `docs/products/index.md`).
 2. Set `parent: Red Hat Products` (matches `docs/products/index.md` title).
 3. Assign **`nav_order`** unique among siblings.
 4. Link from `docs/products/index.md` overview table.
+
+## Adding architecture/guide pages
+
+1. Create `docs/<slug>.md` at the root level.
+2. Set `nav_order` to position it in the sidebar navigation.
+3. For topics that need sub-pages, add `has_children: true` and create child pages with `parent: <title>`.
 
 ## Mermaid diagrams
 
@@ -103,6 +137,16 @@ nav_order: N
 
 Keep links authoritative (`docs.redhat.com`, upstream operators). Prefer short actionable paragraphs over marketing copy.
 
+## Content guidelines for this platform
+
+When documenting platform-specific topics, include these sections where relevant:
+
+- **What it does in this architecture** — one paragraph connecting the product to the hub-spoke pattern
+- **How it's deployed** — GitOps-driven (ArgoCD Application), operator channel, namespace
+- **Key resources created** — CRDs, ConfigMaps, Routes
+- **Links to official docs** — always use `docs.redhat.com` URLs, not community/upstream
+- **Troubleshooting notes** — known issues specific to this deployment (e.g. OOM, SCC, TLS)
+
 ---
 
 ## Troubleshooting
@@ -121,3 +165,10 @@ Just the Docs links between pages using the navigation hierarchy. If a parent/ch
 - Verify `parent:` in child front matter exactly matches the parent page's `title:`.
 - Verify `has_children: true` is set on the parent page.
 - Use `nav_order` to control ordering; gaps in numbering are fine.
+
+### GitHub Actions build failures
+
+If using GitHub Actions to build Jekyll:
+- Ensure `Gemfile.lock` is committed (or add it to `.gitignore` and let the action generate it).
+- Pin the Ruby version in the workflow to match the `Gemfile`.
+- If the theme fails to load, check that `jekyll-remote-theme` gem version is compatible with the Jekyll version.

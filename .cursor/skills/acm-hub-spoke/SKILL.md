@@ -1,6 +1,6 @@
 ---
 name: acm-hub-spoke
-description: ACM hub-spoke GitOps patterns for OpenShift—placement, ApplicationSet, cluster registration, mesh ambient, gateway, Grafana.
+description: ACM hub-spoke GitOps patterns for OpenShift—placement, ApplicationSet, cluster registration, mesh ambient, gateway, observability.
 ---
 
 # ACM Hub-Spoke Platform Skill
@@ -120,7 +120,81 @@ For hub-specific links (Grafana, Kiali, ACM), always use `hubClusterDomain` so s
 - Add `insecureEdgeTerminationPolicy: Allow` to spoke Routes so they accept HTTP.
 - A `ServiceEntry` for each external host is **mandatory** — without it Envoy has no cluster definition and returns 500.
 - **Per-backend `RequestHeaderModifier`** is mandatory in the HTTPRoute — the remote OpenShift router routes by `Host` header and returns 503 if the header doesn't match.
+- **Split `/api` into a separate HTTPRoute rule** pinned to a single backend — Socket.IO requires session affinity across polling and WebSocket requests. Without this, the `sid` token from one backend is invalid on another.
 - Layer Connectivity Link policies after baseline routing works.
+
+## Observability: Kiali + Prometheus for service mesh traffic
+
+### Kiali auth to Prometheus (401 errors)
+
+Kiali needs explicit credentials to reach Prometheus and Grafana. Without this, Kiali loads but shows no traffic graphs:
+
+```bash
+# Grant Prometheus read access to Kiali's service account
+oc adm policy add-cluster-role-to-user cluster-monitoring-view \
+  -z kiali-service-account -n openshift-cluster-observability-operator
+
+# Configure Kiali to use its own token for Prometheus
+oc patch kiali kiali -n openshift-cluster-observability-operator --type merge -p '{
+  "spec": {
+    "external_services": {
+      "prometheus": { "auth": { "type": "bearer", "use_kiali_token": true } },
+      "grafana": { "auth": { "type": "basic", "username": "admin", "password": "admin" } }
+    }
+  }
+}'
+```
+
+### Prometheus scraping Istio metrics
+
+By default, OpenShift Prometheus does **not** scrape Istio. Create ServiceMonitor/PodMonitor resources:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istiod-monitor
+  namespace: istio-system
+spec:
+  selector:
+    matchLabels: { app: istiod }
+  endpoints:
+    - port: http-monitoring
+      interval: 15s
+      path: /metrics          # istiod uses /metrics, NOT /stats/prometheus
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: istio-proxies
+  namespace: istio-system
+spec:
+  selector:
+    matchExpressions:
+      - { key: istio.io/gateway-name, operator: Exists }
+  podMetricsEndpoints:
+    - port: metrics           # port 15020
+      interval: 15s
+      path: /stats/prometheus  # Envoy proxies use /stats/prometheus
+  namespaceSelector: { any: true }
+```
+
+**Critical**: The User Workload Prometheus needs RoleBindings in each mesh namespace to scrape pods:
+
+```bash
+for NS in istio-system hub-gateway-system industrial-edge-tst-all industrial-edge-data-lake; do
+  oc create rolebinding prometheus-user-workload -n $NS \
+    --clusterrole=prometheus-k8s \
+    --serviceaccount=openshift-user-workload-monitoring:prometheus-user-workload
+done
+```
+
+Without these RoleBindings, targets appear as 0 in Prometheus even though ServiceMonitors exist.
+
+**Metrics path cheat-sheet:**
+- **istiod**: port `http-monitoring` (15014), path `/metrics`
+- **Envoy gateways/waypoints**: port `metrics` (15020), path `/stats/prometheus`
+- **Envoy sidecars**: port `http-envoy-prom` (15090), path `/stats/prometheus`
 
 ## ConsoleLinks for multi-cluster navigation
 
@@ -146,4 +220,7 @@ oc get placementdecision -A
 oc get applications -n openshift-gitops
 oc get consolelink | grep platform-
 oc get consoleplugin
+# Kiali/Prometheus
+oc logs deploy/kiali -n openshift-cluster-observability-operator --tail=10 | grep 401
+oc get servicemonitor,podmonitor -n istio-system
 ```
