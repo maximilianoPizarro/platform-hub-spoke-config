@@ -55,9 +55,8 @@ spec:
       root_url: https://grafana.{{ .Values.clusterDomain }}/
     auth:
       disable_login_form: "false"
-      basic: |
-        [auth.basic]
-        enabled = true
+    auth.basic:
+      enabled: "true"
     security:
       admin_user: admin
       admin_password: admin
