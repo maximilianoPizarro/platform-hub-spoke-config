@@ -1,5 +1,5 @@
 gitops:
-  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config.git"
+  repoUrl: "https://github.com/maximilianoPizarro/platform-hub-spoke-config"
   revision: "main"
   basePath: "."
 
@@ -200,6 +200,13 @@ connectivityLink:
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
+  apiUrl: "https://api.cluster-xqg4c.dynamic2.redhatworkshops.io:6443"
+
+litemaas:
+  apiKey: ""
+  apiUrl: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
+  enabled: true
+  model: "deepseek-r1-distill-qwen-14b"
 
 fieldContent:
   deploymentType: "helm"

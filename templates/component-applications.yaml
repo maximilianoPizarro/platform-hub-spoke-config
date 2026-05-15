@@ -109,7 +109,7 @@ spec:
   source:
     repoURL: {{ $.Values.gitops.repoUrl }}
     targetRevision: {{ $.Values.gitops.revision }}
-    path: {{ $.Values.gitops.basePath }}/components/{{ .path }}
+    path: {{ $.Values.gitops.basePath | default "." }}/components/{{ .path }}
     {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
     {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
     {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
