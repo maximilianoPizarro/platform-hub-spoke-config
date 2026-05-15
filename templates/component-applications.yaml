@@ -106,6 +106,22 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+    - group: cluster.open-cluster-management.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
+        - /status
+    - group: agent.open-cluster-management.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: broker.amq.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
   source:
     repoURL: {{ $.Values.gitops.repoUrl }}
     targetRevision: {{ $.Values.gitops.revision }}
@@ -142,6 +158,13 @@ spec:
           east:
             domain: {{ $eastDomain | quote }}
           west:
+            domain: {{ $westDomain | quote }}
+        managedClusters:
+          east:
+            apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
+            domain: {{ $eastDomain | quote }}
+          west:
+            apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
             domain: {{ $westDomain | quote }}
     {{- else if eq .path "hub-gateway" }}
     helm:

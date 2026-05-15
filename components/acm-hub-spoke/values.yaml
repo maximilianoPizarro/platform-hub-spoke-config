@@ -6,3 +6,10 @@ clusters:
     domain: ""
   west:
     domain: ""
+managedClusters:
+  east:
+    apiUrl: ""
+    domain: ""
+  west:
+    apiUrl: ""
+    domain: ""
