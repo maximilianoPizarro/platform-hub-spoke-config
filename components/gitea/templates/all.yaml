@@ -1,8 +1,28 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitea-anyuid
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+subjects:
+  - kind: ServiceAccount
+    name: field-content-gitea-chart
+    namespace: gitea
+  - kind: ServiceAccount
+    name: default
+    namespace: gitea
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: gitea
   namespace: gitea
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   host: gitea-gitea.{{ .Values.clusterDomain }}
   port:
@@ -12,7 +32,7 @@ spec:
     insecureEdgeTerminationPolicy: Redirect
   to:
     kind: Service
-    name: gitea-http
+    name: field-content-gitea-chart-http
     weight: 100
   wildcardPolicy: None
 ---
@@ -44,7 +64,7 @@ spec:
             - -c
             - |
               set -e
-              BASE="http://gitea-http.gitea.svc.cluster.local:3000"
+              BASE="http://field-content-gitea-chart-http.gitea.svc.cluster.local:3000"
               AUTH="${ADMIN_USER}:${ADMIN_PASS}"
               echo "Waiting for Gitea API..."
               for attempt in $(seq 1 60); do
