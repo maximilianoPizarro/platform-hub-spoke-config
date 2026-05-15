@@ -1,4 +1,19 @@
 {{- if .Values.clusters.east.domain }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: industrial-edge-east
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 443
+---
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -8,15 +23,13 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   hosts:
-    - industrial-edge-east.hub-gateway-system.svc.cluster.local
+    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
   location: MESH_EXTERNAL
   ports:
     - number: 443
       name: https
       protocol: TLS
   resolution: DNS
-  endpoints:
-    - address: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -26,7 +39,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  host: industrial-edge-east.hub-gateway-system.svc.cluster.local
+  host: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
   trafficPolicy:
     tls:
       mode: SIMPLE
@@ -34,6 +47,21 @@ spec:
 {{- end }}
 ---
 {{- if .Values.clusters.west.domain }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: industrial-edge-west
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  type: ExternalName
+  externalName: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
+  ports:
+    - port: 443
+      protocol: TCP
+      targetPort: 443
+---
 apiVersion: networking.istio.io/v1
 kind: ServiceEntry
 metadata:
@@ -43,15 +71,13 @@ metadata:
     argocd.argoproj.io/sync-wave: "2"
 spec:
   hosts:
-    - industrial-edge-west.hub-gateway-system.svc.cluster.local
+    - line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
   location: MESH_EXTERNAL
   ports:
     - number: 443
       name: https
       protocol: TLS
   resolution: DNS
-  endpoints:
-    - address: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
 ---
 apiVersion: networking.istio.io/v1
 kind: DestinationRule
@@ -61,7 +87,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  host: industrial-edge-west.hub-gateway-system.svc.cluster.local
+  host: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
   trafficPolicy:
     tls:
       mode: SIMPLE
