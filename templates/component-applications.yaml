@@ -233,7 +233,7 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: hub
-    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3") }}
+    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3" "istio-monitoring") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}

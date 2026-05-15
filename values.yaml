@@ -240,6 +240,14 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: istio-monitoring
+      enabled: true
+      path: istio-monitoring
+      destinationNamespace: istio-system
+      syncWave: "8"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

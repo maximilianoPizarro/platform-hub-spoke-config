@@ -50,12 +50,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "total",
               "refId": "A"
             }
           ],
-          "title": "Total request rate (dest workloads)",
+          "title": "Total request rate (source reporter / mesh egress)",
           "type": "stat"
         },
         {
@@ -99,19 +99,19 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\"}[5m])) by (destination_cluster)",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m])) by (destination_cluster)",
               "legendFormat": "{{ "{{destination_cluster}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\"}[5m])) by (destination_service_name)",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m])) by (destination_service_name)",
               "legendFormat": "{{ "{{destination_service_name}}" }}",
               "refId": "B",
               "hide": true
             }
           ],
-          "title": "Request rate by destination cluster (fallback series hidden: by destination_service_name)",
+          "title": "Request rate by destination cluster (source reporter)",
           "type": "timeseries",
           "description": "Primary series groups by destination_cluster when present in scraped Istio metrics; enable hidden query if your mesh only exposes destination_service_name."
         },
@@ -158,13 +158,13 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"destination\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "5xx error ratio",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\", response_code=~\"4..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"destination\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"4..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
               "legendFormat": "4xx error ratio",
               "refId": "B"
             }
@@ -212,13 +212,13 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"destination\"}[5m])) by (le))",
+              "expr": "histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
               "legendFormat": "p50",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"destination\"}[5m])) by (le))",
+              "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
               "legendFormat": "p99",
               "refId": "B"
             }
@@ -274,13 +274,13 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\", destination_service_name=\"industrial-edge-east\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-east\"}[5m]))",
               "legendFormat": "east ExternalName backend",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"destination\", destination_service_name=\"industrial-edge-west\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=\"industrial-edge-west\"}[5m]))",
               "legendFormat": "west ExternalName backend",
               "refId": "B"
             },
@@ -348,6 +348,156 @@ spec:
             }
           ],
           "title": "Kafka messages in per second (kafka_server_brokertopicmetrics_messagesinpersec)",
+          "type": "timeseries"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 40},
+          "id": 103,
+          "panels": [],
+          "title": "Kafka broker I/O and Istio TCP (L4)",
+          "type": "row"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "opacity",
+                "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+                "insertNulls": false,
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {"group": "A", "mode": "none"},
+                "thresholdsStyle": {"mode": "off"}
+              },
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 41},
+          "id": 7,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesinpersec[5m])) by (topic)",
+              "legendFormat": "in {{ "{{topic}}" }}",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesoutpersec[5m])) by (topic)",
+              "legendFormat": "out {{ "{{topic}}" }}",
+              "refId": "B"
+            }
+          ],
+          "title": "Kafka topic bytes in/out",
+          "type": "timeseries"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "description": "Requires Strimzi JMX metrics and PodMonitor scraping.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "mappings": [],
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 6, "x": 12, "y": 41},
+          "id": 8,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "expr": "sum(kafka_server_socketservermetrics_connection_count)",
+              "legendFormat": "connections",
+              "refId": "A"
+            }
+          ],
+          "title": "Kafka broker socket connections (total)",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "description": "Shows L4 mesh TCP bytes when ztunnel emits metrics; may be empty without ztunnel.",
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "custom": {
+                "axisBorderShow": false,
+                "axisCenteredZero": false,
+                "axisColorMode": "text",
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "barAlignment": 0,
+                "drawStyle": "line",
+                "fillOpacity": 10,
+                "gradientMode": "none",
+                "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+                "insertNulls": false,
+                "lineInterpolation": "linear",
+                "lineWidth": 1,
+                "pointSize": 5,
+                "scaleDistribution": {"type": "linear"},
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {"group": "A", "mode": "none"},
+                "thresholdsStyle": {"mode": "off"}
+              },
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 6, "x": 18, "y": 41},
+          "id": 9,
+          "options": {
+            "legend": {"calcs": ["mean", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true},
+            "tooltip": {"mode": "multi", "sort": "desc"}
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
+              "legendFormat": "sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "prometheus"},
+              "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
+              "legendFormat": "recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
+              "refId": "B"
+            }
+          ],
+          "title": "Istio TCP bytes (ambient / ztunnel when present)",
           "type": "timeseries"
         }
       ],
