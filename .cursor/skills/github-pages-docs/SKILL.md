@@ -102,3 +102,22 @@ nav_order: N
 ```
 
 Keep links authoritative (`docs.redhat.com`, upstream operators). Prefer short actionable paragraphs over marketing copy.
+
+---
+
+## Troubleshooting
+
+### Styles missing on GitHub Pages
+
+If the site deploys but has no CSS:
+- Verify `baseurl` in `_config.yml` matches exactly `/<repo-name>` (case-sensitive).
+- Ensure `remote_theme: just-the-docs/just-the-docs` is set (not a local theme path).
+- Check that `jekyll-remote-theme` is listed in `plugins:` array in `_config.yml` and in the `Gemfile`.
+- All internal links must use `{{ site.baseurl }}` prefix or relative paths — absolute paths break under the repo subdirectory.
+
+### Broken internal links
+
+Just the Docs links between pages using the navigation hierarchy. If a parent/child relationship breaks:
+- Verify `parent:` in child front matter exactly matches the parent page's `title:`.
+- Verify `has_children: true` is set on the parent page.
+- Use `nav_order` to control ordering; gaps in numbering are fine.
