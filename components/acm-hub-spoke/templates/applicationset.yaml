@@ -42,6 +42,18 @@ spec:
                 - id: acs-secured-cluster
                   path: components/acs-secured-cluster
                   namespace: stackrox
+                - id: observability
+                  path: components/observability
+                  namespace: openshift-cluster-observability-operator
+                - id: spoke-dashboards
+                  path: components/spoke-dashboards
+                  namespace: openshift-cluster-observability-operator
+                - id: istio-monitoring
+                  path: components/istio-monitoring
+                  namespace: istio-system
+                - id: console-links
+                  path: components/console-links
+                  namespace: openshift-gitops
   template:
     metadata:
       name: '{{`{{.id}}-{{.clusterName}}`}}'
@@ -58,6 +70,7 @@ spec:
           valuesObject:
             clusterDomain: '{{`{{.clusterDomain}}`}}'
             clusterName: '{{`{{.clusterName}}`}}'
+            clusterRole: spoke
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
             global:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
@@ -94,6 +107,21 @@ spec:
           jsonPointers:
             - /metadata/annotations
             - /status
+        - group: grafana.integreatly.org
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+        - group: operators.coreos.com
+          kind: Subscription
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+        - group: ""
+          kind: Namespace
+          jsonPointers:
+            - /metadata/annotations
+            - /metadata/labels
       syncPolicy:
         automated:
           selfHeal: true

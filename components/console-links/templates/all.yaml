@@ -26,7 +26,11 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0Y0NjgwMCI+PHBhdGggZD0iTTIyIDloLTR2LTJoNHYyem0tNi0ydi0ySDh2Mmg4em0tMTAgMHYtMkgzdjJoM3ptMTYgNGgtOHYtMmg4djJ6bS0xMCAwdi0ySDV2Mmg3em0tOSAwdi0ySDJ2Mmgxem0xNiA0SDR2LTJoMTV2MnptLTYgNEg2di0yaDd2MnptLTkgMEg0di0yaDR2MnoiLz48L3N2Zz4="
     section: "Platform Hub-Spoke"
+  {{- if eq $role "hub" }}
   href: "https://grafana.{{ $hubDomain }}"
+  {{- else }}
+  href: "https://grafana.{{ $domain }}"
+  {{- end }}
   location: ApplicationMenu
   text: "Grafana Dashboards"
 ---
