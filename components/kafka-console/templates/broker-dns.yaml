@@ -1,0 +1,116 @@
+{{- /*
+  Headless services + Endpoints so Kafka Console on the hub can resolve broker
+  advertised hostnames after metadata exchange (via Skupper).
+  Spokes advertise dev-cluster-broker-0-{east|west} and factory-cluster-broker-0-{east|west}.
+*/ -}}
+{{- $skupperNs := "service-interconnect" }}
+{{- $eastTst := lookup "v1" "Service" $skupperNs "kafka-east-tst" }}
+{{- $westTst := lookup "v1" "Service" $skupperNs "kafka-west-tst" }}
+{{- $eastStorm := lookup "v1" "Service" $skupperNs "kafka-east-stormshift" }}
+{{- $westStorm := lookup "v1" "Service" $skupperNs "kafka-west-stormshift" }}
+{{- $ip := "" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dev-cluster-kafka-brokers
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  clusterIP: None
+  ports:
+    - name: tcp
+      port: 9092
+      protocol: TCP
+      targetPort: 9092
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: dev-cluster-kafka-brokers
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+subsets:
+  - addresses:
+{{- if $eastTst }}
+{{- if $eastTst.spec.clusterIP }}
+{{- $ip = $eastTst.spec.clusterIP }}
+{{- else if $eastTst.spec.clusterIPs }}
+{{- $ip = index $eastTst.spec.clusterIPs 0 }}
+{{- end }}
+{{- if $ip }}
+      - ip: {{ $ip | quote }}
+        hostname: dev-cluster-broker-0-east
+{{- end }}
+{{- end }}
+{{- if $westTst }}
+{{- $ip = "" }}
+{{- if $westTst.spec.clusterIP }}
+{{- $ip = $westTst.spec.clusterIP }}
+{{- else if $westTst.spec.clusterIPs }}
+{{- $ip = index $westTst.spec.clusterIPs 0 }}
+{{- end }}
+{{- if $ip }}
+      - ip: {{ $ip | quote }}
+        hostname: dev-cluster-broker-0-west
+{{- end }}
+{{- end }}
+    ports:
+      - name: tcp
+        port: 9092
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factory-cluster-kafka-brokers
+  namespace: industrial-edge-stormshift-messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  clusterIP: None
+  ports:
+    - name: tcp
+      port: 9092
+      protocol: TCP
+      targetPort: 9092
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: factory-cluster-kafka-brokers
+  namespace: industrial-edge-stormshift-messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+subsets:
+  - addresses:
+{{- if $eastStorm }}
+{{- $ip = "" }}
+{{- if $eastStorm.spec.clusterIP }}
+{{- $ip = $eastStorm.spec.clusterIP }}
+{{- else if $eastStorm.spec.clusterIPs }}
+{{- $ip = index $eastStorm.spec.clusterIPs 0 }}
+{{- end }}
+{{- if $ip }}
+      - ip: {{ $ip | quote }}
+        hostname: factory-cluster-broker-0-east
+{{- end }}
+{{- end }}
+{{- if $westStorm }}
+{{- $ip = "" }}
+{{- if $westStorm.spec.clusterIP }}
+{{- $ip = $westStorm.spec.clusterIP }}
+{{- else if $westStorm.spec.clusterIPs }}
+{{- $ip = index $westStorm.spec.clusterIPs 0 }}
+{{- end }}
+{{- if $ip }}
+      - ip: {{ $ip | quote }}
+        hostname: factory-cluster-broker-0-west
+{{- end }}
+{{- end }}
+    ports:
+      - name: tcp
+        port: 9092
+        protocol: TCP

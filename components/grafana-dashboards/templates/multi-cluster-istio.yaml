@@ -71,18 +71,18 @@ spec:
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "East",
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m])) or sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
+              "legendFormat": "East L4/HTTP",
               "refId": "B"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "West",
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m])) or sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
+              "legendFormat": "West L4/HTTP",
               "refId": "C"
             }
           ],
-          "title": "Total request rate per cluster",
+          "title": "Mesh traffic per cluster (L4 ztunnel + HTTP)",
           "type": "timeseries"
         },
         {
@@ -141,14 +141,14 @@ spec:
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "East 5xx",
+              "expr": "sum(rate(istio_tcp_connections_closed_total[5m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total[5m])), 1)",
+              "legendFormat": "East TCP close ratio",
               "refId": "B"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "West 5xx",
+              "expr": "sum(rate(istio_tcp_connections_closed_total[5m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total[5m])), 1)",
+              "legendFormat": "West TCP close ratio",
               "refId": "C"
             }
           ],
@@ -208,14 +208,14 @@ spec:
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
-              "legendFormat": "East p95",
+              "expr": "sum(rate(istio_tcp_received_bytes_total[5m]))",
+              "legendFormat": "East TCP rx B/s",
               "refId": "B"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le))",
-              "legendFormat": "West p95",
+              "expr": "sum(rate(istio_tcp_received_bytes_total[5m]))",
+              "legendFormat": "West TCP rx B/s",
               "refId": "C"
             },
             {

@@ -1,7 +1,7 @@
 {{- $uwmNs := "openshift-user-workload-monitoring" }}
 {{- $promSa := "prometheus-user-workload" }}
 {{- $meshNamespaces := list "hub-gateway-system" "industrial-edge-tst-all" "industrial-edge-data-lake" "industrial-edge-stormshift-messaging" }}
-{{- $rbacNamespaces := concat (list "istio-system") $meshNamespaces }}
+{{- $rbacNamespaces := concat (list "istio-system" "ztunnel") $meshNamespaces }}
 {{- /* Strimzi labels Kafka broker pods with strimzi.io/name=<cluster>-kafka (not the node pool name). */}}
 {{- $kafkaScrapes := list
       (dict "namespace" "industrial-edge-data-lake" "strimziName" "prod-cluster-kafka")
@@ -51,6 +51,25 @@ spec:
       scheme: http
 ---
 {{- end }}
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: ztunnel-metrics
+  namespace: ztunnel
+  labels:
+    release: openshift-user-workload-monitoring
+  annotations:
+    argocd.argoproj.io/sync-wave: "8"
+spec:
+  selector:
+    matchLabels:
+      app: ztunnel
+  podMetricsEndpoints:
+    - port: ztunnel-stats
+      interval: 15s
+      path: /stats/prometheus
+      scheme: http
+---
 {{- range $kafkaScrapes }}
 apiVersion: monitoring.coreos.com/v1
 kind: PodMonitor

@@ -50,12 +50,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
+              "expr": "sum(rate(istio_requests_total{source_workload=\"hub-gateway-istio\"}[5m])) or sum(rate(istio_tcp_connections_opened_total[5m]))",
               "legendFormat": "total",
               "refId": "A"
             }
           ],
-          "title": "Total request rate (source reporter / mesh egress)",
+          "title": "Hub gateway HTTP + mesh L4 connections",
           "type": "stat"
         },
         {

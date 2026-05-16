@@ -23,7 +23,7 @@ spec:
           "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
           "id": 100,
           "panels": [],
-          "title": "Istio mesh (local cluster)",
+          "title": "Istio ambient L4 (ztunnel)",
           "type": "row"
         },
         {
@@ -33,7 +33,7 @@ spec:
               "color": {"mode": "thresholds"},
               "mappings": [],
               "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
-              "unit": "reqps"
+              "unit": "cps"
             },
             "overrides": []
           },
@@ -50,12 +50,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "total",
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))",
+              "legendFormat": "opened",
               "refId": "A"
             }
           ],
-          "title": "Total request rate",
+          "title": "TCP connections opened (L4)",
           "type": "stat"
         },
         {
@@ -65,7 +65,7 @@ spec:
               "color": {"mode": "thresholds"},
               "mappings": [],
               "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.01}, {"color": "red", "value": 0.05}]},
-              "unit": "percentunit"
+              "unit": "short"
             },
             "overrides": []
           },
@@ -82,12 +82,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5.*\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))",
-              "legendFormat": "5xx ratio",
+              "expr": "sum(kube_pod_container_status_restarts_total{namespace=~\"industrial-edge.*\"})",
+              "legendFormat": "restarts",
               "refId": "A"
             }
           ],
-          "title": "Error rate (5xx)",
+          "title": "Pod restarts (Industrial Edge)",
           "type": "stat"
         },
         {
@@ -97,7 +97,7 @@ spec:
               "color": {"mode": "thresholds"},
               "mappings": [],
               "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.5}, {"color": "red", "value": 1}]},
-              "unit": "s"
+              "unit": "bytes"
             },
             "overrides": []
           },
@@ -114,12 +114,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le)) / 1000",
-              "legendFormat": "p95",
+              "expr": "sum(rate(istio_tcp_received_bytes_total[5m]))",
+              "legendFormat": "received",
               "refId": "A"
             }
           ],
-          "title": "Latency p95",
+          "title": "TCP bytes received (L4)",
           "type": "stat"
         },
         {
@@ -148,7 +148,7 @@ spec:
                 "stacking": {"group": "A", "mode": "none"},
                 "thresholdsStyle": {"mode": "off"}
               },
-              "unit": "reqps"
+              "unit": "Bps"
             },
             "overrides": []
           },
@@ -161,12 +161,12 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m])) by (destination_service_name)",
-              "legendFormat": "{{ "{{destination_service_name}}" }}",
+              "expr": "sum(rate(istio_tcp_sent_bytes_total[5m])) by (destination_workload_namespace)",
+              "legendFormat": "{{ "{{destination_workload_namespace}}" }}",
               "refId": "A"
             }
           ],
-          "title": "Request rate by destination service",
+          "title": "TCP sent bytes by destination namespace (L4)",
           "type": "timeseries"
         },
         {
@@ -195,7 +195,7 @@ spec:
                 "stacking": {"group": "A", "mode": "none"},
                 "thresholdsStyle": {"mode": "off"}
               },
-              "unit": "s"
+              "unit": "ops"
             },
             "overrides": []
           },
@@ -208,24 +208,18 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le, destination_service_name)) / 1000",
-              "legendFormat": "{{ "{{destination_service_name}}" }} p50",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "{{ "{{namespace}}" }} in",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le, destination_service_name)) / 1000",
-              "legendFormat": "{{ "{{destination_service_name}}" }} p95",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "{{ "{{namespace}}" }} out",
               "refId": "B"
-            },
-            {
-              "datasource": {"type": "prometheus"},
-              "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{reporter=\"source\"}[5m])) by (le, destination_service_name)) / 1000",
-              "legendFormat": "{{ "{{destination_service_name}}" }} p99",
-              "refId": "C"
             }
           ],
-          "title": "Latency by destination (p50 / p95 / p99)",
+          "title": "Kafka messages in/out per namespace",
           "type": "timeseries"
         },
         {
