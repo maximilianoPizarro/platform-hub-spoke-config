@@ -41,37 +41,20 @@ metadata:
   labels:
     dashboards: grafana
 spec:
+  config:
+    auth:
+      disable_login_form: "false"
+    auth.anonymous:
+      enabled: "true"
+      org_role: Viewer
+    security:
+      admin_user: admin
+      admin_password: openshift
   route:
     spec:
       host: grafana.{{ .Values.clusterDomain }}
-      port:
-        targetPort: grafana
       tls:
         termination: edge
-  config:
-    log:
-      mode: console
-    server:
-      root_url: https://grafana.{{ .Values.clusterDomain }}/
-    auth:
-      disable_login_form: "false"
-    auth.basic:
-      enabled: "true"
-    security:
-      admin_user: admin
-      admin_password: admin
-  deployment:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: grafana
-              image: docker.io/grafana/grafana:11.4.0
-              env:
-                - name: GF_SECURITY_ADMIN_PASSWORD
-                  value: admin
-                - name: GF_SECURITY_ADMIN_USER
-                  value: admin
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
