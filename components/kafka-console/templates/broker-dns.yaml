@@ -1,7 +1,6 @@
 {{- /*
-  Headless services + Endpoints so Kafka Console on the hub can resolve broker
-  advertised hostnames after metadata exchange (via Skupper).
-  Spokes advertise dev-cluster-broker-0-{east|west} and factory-cluster-broker-0-{east|west}.
+  Headless Services + EndpointSlices (Argo CD excludes legacy Endpoints).
+  Maps broker advertised hostnames to Skupper listener ClusterIPs on the hub.
 */ -}}
 {{- $skupperNs := "service-interconnect" }}
 {{- $eastTst := lookup "v1" "Service" $skupperNs "kafka-east-tst" }}
@@ -25,24 +24,34 @@ spec:
       protocol: TCP
       targetPort: 9092
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: dev-cluster-kafka-brokers
   namespace: industrial-edge-tst-all
+  labels:
+    kubernetes.io/service-name: dev-cluster-kafka-brokers
   annotations:
     argocd.argoproj.io/sync-wave: "3"
-subsets:
-  - addresses:
+addressType: IPv4
+ports:
+  - name: tcp
+    port: 9092
+    protocol: TCP
+endpoints:
 {{- if $eastTst }}
+{{- $ip = "" }}
 {{- if $eastTst.spec.clusterIP }}
 {{- $ip = $eastTst.spec.clusterIP }}
 {{- else if $eastTst.spec.clusterIPs }}
 {{- $ip = index $eastTst.spec.clusterIPs 0 }}
 {{- end }}
 {{- if $ip }}
-      - ip: {{ $ip | quote }}
-        hostname: dev-cluster-broker-0-east
+  - addresses:
+      - {{ $ip | quote }}
+    hostname: dev-cluster-broker-0-east
+    conditions:
+      ready: true
 {{- end }}
 {{- end }}
 {{- if $westTst }}
@@ -53,14 +62,13 @@ subsets:
 {{- $ip = index $westTst.spec.clusterIPs 0 }}
 {{- end }}
 {{- if $ip }}
-      - ip: {{ $ip | quote }}
-        hostname: dev-cluster-broker-0-west
+  - addresses:
+      - {{ $ip | quote }}
+    hostname: dev-cluster-broker-0-west
+    conditions:
+      ready: true
 {{- end }}
 {{- end }}
-    ports:
-      - name: tcp
-        port: 9092
-        protocol: TCP
 ---
 apiVersion: v1
 kind: Service
@@ -77,15 +85,21 @@ spec:
       protocol: TCP
       targetPort: 9092
 ---
-apiVersion: v1
-kind: Endpoints
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
 metadata:
   name: factory-cluster-kafka-brokers
   namespace: industrial-edge-stormshift-messaging
+  labels:
+    kubernetes.io/service-name: factory-cluster-kafka-brokers
   annotations:
     argocd.argoproj.io/sync-wave: "3"
-subsets:
-  - addresses:
+addressType: IPv4
+ports:
+  - name: tcp
+    port: 9092
+    protocol: TCP
+endpoints:
 {{- if $eastStorm }}
 {{- $ip = "" }}
 {{- if $eastStorm.spec.clusterIP }}
@@ -94,8 +108,11 @@ subsets:
 {{- $ip = index $eastStorm.spec.clusterIPs 0 }}
 {{- end }}
 {{- if $ip }}
-      - ip: {{ $ip | quote }}
-        hostname: factory-cluster-broker-0-east
+  - addresses:
+      - {{ $ip | quote }}
+    hostname: factory-cluster-broker-0-east
+    conditions:
+      ready: true
 {{- end }}
 {{- end }}
 {{- if $westStorm }}
@@ -106,11 +123,10 @@ subsets:
 {{- $ip = index $westStorm.spec.clusterIPs 0 }}
 {{- end }}
 {{- if $ip }}
-      - ip: {{ $ip | quote }}
-        hostname: factory-cluster-broker-0-west
+  - addresses:
+      - {{ $ip | quote }}
+    hostname: factory-cluster-broker-0-west
+    conditions:
+      ready: true
 {{- end }}
 {{- end }}
-    ports:
-      - name: tcp
-        port: 9092
-        protocol: TCP
