@@ -306,6 +306,10 @@ data:
     ALTER SYSTEM SET max_replication_slots = 4;
     ALTER SYSTEM SET max_wal_senders = 4;
 
+    DO $$ BEGIN
+      EXECUTE format('ALTER USER %I WITH SUPERUSER REPLICATION', current_user);
+    END $$;
+
     CREATE TABLE IF NOT EXISTS customers (
       id SERIAL PRIMARY KEY,
       first_name VARCHAR(100) NOT NULL,
