@@ -265,6 +265,10 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: hub
+    {{- else if eq .path "kafka-console" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
     {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3" "istio-monitoring" "service-interconnect" "mailpit") }}
     helm:
       valuesObject:
