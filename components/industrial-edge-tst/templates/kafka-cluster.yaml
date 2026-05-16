@@ -81,7 +81,16 @@ metadata:
 data:
   kafka-metrics-config.yml: |
     lowercaseOutputName: true
+    lowercaseOutputLabelNames: true
     rules:
+      - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.+), topic=(.+)><>(Count|OneMinuteRate|FiveMinuteRate|MeanRate)"
+        name: kafka_server_brokertopicmetrics_$1
+        type: GAUGE
+        labels:
+          topic: "$2"
+      - pattern: "kafka.server<type=BrokerTopicMetrics, name=(.+)><>(Count|OneMinuteRate|FiveMinuteRate|MeanRate)"
+        name: kafka_server_brokertopicmetrics_$1
+        type: GAUGE
       - pattern: "kafka.server<type=(.+), name=(.+), clientId=(.+), topic=(.+), partition=(.*)><>Value"
         name: kafka_server_$1_$2
         type: GAUGE
@@ -95,3 +104,17 @@ data:
         labels:
           clientId: "$3"
           broker: "$4:$5"
+      - pattern: "kafka.server<type=(.+), name=(.+)><>Value"
+        name: kafka_server_$1_$2
+        type: GAUGE
+      - pattern: "kafka.server<type=(.+), name=(.+)><>Count"
+        name: kafka_server_$1_$2_total
+        type: COUNTER
+      - pattern: "kafka.network<type=(.+), name=(.+), request=(.+)><>Count"
+        name: kafka_network_$1_$2_total
+        type: COUNTER
+        labels:
+          request: "$3"
+      - pattern: "kafka.controller<type=(.+), name=(.+)><>(Count|Value)"
+        name: kafka_controller_$1_$2
+        type: GAUGE
