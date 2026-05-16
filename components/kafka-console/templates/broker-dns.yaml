@@ -7,7 +7,38 @@
 {{- $westTst := lookup "v1" "Service" $skupperNs "kafka-west-tst" }}
 {{- $eastStorm := lookup "v1" "Service" $skupperNs "kafka-east-stormshift" }}
 {{- $westStorm := lookup "v1" "Service" $skupperNs "kafka-west-stormshift" }}
-{{- $ip := "" }}
+{{- $eastTstIP := "" }}
+{{- $westTstIP := "" }}
+{{- $eastStormIP := "" }}
+{{- $westStormIP := "" }}
+{{- if $eastTst }}
+{{- if $eastTst.spec.clusterIP }}
+{{- $eastTstIP = $eastTst.spec.clusterIP }}
+{{- else if $eastTst.spec.clusterIPs }}
+{{- $eastTstIP = index $eastTst.spec.clusterIPs 0 }}
+{{- end }}
+{{- end }}
+{{- if $westTst }}
+{{- if $westTst.spec.clusterIP }}
+{{- $westTstIP = $westTst.spec.clusterIP }}
+{{- else if $westTst.spec.clusterIPs }}
+{{- $westTstIP = index $westTst.spec.clusterIPs 0 }}
+{{- end }}
+{{- end }}
+{{- if $eastStorm }}
+{{- if $eastStorm.spec.clusterIP }}
+{{- $eastStormIP = $eastStorm.spec.clusterIP }}
+{{- else if $eastStorm.spec.clusterIPs }}
+{{- $eastStormIP = index $eastStorm.spec.clusterIPs 0 }}
+{{- end }}
+{{- end }}
+{{- if $westStorm }}
+{{- if $westStorm.spec.clusterIP }}
+{{- $westStormIP = $westStorm.spec.clusterIP }}
+{{- else if $westStorm.spec.clusterIPs }}
+{{- $westStormIP = index $westStorm.spec.clusterIPs 0 }}
+{{- end }}
+{{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -39,35 +70,19 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if $eastTst }}
-{{- $ip = "" }}
-{{- if $eastTst.spec.clusterIP }}
-{{- $ip = $eastTst.spec.clusterIP }}
-{{- else if $eastTst.spec.clusterIPs }}
-{{- $ip = index $eastTst.spec.clusterIPs 0 }}
-{{- end }}
-{{- if $ip }}
+{{- if $eastTstIP }}
   - addresses:
-      - {{ $ip | quote }}
+      - {{ $eastTstIP | quote }}
     hostname: dev-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- end }}
-{{- if $westTst }}
-{{- $ip = "" }}
-{{- if $westTst.spec.clusterIP }}
-{{- $ip = $westTst.spec.clusterIP }}
-{{- else if $westTst.spec.clusterIPs }}
-{{- $ip = index $westTst.spec.clusterIPs 0 }}
-{{- end }}
-{{- if $ip }}
+{{- if $westTstIP }}
   - addresses:
-      - {{ $ip | quote }}
+      - {{ $westTstIP | quote }}
     hostname: dev-cluster-broker-0-west
     conditions:
       ready: true
-{{- end }}
 {{- end }}
 ---
 apiVersion: v1
@@ -100,33 +115,17 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if $eastStorm }}
-{{- $ip = "" }}
-{{- if $eastStorm.spec.clusterIP }}
-{{- $ip = $eastStorm.spec.clusterIP }}
-{{- else if $eastStorm.spec.clusterIPs }}
-{{- $ip = index $eastStorm.spec.clusterIPs 0 }}
-{{- end }}
-{{- if $ip }}
+{{- if $eastStormIP }}
   - addresses:
-      - {{ $ip | quote }}
+      - {{ $eastStormIP | quote }}
     hostname: factory-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- end }}
-{{- if $westStorm }}
-{{- $ip = "" }}
-{{- if $westStorm.spec.clusterIP }}
-{{- $ip = $westStorm.spec.clusterIP }}
-{{- else if $westStorm.spec.clusterIPs }}
-{{- $ip = index $westStorm.spec.clusterIPs 0 }}
-{{- end }}
-{{- if $ip }}
+{{- if $westStormIP }}
   - addresses:
-      - {{ $ip | quote }}
+      - {{ $westStormIP | quote }}
     hostname: factory-cluster-broker-0-west
     conditions:
       ready: true
-{{- end }}
 {{- end }}
