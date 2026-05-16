@@ -127,6 +127,33 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+    - group: operators.coreos.com
+      kind: OperatorGroup
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
+        - /spec
+    - group: tekton.dev
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /metadata/labels
+        - /spec/tasks
+    - group: grafana.integreatly.org
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: operators.coreos.com
+      kind: Subscription
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: skupper.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
   {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
   {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
   {{- $eastDomain := $.Values.clusters.east.domain | default "" }}

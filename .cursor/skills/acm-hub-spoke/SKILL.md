@@ -271,6 +271,8 @@ Key resources per spoke (in `spoke-interconnect` component):
 5. **Service** exposing port 9091
 6. **Skupper Connector** pointing to `prometheus-auth-proxy.service-interconnect.svc:9091` (NOT directly to Thanos)
 
+**CRITICAL — nginx image selection**: Use `nginxinc/nginx-unprivileged:alpine` as the container image. Do NOT use `registry.access.redhat.com/ubi9/nginx-124:latest` — that is an S2I builder image that prints a help message and exits immediately with code 0, causing CrashLoopBackOff. The unprivileged image reads `/etc/nginx/nginx.conf` and starts nginx as expected.
+
 Hub Grafana datasources use `http://` (no TLS, no bearer token needed — the proxy handles both):
 
 ```yaml
@@ -442,6 +444,43 @@ spec:
         - kind: ServiceAccount
           name: <sa>
           namespace: <ns>
+```
+
+## OLM cleanup with direct cluster access
+
+When you have direct `oc login` credentials to the spoke cluster (preferred over MCA+Job):
+
+```bash
+# 1. Identify orphan CSVs
+oc get csv -n openshift-operators --no-headers | grep -v Succeeded
+
+# 2. Delete orphan CSV
+oc delete csv <orphan-csv-name> -n openshift-operators
+
+# 3. Delete stuck subscriptions
+oc delete subscription.operators.coreos.com grafana-operator kiali-ossm skupper-operator -n openshift-operators
+
+# 4. Restart catalog-operator to clear cache
+oc delete pod -n openshift-operator-lifecycle-manager -l app=catalog-operator
+
+# 5. Wait ~15s, then verify subscriptions are recreated by ArgoCD
+#    If selfHeal doesn't recreate them, manually apply:
+oc apply -f - <<EOF
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: grafana-operator
+  namespace: openshift-operators
+spec:
+  channel: v5
+  installPlanApproval: Automatic
+  name: grafana-operator
+  source: community-operators
+  sourceNamespace: openshift-marketplace
+EOF
+
+# 6. Force ArgoCD refresh from hub
+oc annotate application operators-west -n openshift-gitops argocd.argoproj.io/refresh=hard --overwrite
 ```
 
 ## Quick verification commands

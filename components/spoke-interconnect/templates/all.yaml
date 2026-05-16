@@ -120,7 +120,7 @@ spec:
               mountPath: /config
       containers:
         - name: nginx
-          image: registry.access.redhat.com/ubi9/nginx-124:latest
+          image: nginxinc/nginx-unprivileged:alpine
           ports:
             - containerPort: 9091
           volumeMounts:
