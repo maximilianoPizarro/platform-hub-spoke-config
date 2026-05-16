@@ -265,15 +265,6 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: hub
-    {{- else if eq .path "ie-anomaly-alerter" }}
-    helm:
-      valuesObject:
-        clusterDomain: {{ $domain }}
-        mqtt:
-          host: messaging.industrial-edge-tst-all.svc
-          port: 1883
-        mailpit:
-          url: "http://mailpit.mailpit.svc:8025/api/v1/send"
     {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3" "istio-monitoring" "service-interconnect" "mailpit") }}
     helm:
       valuesObject:

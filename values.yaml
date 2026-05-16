@@ -269,15 +269,6 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
-    # IE Anomaly Alerter (vibration/temperature -> Mailpit)
-    - id: ie-anomaly-alerter
-      enabled: true
-      path: ie-anomaly-alerter
-      destinationNamespace: industrial-edge-tst-all
-      syncWave: "7"
-      prune: true
-      selfHeal: true
-      skipDryRunOnMissingResource: false
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

@@ -66,6 +66,9 @@ spec:
                 - id: kiali
                   path: components/kiali
                   namespace: openshift-cluster-observability-operator
+                - id: ie-anomaly-alerter
+                  path: components/ie-anomaly-alerter
+                  namespace: industrial-edge-tst-all
   template:
     metadata:
       name: '{{`{{.id}}-{{.clusterName}}`}}'

@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "6"
 data:
   alerter.py: |
-    import json, os, time, threading, logging
+    import json, os, time, threading, logging, ssl
     from datetime import datetime, timezone
     import paho.mqtt.client as mqtt
     import urllib.request
@@ -23,22 +23,28 @@ data:
     TEMP_THRESH      = float(os.getenv("TEMPERATURE_THRESHOLD", "80.0"))
     MAILPIT_URL      = os.getenv("MAILPIT_URL", "http://mailpit.mailpit.svc:8025/api/v1/send")
     HEALTH_INTERVAL  = int(os.getenv("HEALTH_INTERVAL", "300"))
+    CLUSTER_NAME     = os.getenv("CLUSTER_NAME", "unknown")
+
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
 
     stats = {"vibration_total": 0, "vibration_anomalies": 0,
              "temperature_total": 0, "temperature_anomalies": 0}
 
     def send_mail(subject, text, html):
         payload = json.dumps({
-            "from": {"name": "Industrial Edge Alerts", "email": "alerts@industrial-edge.io"},
+            "from": {"name": f"IE Alerts ({CLUSTER_NAME})", "email": f"alerts@{CLUSTER_NAME}.industrial-edge.io"},
             "to":   [{"name": "Operations", "email": "ops@industrial-edge.io"}],
-            "subject": subject,
+            "subject": f"[{CLUSTER_NAME}] {subject}",
             "text": text,
             "html": html
         }).encode()
         req = urllib.request.Request(MAILPIT_URL, data=payload,
                                      headers={"Content-Type": "application/json"}, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
+            ctx = ssl_ctx if MAILPIT_URL.startswith("https") else None
+            with urllib.request.urlopen(req, timeout=10, context=ctx) as resp:
                 log.info("Mail sent [%s] -> %s", subject, resp.status)
         except Exception as e:
             log.error("Failed to send mail: %s", e)
@@ -204,9 +210,11 @@ spec:
             - name: TEMPERATURE_THRESHOLD
               value: {{ .Values.thresholds.temperature | default "80.0" | quote }}
             - name: MAILPIT_URL
-              value: {{ .Values.mailpit.url | default "http://mailpit.mailpit.svc:8025/api/v1/send" | quote }}
+              value: {{ .Values.mailpit.url | default (printf "https://mailpit.%s/api/v1/send" .Values.hubClusterDomain) | quote }}
             - name: HEALTH_INTERVAL
               value: {{ .Values.healthReport.intervalSeconds | default "300" | quote }}
+            - name: CLUSTER_NAME
+              value: {{ .Values.clusterName | default "unknown" | quote }}
           volumeMounts:
             - name: script
               mountPath: /opt/app
