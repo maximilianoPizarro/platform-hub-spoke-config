@@ -157,6 +157,15 @@ spec:
           jsonPointers:
             - /metadata/annotations
             - /status
+        - group: kiali.io
+          kind: "*"
+          jsonPointers:
+            - /metadata/annotations
+            - /status
+        - group: console.openshift.io
+          kind: ConsoleLink
+          jsonPointers:
+            - /metadata/annotations
       syncPolicy:
         automated:
           selfHeal: true

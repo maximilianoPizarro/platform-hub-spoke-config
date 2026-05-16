@@ -18,24 +18,6 @@ spec:
   linkAccess: route
 ---
 apiVersion: skupper.io/v2alpha1
-kind: Link
-metadata:
-  name: link-to-hub
-  namespace: service-interconnect
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  endpoints:
-    - host: skupper-router-service-interconnect.{{ .Values.hubClusterDomain }}
-      port: "443"
-      name: inter-router
-    - host: skupper-router-edge-service-interconnect.{{ .Values.hubClusterDomain }}
-      port: "443"
-      name: edge
-  tlsCredentials: link-to-hub-tls
-  cost: 1
----
-apiVersion: skupper.io/v2alpha1
 kind: Connector
 metadata:
   name: ie-gateway-{{ .Values.clusterName }}
