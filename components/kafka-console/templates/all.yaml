@@ -17,25 +17,21 @@ spec:
   hostname: kafka-console.{{ .Values.clusterDomain }}
   kafkaClusters:
     - name: dev-cluster-east
-      listener: plain
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
-      listener: plain
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
-      listener: plain
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
-      listener: plain
       properties:
         values:
           - name: bootstrap.servers
