@@ -247,22 +247,36 @@ spec:
 
 The AccessToken automatically creates a `Link` with correct TLS credentials and router endpoints. Do NOT manually create `Link` resources — the endpoints in the hub's `RouterAccess` change and the AccessToken handles this correctly.
 
-### Prometheus metrics export via Skupper
+### Prometheus metrics export via Skupper (auth proxy pattern)
 
-Add a second `Connector` on each spoke to expose `thanos-querier`:
+Thanos Querier on spoke clusters requires a bearer token for authentication. Connecting Skupper directly to Thanos returns 401. The solution is an **Nginx reverse proxy** on each spoke that injects the service account token:
 
-```yaml
-apiVersion: skupper.io/v2alpha1
-kind: Connector
-metadata:
-  name: prometheus-{{ .Values.clusterName }}
-spec:
-  routingKey: prometheus-{{ .Values.clusterName }}
-  host: thanos-querier.openshift-monitoring.svc.cluster.local
-  port: 9091
+```
+spoke cluster:
+  prometheus-auth-proxy (nginx:9091 HTTP)
+    → injects SA bearer token
+    → forwards to thanos-querier:9091 HTTPS
+  Skupper Connector → prometheus-auth-proxy:9091
+hub cluster:
+  Skupper Listener → prometheus-east:9091 (HTTP, no auth needed)
+  Grafana datasource → http://prometheus-east.service-interconnect.svc:9091
 ```
 
-Hub Grafana datasources then point to `prometheus-east.service-interconnect.svc.cluster.local:9091` and `prometheus-west.service-interconnect.svc.cluster.local:9091`.
+Key resources per spoke (in `spoke-interconnect` component):
+
+1. **ServiceAccount** `prometheus-auth-proxy` with `cluster-monitoring-view` ClusterRoleBinding
+2. **Secret** (type `kubernetes.io/service-account-token`) for the SA
+3. **ConfigMap** with Nginx config that proxies to Thanos and injects `Authorization: Bearer <token>`
+4. **Deployment** with init container that reads the SA token and injects it into the Nginx config via `sed`
+5. **Service** exposing port 9091
+6. **Skupper Connector** pointing to `prometheus-auth-proxy.service-interconnect.svc:9091` (NOT directly to Thanos)
+
+Hub Grafana datasources use `http://` (no TLS, no bearer token needed — the proxy handles both):
+
+```yaml
+datasource:
+  url: http://prometheus-east.service-interconnect.svc.cluster.local:9091
+```
 
 ## Kiali + OSSM Console plugin
 
@@ -283,12 +297,152 @@ spec:
 
 The `kiali-ossm` operator subscription must be deployed before the CR. Add it to the `subscriptions` list in the ApplicationSet `valuesObject` for the `operators` component.
 
-## Grafana dashboards for east-west
+## Grafana configuration (aligned with field-sourced-content-template)
 
-- Hub Grafana has three datasources: Hub (local Thanos), Prometheus-East (via Skupper), Prometheus-West (via Skupper).
-- Dashboard variables `ds_east` and `ds_west` select the remote datasources.
-- Spoke Grafana instances have a single local Prometheus datasource with `local-metrics` dashboard.
-- Configure `[auth.basic] enabled = true` as a separate INI section (NOT a nested value under `[auth]`) to avoid 401 errors on the Grafana API.
+### Grafana CR — let the operator manage the image
+
+**NEVER** override the Grafana container image in `deployment.spec`. The grafana-operator manages its own version. Custom images (e.g. `docker.io/grafana/grafana:11.4.0`) cause persistent 401 errors because the operator's credential management expects its own image.
+
+```yaml
+apiVersion: grafana.integreatly.org/v1beta1
+kind: Grafana
+metadata:
+  name: grafana
+  labels:
+    dashboards: grafana
+spec:
+  config:
+    auth:
+      disable_login_form: "false"
+    auth.anonymous:
+      enabled: "true"
+      org_role: Viewer
+    security:
+      admin_user: admin
+      admin_password: openshift
+  route:
+    spec:
+      host: grafana.{{ .Values.clusterDomain }}
+      tls:
+        termination: edge
+```
+
+Key rules:
+- **No `deployment.spec`** — no custom image, no `GF_SECURITY_*` env vars
+- **`auth.anonymous`** enabled with Viewer role — allows dashboard access without login
+- **Password `openshift`** — consistent with field-sourced-content-template convention
+- **No `auth.basic`** section needed — anonymous auth covers read access
+- **No `server.root_url`** or `log.mode` — keep config minimal
+
+### Hub Grafana datasources
+
+- **Local Prometheus**: points to `thanos-querier.openshift-monitoring.svc:9091` with SA bearer token via `valuesFrom` + `secretKeyRef`
+- **Remote East/West**: point to `http://prometheus-east.service-interconnect.svc:9091` (HTTP, no auth — Skupper proxy handles it)
+
+### Spoke Grafana
+
+Spokes deploy the same `observability` component. The Grafana CR is identical. Spoke dashboards (`spoke-dashboards` component) only contain a `local-metrics` GrafanaDashboard CR, no additional datasources.
+
+## ManagedClusterAction / ManagedClusterView limitations
+
+### Subscription API group ambiguity
+
+`ManagedClusterAction` with `resource: subscription` always resolves to `subscriptions.apps.open-cluster-management.io`, NOT `subscriptions.operators.coreos.com`. The `apiGroup` field is ignored for Delete actions. To delete OLM subscriptions on spoke clusters, you **must** use a Job:
+
+```yaml
+apiVersion: action.open-cluster-management.io/v1beta1
+kind: ManagedClusterAction
+metadata:
+  name: delete-olm-subs
+  namespace: <spoke>
+spec:
+  actionType: Create
+  kube:
+    resource: job
+    namespace: openshift-operators
+    template:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: delete-olm-subs
+        namespace: openshift-operators
+      spec:
+        ttlSecondsAfterFinished: 120
+        template:
+          spec:
+            serviceAccountName: <sa-with-cluster-admin>
+            restartPolicy: Never
+            containers:
+              - name: fix
+                image: registry.redhat.io/openshift4/ose-cli:latest
+                command: ["/bin/bash", "-c"]
+                args:
+                  - oc delete subscription.operators.coreos.com <name> -n openshift-operators
+```
+
+For `ManagedClusterView`, the same ambiguity applies — use Jobs + ConfigMap output pattern to read OLM subscription details on spoke clusters.
+
+### MCA Delete works for unambiguous resources
+
+`ManagedClusterAction` Delete works correctly for resources with unique API groups:
+- `ClusterServiceVersion` (`operators.coreos.com`) — works
+- `ConfigMap`, `Secret`, `Job` — works
+- `Subscription` — **broken** (API group conflict)
+
+## OLM ResolutionFailed on spoke clusters
+
+### Root cause: orphan CSVs
+
+When a CSV exists in a namespace but is not referenced by any Subscription, OLM's dependency resolver fails for ALL subscriptions in that namespace. Error pattern:
+
+```
+constraints not satisfiable: clusterserviceversion <name> exists and is not
+referenced by a subscription, subscription <name> exists, subscription <name>
+requires at least one of ...
+```
+
+### Fix procedure
+
+1. **Delete the orphan CSV** (via MCA Delete or Job):
+   ```bash
+   oc delete csv grafana-operator.v5.22.2 -n openshift-operators
+   ```
+2. **Delete the Subscription** (via Job — MCA Delete won't work):
+   ```bash
+   oc delete subscription.operators.coreos.com grafana-operator -n openshift-operators
+   ```
+3. **Restart the catalog-operator** to clear OLM's resolution cache:
+   ```bash
+   oc delete pod -n openshift-operator-lifecycle-manager -l app=catalog-operator
+   ```
+4. **Hard-refresh ArgoCD** to recreate the Subscription:
+   ```bash
+   oc annotate application operators-east -n openshift-gitops argocd.argoproj.io/refresh=hard --overwrite
+   ```
+
+The Service Account used by Jobs on spokes needs `cluster-admin`. Create a temporary ClusterRoleBinding via MCA:
+
+```yaml
+apiVersion: action.open-cluster-management.io/v1beta1
+kind: ManagedClusterAction
+spec:
+  actionType: Create
+  kube:
+    resource: clusterrolebinding
+    template:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: <sa>-admin-temp
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+        - kind: ServiceAccount
+          name: <sa>
+          namespace: <ns>
+```
 
 ## Quick verification commands
 
@@ -304,7 +458,10 @@ oc logs deploy/kiali -n openshift-cluster-observability-operator --tail=10 | gre
 oc get servicemonitor,podmonitor -n istio-system
 # Skupper
 oc get site,accessgrant,listener -n service-interconnect
-oc get grafanadatasource -n openshift-cluster-observability-operator
+# Grafana
+oc get grafana,grafanadatasource -n openshift-cluster-observability-operator
+# OLM health on spokes (via MCV)
+oc get csv -n openshift-operators --no-headers | grep -iE "grafana|skupper|kiali"
 # OSSM Console
 oc get ossmconsole -A
 ```

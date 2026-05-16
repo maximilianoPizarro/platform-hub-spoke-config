@@ -252,27 +252,99 @@ Deploy `iot-consumer` alongside `line-dashboard` with:
 - A path-based Route (`/api`) pointing to port 3000
 - A ConfigMap overriding `conf/config.json` with **`websocketHost: ""`** (empty string = same origin). Never use `localhost:3000` (the image default) or an absolute cross-origin URL — Socket.IO connects to the current page's origin, and the path-based route proxies `/api` to port 3000.
 
-### Grafana auth.basic INI section rendering
+### Grafana CR — operator-managed image only
 
-The Grafana CR `spec.config` maps to `grafana.ini` sections. When configuring `auth.basic`, use a **separate top-level key** `auth.basic` — NOT a nested `basic` value under `auth`:
+**NEVER** override the Grafana container image via `deployment.spec.template.spec.containers`. The grafana-operator manages its own image version. Using a custom image (e.g. `docker.io/grafana/grafana:11.4.0`) causes persistent 401 errors because the operator's credential management and the custom image's auth expectations diverge.
+
+```yaml
+# CORRECT — let the operator manage everything
+spec:
+  config:
+    auth:
+      disable_login_form: "false"
+    auth.anonymous:
+      enabled: "true"
+      org_role: Viewer
+    security:
+      admin_user: admin
+      admin_password: openshift
+
+# WRONG — causes 401 loops, PVC password mismatch
+spec:
+  deployment:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: grafana
+              image: docker.io/grafana/grafana:11.4.0
+```
+
+This pattern matches `field-sourced-content-template`. Use `auth.anonymous` with Viewer role for read-only dashboard access. Password `openshift` is the convention.
+
+### Grafana INI section rendering
+
+The Grafana CR `spec.config` maps to `grafana.ini` sections. Dotted section names like `auth.basic` or `auth.anonymous` must be **separate top-level keys** in the config map — NOT nested values:
 
 ```yaml
 # CORRECT
 config:
   auth:
     disable_login_form: "false"
-  auth.basic:
+  auth.anonymous:
     enabled: "true"
+    org_role: Viewer
 
-# WRONG — renders as "basic = [auth.basic]" under [auth]
+# WRONG — renders incorrectly in grafana.ini
 config:
   auth:
-    basic: |
-      [auth.basic]
-      enabled = true
+    anonymous:
+      enabled: "true"
 ```
 
-The wrong pattern causes 401 errors on the Grafana API, preventing dashboards from syncing.
+### Tekton Pipeline taskRef: use cluster resolver (not ClusterTask)
+
+Modern Tekton (v1) deprecated `ClusterTask`. Use the `resolver: cluster` pattern:
+
+```yaml
+# CORRECT (Tekton v1)
+taskRef:
+  resolver: cluster
+  params:
+    - name: kind
+      value: task
+    - name: name
+      value: git-clone
+    - name: namespace
+      value: openshift-pipelines
+
+# WRONG (deprecated, fails validation webhook)
+taskRef:
+  name: git-clone
+  kind: ClusterTask
+```
+
+The validation webhook rejects `ClusterTask` references without `apiVersion` on newer OpenShift Pipelines versions.
+
+### OLM ResolutionFailed — orphan CSV pattern
+
+When OLM shows `ResolutionFailed` for multiple subscriptions with message `clusterserviceversion X exists and is not referenced by a subscription`, the fix is:
+
+1. Delete the orphan CSV: `oc delete csv <name> -n openshift-operators`
+2. Delete the affected subscription: `oc delete subscription.operators.coreos.com <name> -n openshift-operators`
+3. Restart catalog-operator: `oc delete pod -n openshift-operator-lifecycle-manager -l app=catalog-operator`
+4. Let ArgoCD recreate the subscription via selfHeal
+
+This typically happens when subscriptions are deleted and recreated while the CSV from the previous install persists. The orphan CSV blocks OLM's dependency resolver for ALL subscriptions in the namespace.
+
+### Spoke Prometheus auth — Nginx reverse proxy
+
+Spoke Thanos Querier requires bearer token auth. Direct Skupper Connectors to Thanos return 401. Deploy an Nginx reverse proxy (`prometheus-auth-proxy`) in `service-interconnect` that:
+- Reads the SA token from the mounted service account
+- Injects `Authorization: Bearer <token>` header
+- Proxies HTTP→HTTPS to Thanos Querier on port 9091
+
+The Skupper Connector points to this proxy, and hub Grafana datasources use `http://` URLs (no auth needed from the hub side).
 
 ### Operator deprecation: Kuadrant → Red Hat Connectivity Link
 
