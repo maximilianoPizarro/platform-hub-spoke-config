@@ -245,8 +245,153 @@ spec:
           "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32},
           "id": 400,
           "panels": [],
-          "title": "Cross-cluster Industrial Edge services",
+          "title": "Cross-cluster Industrial Edge — Kafka & workloads",
           "type": "row"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "mappings": [{"options": {"0": {"color": "red", "text": "Offline"}, "3": {"color": "green", "text": "Running"}}, "type": "value"}],
+              "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 3}]}
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 5, "w": 6, "x": 0, "y": 33},
+          "id": 4,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "kafka_server_kafkaserver_brokerstate",
+              "legendFormat": "East {{ "{{namespace}}" }}",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "kafka_server_kafkaserver_brokerstate",
+              "legendFormat": "West {{ "{{namespace}}" }}",
+              "refId": "B"
+            }
+          ],
+          "title": "Kafka broker state (East vs West)",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 5, "w": 6, "x": 6, "y": 33},
+          "id": 5,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "sum(kafka_controller_kafkacontroller_globaltopiccount)",
+              "legendFormat": "East topics",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_controller_kafkacontroller_globaltopiccount)",
+              "legendFormat": "West topics",
+              "refId": "B"
+            }
+          ],
+          "title": "Kafka topics (East vs West)",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 5, "w": 6, "x": 12, "y": 33},
+          "id": 6,
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "sum(kafka_server_replicamanager_partitioncount)",
+              "legendFormat": "East partitions",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_replicamanager_partitioncount)",
+              "legendFormat": "West partitions",
+              "refId": "B"
+            }
+          ],
+          "title": "Kafka partitions (East vs West)",
+          "type": "stat"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 5, "w": 6, "x": 18, "y": 33},
+          "id": 7,
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "sum(kafka_server_replicamanager_underreplicatedpartitions)",
+              "legendFormat": "East",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_replicamanager_underreplicatedpartitions)",
+              "legendFormat": "West",
+              "refId": "B"
+            }
+          ],
+          "title": "Under-replicated partitions",
+          "type": "stat"
         },
         {
           "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
@@ -274,12 +419,12 @@ spec:
                 "stacking": {"group": "A", "mode": "none"},
                 "thresholdsStyle": {"mode": "off"}
               },
-              "unit": "reqps"
+              "unit": "ops"
             },
             "overrides": []
           },
-          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 33},
-          "id": 4,
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 38},
+          "id": 8,
           "options": {
             "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true},
             "tooltip": {"mode": "multi", "sort": "desc"}
@@ -287,18 +432,18 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_namespace=~\"industrial-edge.*\"}[5m])) by (destination_service_name)",
-              "legendFormat": "East {{ "{{destination_service_name}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "East {{ "{{namespace}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_namespace=~\"industrial-edge.*\"}[5m])) by (destination_service_name)",
-              "legendFormat": "West {{ "{{destination_service_name}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "West {{ "{{namespace}}" }}",
               "refId": "B"
             }
           ],
-          "title": "Industrial Edge services request rate (East vs West)",
+          "title": "Kafka messages in/sec (East vs West)",
           "type": "timeseries"
         }
       ],

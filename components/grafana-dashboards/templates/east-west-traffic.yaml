@@ -481,14 +481,14 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec) by (topic)",
-              "legendFormat": "East {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "East {{ "{{namespace}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec) by (topic)",
-              "legendFormat": "West {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "West {{ "{{namespace}}" }}",
               "refId": "B"
             }
           ],
@@ -500,7 +500,7 @@ spec:
           "gridPos": {"h": 1, "w": 24, "x": 0, "y": 45},
           "id": 103,
           "panels": [],
-          "title": "Kafka broker I/O and Istio TCP (L4)",
+          "title": "Kafka broker I/O and network",
           "type": "row"
         },
         {
@@ -543,35 +543,35 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec) by (topic)",
-              "legendFormat": "East in {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "East in {{ "{{namespace}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec) by (topic)",
-              "legendFormat": "East out {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "East out {{ "{{namespace}}" }}",
               "refId": "B"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec) by (topic)",
-              "legendFormat": "West in {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "West in {{ "{{namespace}}" }}",
               "refId": "C"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec) by (topic)",
-              "legendFormat": "West out {{ "{{topic}}" }}",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "West out {{ "{{namespace}}" }}",
               "refId": "D"
             }
           ],
-          "title": "Kafka topic bytes in/out (East + West)",
+          "title": "Kafka bytes in/out (East + West)",
           "type": "timeseries"
         },
         {
           "datasource": {"type": "prometheus"},
-          "description": "Requires Strimzi JMX metrics and PodMonitor scraping.",
+          "description": "Active Kafka broker count and partition count from JMX.",
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "thresholds"},
@@ -594,23 +594,35 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(kafka_server_socketservermetrics_connection_count)",
-              "legendFormat": "East",
+              "expr": "sum(kafka_controller_kafkacontroller_activebrokercount)",
+              "legendFormat": "East brokers",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(kafka_server_socketservermetrics_connection_count)",
-              "legendFormat": "West",
+              "expr": "sum(kafka_controller_kafkacontroller_activebrokercount)",
+              "legendFormat": "West brokers",
               "refId": "B"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "sum(kafka_server_replicamanager_partitioncount)",
+              "legendFormat": "East partitions",
+              "refId": "C"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_server_replicamanager_partitioncount)",
+              "legendFormat": "West partitions",
+              "refId": "D"
             }
           ],
-          "title": "Kafka broker connections (East + West)",
+          "title": "Kafka active brokers & partitions (East + West)",
           "type": "stat"
         },
         {
           "datasource": {"type": "prometheus"},
-          "description": "Shows L4 mesh TCP bytes when ztunnel emits metrics; may be empty without ztunnel.",
+          "description": "Kafka network request counts from JMX exporter.",
           "fieldConfig": {
             "defaults": {
               "color": {"mode": "palette-classic"},
@@ -636,7 +648,7 @@ spec:
                 "thresholdsStyle": {"mode": "off"}
               },
               "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
-              "unit": "Bps"
+              "unit": "short"
             },
             "overrides": []
           },
@@ -649,30 +661,18 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "East sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
+              "expr": "sum(kafka_network_requestmetrics_requestspersec_total) by (request)",
+              "legendFormat": "East {{ "{{request}}" }}",
               "refId": "A"
             },
             {
-              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
-              "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "East recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(kafka_network_requestmetrics_requestspersec_total) by (request)",
+              "legendFormat": "West {{ "{{request}}" }}",
               "refId": "B"
-            },
-            {
-              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(rate(istio_tcp_sent_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "West sent {{ "{{source_workload}}" }}->{{ "{{destination_service_name}}" }}",
-              "refId": "C"
-            },
-            {
-              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
-              "expr": "sum(rate(istio_tcp_received_bytes_total{reporter=\"source\"}[5m])) by (source_workload, destination_service_name)",
-              "legendFormat": "West recv {{ "{{source_workload}}" }}<-{{ "{{destination_service_name}}" }}",
-              "refId": "D"
             }
           ],
-          "title": "Istio TCP bytes (East + West)",
+          "title": "Kafka network requests (East + West)",
           "type": "timeseries"
         }
       ],

@@ -275,18 +275,18 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesin_total) by (topic)",
-              "legendFormat": "{{ "{{topic}}" }} in",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "{{ "{{namespace}}" }} in",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesout_total) by (topic)",
-              "legendFormat": "{{ "{{topic}}" }} out",
+              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
+              "legendFormat": "{{ "{{namespace}}" }} out",
               "refId": "B"
             }
           ],
-          "title": "Kafka bytes in/out by topic",
+          "title": "Kafka bytes in/out",
           "type": "timeseries"
         },
         {
@@ -312,12 +312,18 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "kafka_server_socket_server_metrics_connection_count",
-              "legendFormat": "connections",
+              "expr": "sum(kafka_controller_kafkacontroller_activebrokercount)",
+              "legendFormat": "active brokers",
               "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus"},
+              "expr": "sum(kafka_server_replicamanager_partitioncount)",
+              "legendFormat": "partitions",
+              "refId": "B"
             }
           ],
-          "title": "Kafka active connections",
+          "title": "Kafka brokers & partitions",
           "type": "stat"
         },
         {
