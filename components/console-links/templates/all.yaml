@@ -132,4 +132,18 @@ spec:
   href: "https://mailpit.{{ $domain }}"
   location: ApplicationMenu
   text: "Mailpit (Email)"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-kafka-bridge
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4em0tMi0xMWgxdjZoLTFWOXptMyAwaDFWMTVoLTFWOXoiLz48L3N2Zz4="
+    section: "Platform Hub-Spoke"
+  href: "https://kafka-bridge-kafka-cdc.{{ $domain }}"
+  location: ApplicationMenu
+  text: "Kafka Bridge (CDC)"
 {{- end }}

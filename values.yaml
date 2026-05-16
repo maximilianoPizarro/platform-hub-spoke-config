@@ -269,6 +269,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
+    # CDC Demo (Debezium + Kafka + PostgreSQL -> Mailpit)
+    - id: cdc-demo
+      enabled: true
+      path: cdc-demo
+      destinationNamespace: kafka-cdc
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

@@ -269,6 +269,14 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+    {{- else if eq .path "cdc-demo" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        postgresql:
+          database: cdcdb
+          username: cdcuser
+          password: cdc-demo-2024
     {{- end }}
   destination:
     server: https://kubernetes.default.svc
