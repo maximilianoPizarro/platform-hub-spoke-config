@@ -36,6 +36,7 @@ flowchart TB
     APPSET["ApplicationSet<br/>(matrix generator)"]
     GW["Hub Gateway<br/>(Gateway API + Istio)"]
     GRAFANA["Grafana<br/>(multi-cluster dashboards)"]
+    KAFKA_C["Kafka Console"]
     KIALI_H["Kiali + OSSM Console"]
     ACS_C["ACS Central"]
     DEVHUB["Developer Hub"]
@@ -50,7 +51,7 @@ flowchart TB
     SKUPPER_E["Skupper Spoke Site<br/>(Connectors)"]
     GRAFANA_E["Grafana (local)"]
     KIALI_E["Kiali + OSSM Console"]
-    MESH_E["Service Mesh Ambient"]
+    MESH_E["OSSM3 Ambient<br/>(ztunnel)"]
   end
 
   subgraph West["West Spoke"]
@@ -60,7 +61,7 @@ flowchart TB
     SKUPPER_W["Skupper Spoke Site<br/>(Connectors)"]
     GRAFANA_W["Grafana (local)"]
     KIALI_W["Kiali + OSSM Console"]
-    MESH_W["Service Mesh Ambient"]
+    MESH_W["OSSM3 Ambient<br/>(ztunnel)"]
   end
 
   REPO --> ARGO

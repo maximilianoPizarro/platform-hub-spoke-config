@@ -107,11 +107,35 @@ For hub-specific links (Grafana, Kiali, ACM), always use `hubClusterDomain` so s
 
 ## Service Mesh ambient mode (multi-cluster)
 
+### OSSM3 version: use GA stable-3.2, not Tech Preview
+
+**Do not use** `channel: candidates` (`3.0.0-tp.2`). Tech Preview does **not** deploy **ztunnel** — ambient mode is configured at istiod but no L4 dataplane intercepts traffic, so `istio_requests_total` and Kiali traffic graphs stay empty except on ingress gateways.
+
+Use **`channel: stable-3.2`** in `components/operators/templates/servicemeshoperator3.yaml` (OCP 4.18–4.21).
+
+Required GitOps resources in `components/servicemeshoperator3/templates/all.yaml`:
+
+1. **`Istio` CR** — `profile: ambient`, `PILOT_ENABLE_AMBIENT: "true"`, **`trustedZtunnelNamespace: ztunnel`**. Do **not** pin `version: v1.24.1`; let the operator choose the Istio version for 3.2.
+2. **`IstioCNI` CR** — namespace only (no hardcoded version).
+3. **`ZTunnel` CR** + namespace `ztunnel` — deploys the per-node L4 proxy DaemonSet.
+4. **`Telemetry` mesh-default** in `istio-system` — enables Prometheus metrics from the mesh.
+
+Verify after sync:
+
+```bash
+oc get ztunnel -n ztunnel
+oc get ds -n ztunnel
+oc get csv -n openshift-operators | grep servicemesh
+```
+
+### Ambient mesh practices
+
 - Align identity/trust configuration across hubs and spokes before enabling strict mTLS defaults.
 - Start with namespaces that already use Kafka clients and Camel integrations.
 - Use **waypoints** only where L7 policy complexity justifies another hop.
 - Add waypoint `Gateway` resources in the service mesh component, not in the namespace component — they require the mesh CRDs to exist first.
-- Label namespaces with `istio.io/dataplane-mode: ambient` for ztunnel injection.
+- Label namespaces with `istio.io/dataplane-mode: ambient` for ztunnel redirection (with GA, ztunnel must also be running).
+- Scrape **ztunnel** via `PodMonitor` in namespace `ztunnel` (port `ztunnel-stats`, path `/stats/prometheus`) and grant UWM RoleBinding in `ztunnel`.
 
 ## Hub Gateway as F5 analog
 
@@ -125,25 +149,43 @@ For hub-specific links (Grafana, Kiali, ACM), always use `hubClusterDomain` so s
 
 ## Observability: Kiali + Prometheus for service mesh traffic
 
-### Kiali auth to Prometheus (401 errors)
+### Kiali auth to Prometheus (401 errors on OSSM Console plugin)
 
-Kiali needs explicit credentials to reach Prometheus and Grafana. Without this, Kiali loads but shows no traffic graphs:
+The **OSSMConsole** dynamic plugin proxies to Kiali, which queries **Thanos Querier** on port **9091**. Without RBAC, the plugin returns **401 Unauthorized** even when Kiali pods are healthy.
+
+**GitOps fix** (preferred) in `components/kiali/templates/all.yaml`:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kiali-monitoring-rbac
+roleRef:
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+- kind: ServiceAccount
+  name: kiali-service-account
+  namespace: openshift-cluster-observability-operator
+---
+# Kiali CR spec.external_services.prometheus:
+prometheus:
+  auth:
+    type: bearer
+    use_kiali_token: true
+  thanos_proxy:
+    enabled: true
+  url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+```
+
+Manual equivalent:
 
 ```bash
-# Grant Prometheus read access to Kiali's service account
 oc adm policy add-cluster-role-to-user cluster-monitoring-view \
   -z kiali-service-account -n openshift-cluster-observability-operator
-
-# Configure Kiali to use its own token for Prometheus
-oc patch kiali kiali -n openshift-cluster-observability-operator --type merge -p '{
-  "spec": {
-    "external_services": {
-      "prometheus": { "auth": { "type": "bearer", "use_kiali_token": true } },
-      "grafana": { "auth": { "type": "basic", "username": "admin", "password": "admin" } }
-    }
-  }
-}'
 ```
+
+Deploy Kiali + `OSSMConsole` on **hub and spokes** (`values.yaml` hub component + ApplicationSet `kiali` entry). Hub shows local mesh traffic; spokes show local topology. Cross-cluster visibility uses Grafana multi-cluster dashboards + Skupper.
 
 ### Prometheus scraping Istio metrics
 
@@ -193,8 +235,14 @@ Without these RoleBindings, targets appear as 0 in Prometheus even though Servic
 
 **Metrics path cheat-sheet:**
 - **istiod**: port `http-monitoring` (15014), path `/metrics`
+- **ztunnel** (ambient L4): port `ztunnel-stats`, path `/stats/prometheus` — namespace `ztunnel`
 - **Envoy gateways/waypoints**: port `metrics` (15020), path `/stats/prometheus`
 - **Envoy sidecars**: port `http-envoy-prom` (15090), path `/stats/prometheus`
+
+**Dashboard metric expectations (OSSM3 GA + ztunnel):**
+- **L4 (ztunnel)**: `istio_tcp_connections_opened_total`, `istio_tcp_sent_bytes_total`, `istio_tcp_received_bytes_total` — available on spokes/hub with ambient enrolled namespaces.
+- **L7 HTTP**: `istio_requests_total` — requires traffic through **waypoints** or **ingress gateways**; hub `hub-gateway-istio` always produces some L7 metrics.
+- Spoke dashboards (`spoke-dashboards`) should prefer L4 queries when L7 panels show "No data".
 
 ## ConsoleLinks for multi-cluster navigation
 
@@ -279,6 +327,22 @@ Hub Grafana datasources use `http://` (no TLS, no bearer token needed — the pr
 datasource:
   url: http://prometheus-east.service-interconnect.svc.cluster.local:9091
 ```
+
+### Kafka bootstrap via Skupper (hub Kafka Console)
+
+Expose spoke Kafka bootstrap services to the hub with Skupper **Connector** (spoke) + **Listener** (hub) on port **9092** (`kafka-east-tst`, `kafka-west-tst`, `kafka-east-stormshift`, `kafka-west-stormshift`).
+
+**Metadata DNS problem:** After connecting to bootstrap, the Kafka client receives **broker advertised addresses** like `dev-cluster-broker-0.dev-cluster-kafka-brokers.industrial-edge-tst-all.svc:9092`. Those names do not resolve on the hub → `Timed out waiting for a node assignment` / `listNodes` 504.
+
+**Fix (two parts):**
+
+1. **Spokes** — per-broker `advertisedHost` in Strimzi listener `configuration.brokers` using `clusterName` suffix:
+   - `dev-cluster-broker-0-{{ .Values.clusterName }}.dev-cluster-kafka-brokers.industrial-edge-tst-all.svc.cluster.local`
+   - `factory-cluster-broker-0-{{ .Values.clusterName }}.factory-cluster-kafka-brokers.industrial-edge-stormshift-messaging.svc.cluster.local`
+
+2. **Hub** — `components/kafka-console/templates/broker-dns.yaml`: headless `Service` + `Endpoints` in the Industrial Edge namespaces mapping each `hostname` to the Skupper listener ClusterIP. Uses Helm `lookup` at ArgoCD sync time — re-sync `kafka-console` after Skupper listeners exist.
+
+Console CR (`components/kafka-console`) registers four clusters via bootstrap Skupper DNS; `amq-streams-console` operator subscription on hub.
 
 ## Kiali + OSSM Console plugin
 

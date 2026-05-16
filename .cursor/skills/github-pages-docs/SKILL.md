@@ -37,8 +37,8 @@ docs/
 ├── branch-strategy.md           # Single-branch multi-cluster strategy (nav_order: 9)
 ├── hub-gateway.md               # Hub gateway as F5 analog (nav_order: 6)
 ├── industrial-edge.md           # Industrial Edge application details (nav_order: 8)
-├── observability.md             # Monitoring and observability stack (nav_order: 7)
-├── service-interconnect.md      # Skupper cross-cluster connectivity (nav_order: 10)
+    ├── observability.md             # Monitoring, Kiali, Kafka Console, dashboards (nav_order: 7)
+    ├── service-interconnect.md      # Skupper: metrics, gateways, Kafka (nav_order: 10)
 └── products/
     ├── index.md                 # Red Hat Products overview (has_children: true, nav_order: 5)
     ├── acm.md                   # Advanced Cluster Management
@@ -51,7 +51,7 @@ docs/
     ├── openshift-ai.md          # OpenShift AI
     ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
     ├── pipelines.md             # OpenShift Pipelines (Tekton)
-    └── service-mesh.md          # Service Mesh 3 (Istio ambient)
+    └── service-mesh.md          # OSSM3 3.2 GA ambient + ztunnel
 ```
 
 ## Front matter conventions

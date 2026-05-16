@@ -101,7 +101,9 @@ valuesObject:
       source: redhat-operators
 ```
 
-Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`.
+Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`, `ie-anomaly-alerter`.
+
+Hub-only components include `kafka-console` (Streams for Apache Kafka Console — all spoke Kafka clusters via Skupper), `grafana-dashboards`, `hub-gateway`, `service-interconnect`.
 
 ### Adding operator subscriptions to spokes
 
@@ -336,6 +338,24 @@ When OLM shows `ResolutionFailed` for multiple subscriptions with message `clust
 4. Let ArgoCD recreate the subscription via selfHeal
 
 This typically happens when subscriptions are deleted and recreated while the CSV from the previous install persists. The orphan CSV blocks OLM's dependency resolver for ALL subscriptions in the namespace.
+
+### OSSM3 operator channel
+
+`servicemeshoperator3` Subscription uses **`channel: stable-3.2`** (GA with ztunnel). Avoid `candidates` (TP2) — no ztunnel DaemonSet, broken ambient metrics and Kiali traffic graphs.
+
+The `servicemeshoperator3` component chart deploys `Istio`, `IstioCNI`, `ZTunnel`, waypoint `Gateway`s, and `Telemetry` mesh-default — not the OLM Subscription (that lives in `components/operators`).
+
+### Kiali monitoring RBAC in Git
+
+Include `ClusterRoleBinding` `kiali-monitoring-rbac` → `cluster-monitoring-view` in `components/kiali/templates/all.yaml` **before** the Kiali CR. Set `external_services.prometheus.auth` + `thanos_proxy.enabled: true`. Without this, OSSM Console plugin returns 401 on spokes.
+
+### Kafka Console (hub)
+
+Component `components/kafka-console`:
+- `Console` CR with four clusters (east/west × tst/stormshift) via Skupper bootstrap URLs
+- `broker-dns.yaml` — headless Services + Endpoints (Helm `lookup` for Skupper ClusterIPs)
+- Requires spoke Kafka `advertisedHost` per `clusterName` in `industrial-edge-tst` / `industrial-edge-stormshift`
+- Hub subscription: `amq-streams-console` in `values.yaml` `connectivityLink.operators.subscriptions`
 
 ### Spoke Prometheus auth — Nginx reverse proxy
 

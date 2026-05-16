@@ -16,8 +16,10 @@ flowchart TB
     direction TB
     GRAFANA_H["Grafana<br/>(multi-cluster dashboards)"]
     KIALI_H["Kiali + OSSM Console"]
+    KAFKA_C["Kafka Console<br/>(4 remote clusters)"]
     OTEL_H["OpenTelemetry Collector"]
     PROM_H["Prometheus / Thanos"]
+    ZT_H["ztunnel + hub-gateway"]
     DS_LOCAL["Datasource: Hub"]
     DS_EAST["Datasource: Prometheus-East"]
     DS_WEST["Datasource: Prometheus-West"]
@@ -25,14 +27,17 @@ flowchart TB
     GRAFANA_H --> DS_EAST
     GRAFANA_H --> DS_WEST
     KIALI_H --> PROM_H
+    ZT_H --> PROM_H
   end
 
   subgraph East["East Spoke"]
     GRAFANA_E["Grafana (local)"]
     KIALI_E["Kiali + OSSM Console"]
     PROM_E["Prometheus / Thanos"]
-    SM_E["ServiceMonitor<br/>PodMonitor"]
+    ZT_E["ztunnel"]
+    SM_E["PodMonitor / ServiceMonitor"]
     SM_E --> PROM_E
+    ZT_E --> PROM_E
     GRAFANA_E --> PROM_E
     KIALI_E --> PROM_E
   end
@@ -41,117 +46,115 @@ flowchart TB
     GRAFANA_W["Grafana (local)"]
     KIALI_W["Kiali + OSSM Console"]
     PROM_W["Prometheus / Thanos"]
-    SM_W["ServiceMonitor<br/>PodMonitor"]
+    ZT_W["ztunnel"]
+    SM_W["PodMonitor / ServiceMonitor"]
     SM_W --> PROM_W
+    ZT_W --> PROM_W
     GRAFANA_W --> PROM_W
     KIALI_W --> PROM_W
   end
 
-  PROM_E -->|"Skupper VAN<br/>prometheus-east:9091"| DS_EAST
-  PROM_W -->|"Skupper VAN<br/>prometheus-west:9091"| DS_WEST
+  PROM_E -->|"Skupper + auth proxy<br/>prometheus-east:9091"| DS_EAST
+  PROM_W -->|"Skupper + auth proxy<br/>prometheus-west:9091"| DS_WEST
+  East -->|"Kafka :9092 Skupper"| KAFKA_C
+  West -->|"Kafka :9092 Skupper"| KAFKA_C
 ```
 
 ## Components
 
 | Layer | Technology | Role |
 | ----- | ----------- | ---- |
-| Metrics | User Workload Monitoring / Prometheus | RED/USE signals, Kafka lag, mesh stats |
+| Metrics | User Workload Monitoring / Prometheus | RED/USE signals, Kafka lag, mesh L4/L7 stats |
 | Dashboards (hub) | Grafana + multi-cluster datasources | Fleet and factory KPI views (`components/grafana-dashboards`) |
-| Dashboards (spoke) | Grafana local | Per-cluster Istio, Kafka, app metrics (`components/spoke-dashboards`) |
+| Dashboards (spoke) | Grafana local | Per-cluster ztunnel L4, Kafka, workloads (`components/spoke-dashboards`) |
 | Mesh UI | Kiali + OSSM Console plugin | Traffic graphs in OpenShift Console |
-| Cross-cluster metrics | Skupper + GrafanaDatasource | Prometheus metrics via VAN (`components/service-interconnect`) |
-| Tracing | OpenTelemetry Collector & backends | Distributed traces across integrations |
+| Kafka UI | Streams for Apache Kafka Console | Hub UI for all spoke Kafka clusters (`components/kafka-console`) |
+| Cross-cluster metrics | Skupper + GrafanaDatasource | Prometheus metrics via VAN |
+| Tracing | OpenTelemetry Collector | Distributed traces |
 
-## Kiali setup for Service Mesh 3
+## Service Mesh metrics (OSSM3 GA + ztunnel)
 
-Kiali requires explicit configuration to access Prometheus and Grafana. Without this, the UI loads but all traffic graphs show empty:
+Use **`stable-3.2`** for the Service Mesh operator. Tech Preview (`candidates` / 3.0.0-tp.2) does not deploy ztunnel.
 
-1. **Grant Prometheus read access** to Kiali's service account:
-   ```bash
-   oc adm policy add-cluster-role-to-user cluster-monitoring-view \
-     -z kiali-service-account -n openshift-cluster-observability-operator
-   ```
+| Metric | Producer | Notes |
+| ------ | -------- | ----- |
+| `istio_tcp_connections_opened_total` | ztunnel | Primary spoke/hub L4 signal |
+| `istio_tcp_sent_bytes_total` / `received` | ztunnel | Bytes per workload namespace |
+| `istio_requests_total` | Waypoints, ingress gateways | L7; hub `hub-gateway-istio` always has some traffic |
+| `kafka_server_*` | Strimzi JMX exporter | Requires UWM + PodMonitor on broker pods |
 
-2. **Configure auth** in the Kiali CR:
-   ```bash
-   oc patch kiali kiali -n openshift-cluster-observability-operator --type merge -p '{
-     "spec": {
-       "external_services": {
-         "prometheus": { "auth": { "type": "bearer", "use_kiali_token": true } },
-         "grafana": { "auth": { "type": "basic", "username": "admin", "password": "admin" } }
-       }
-     }
-   }'
-   ```
-
-## Prometheus scraping for Istio metrics
-
-OpenShift Prometheus does **not** scrape Istio metrics by default. You must create:
-
-- **ServiceMonitor** for `istiod` (port `http-monitoring` / 15014, path `/metrics`)
-- **PodMonitor** for waypoint/gateway proxies (port `metrics` / 15020, path `/stats/prometheus`)
-
-Additionally, the User Workload Prometheus needs **RoleBindings** in each mesh namespace (`istio-system`, `hub-gateway-system`, `industrial-edge-tst-all`, etc.) to grant the `prometheus-k8s` ClusterRole to the `prometheus-user-workload` ServiceAccount.
-
-Key metrics path differences:
-- **istiod**: `/metrics` (standard Prometheus format)
-- **Envoy proxies** (gateways, waypoints): `/stats/prometheus` (Envoy admin format)
-
-## Grafana + Thanos (dashboards with data)
-
-Grafana **11** often ships with **HTTP basic auth to the Grafana API disabled**. The Grafana Operator must authenticate to Grafana to install datasources; if that fails, the **Prometheus** datasource never syncs and dashboards show **No data** even when metrics exist in Prometheus.
-
-This repository configures:
-
-1. **`[auth.basic] enabled`** on the `Grafana` CR via `spec.config.auth.basic` as a **string** containing a small INI snippet (`[auth.basic]` / `enabled = true`), because the Grafana Operator CRD expects `auth.basic` to be a string, not a nested object.
-2. A **ServiceAccount** (`grafana-thanos-reader`) bound to **`cluster-monitoring-view`**, plus a **`kubernetes.io/service-account-token`** Secret.
-3. **`GrafanaDatasource.valuesFrom`** so the Thanos `Authorization: Bearer …` header is built from that token (instead of the non-functional `${GRAFANA_SA_TOKEN}` placeholder).
-
-After syncing, confirm the datasource in the Grafana UI (**Connections → Data sources → Prometheus → Save & test**) and use **Explore** with `up` or `istio_requests_total`.
-
-**OpenShift Route and `root_url`:** if the UI shows *“failed to load its application files”* (static assets 404), set **`spec.config.server.root_url`** to the public HTTPS URL of the Grafana Route (same host as `spec.route.spec.host`, e.g. `https://grafana.<apps-domain>/`). Grafana builds asset URLs from `root_url`; without it, the SPA often breaks behind edge TLS termination.
-
-**Login:** basic auth to the UI remains enabled (`admin` / `admin` from `spec.config.security` in GitOps); do **not** ship those defaults on production clusters.
-
-## Multi-cluster metrics via Skupper
-
-Spoke Prometheus/Thanos metrics are exported to the hub via Red Hat Service Interconnect (Skupper). Each spoke has a **Connector** that exposes its local Thanos Querier, and the hub has **Listeners** that receive those connections.
-
-```mermaid
-flowchart LR
-  subgraph East["East Spoke"]
-    TQ_E["Thanos Querier<br/>:9091"]
-    CONN_E["Skupper Connector<br/>prometheus-east"]
-    TQ_E --> CONN_E
-  end
-
-  subgraph Hub["Hub"]
-    LIST_E["Skupper Listener<br/>prometheus-east:9091"]
-    LIST_W["Skupper Listener<br/>prometheus-west:9091"]
-    GDS_E["GrafanaDatasource<br/>Prometheus-East"]
-    GDS_W["GrafanaDatasource<br/>Prometheus-West"]
-    GRAFANA["Grafana"]
-    LIST_E --> GDS_E --> GRAFANA
-    LIST_W --> GDS_W --> GRAFANA
-  end
-
-  subgraph West["West Spoke"]
-    TQ_W["Thanos Querier<br/>:9091"]
-    CONN_W["Skupper Connector<br/>prometheus-west"]
-    TQ_W --> CONN_W
-  end
-
-  CONN_E -->|"VAN"| LIST_E
-  CONN_W -->|"VAN"| LIST_W
-```
-
-Hub Grafana dashboards (`east-west-traffic`, `multi-cluster-istio`) use datasource variables (`ds_east`, `ds_west`) to query spoke metrics alongside hub metrics.
+`components/istio-monitoring` scrapes istiod, gateways/waypoints, ztunnel, and Kafka. Grant UWM RoleBindings in `istio-system`, `ztunnel`, `hub-gateway-system`, and Industrial Edge namespaces.
 
 ## Kiali and OSSM Console plugin
 
-Each cluster (hub and spokes) runs its own **Kiali** instance with the **OSSMConsole** CR that activates the dynamic console plugin. This adds a **Service Mesh** section to the OpenShift Console navigation bar with topology visualization.
+Each cluster (hub and spokes) runs **Kiali** with an **OSSMConsole** CR. The dynamic plugin adds **Service Mesh** to the OpenShift Console.
 
-Spoke Kiali instances provide full local mesh graphs. Hub Kiali shows hub-cluster traffic only; cross-cluster visibility comes from Grafana's multi-cluster dashboards and Skupper-exposed services.
+### Fixing 401 Unauthorized on the plugin
+
+The plugin proxies API calls to Kiali, which queries **Thanos Querier** (`:9091`). Kiali's service account needs cluster monitoring read access.
+
+**GitOps** (`components/kiali/templates/all.yaml`):
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kiali-monitoring-rbac
+roleRef:
+  kind: ClusterRole
+  name: cluster-monitoring-view
+subjects:
+- kind: ServiceAccount
+  name: kiali-service-account
+  namespace: openshift-cluster-observability-operator
+```
+
+Kiali CR `external_services.prometheus`:
+
+```yaml
+prometheus:
+  auth:
+    type: bearer
+    use_kiali_token: true
+  thanos_proxy:
+    enabled: true
+  url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+```
+
+With **ztunnel** running, Kiali shows L4 traffic graphs; L7 graphs appear for HTTP routed through waypoints.
+
+## Grafana + Thanos (dashboards with data)
+
+Hub Grafana uses a ServiceAccount token for local Thanos and **HTTP** URLs for remote spokes (Skupper auth proxy — no bearer token from hub).
+
+Spoke Grafana uses the **default** Prometheus datasource (local Thanos). Do not point spoke dashboards at hub Skupper listener names unless intentionally cross-querying.
+
+**Metric panels:**
+
+- Hub `east-west-traffic` — hub gateway HTTP + mesh L4; Kafka via Prometheus-East/West
+- Hub `multi-cluster-istio` — per-cluster L4 TCP on East/West; Kafka comparison row
+- Spoke `local-metrics` — ztunnel L4 panels + Kafka + Industrial Edge workloads
+
+Enable **User Workload Monitoring** on spokes (`cluster-monitoring-config` → `enableUserWorkload: true`).
+
+## Multi-cluster metrics via Skupper
+
+Spoke Thanos is exposed through an **Nginx auth proxy** on each spoke (injects bearer token), then a Skupper **Connector**. Hub **Listeners** `prometheus-east` / `prometheus-west` feed Grafana datasources.
+
+See [Service Interconnect](service-interconnect.md) for the full VAN diagram.
+
+## Kafka Console (hub)
+
+The **Streams for Apache Kafka Console** on the hub registers four clusters (dev/factory × east/west) via Skupper bootstrap services.
+
+**Common error:** `Timed out waiting for a node assignment` / `listNodes` — the console reaches bootstrap over Skupper but broker **advertised DNS** from spokes does not resolve on the hub.
+
+**Fix:**
+
+1. Spokes: Strimzi `advertisedHost` per broker with `clusterName` suffix (`dev-cluster-broker-0-east`, etc.)
+2. Hub: headless Services + Endpoints in `components/kafka-console/templates/broker-dns.yaml` (Helm `lookup` of Skupper ClusterIPs)
+
+Re-sync the `kafka-console` Argo CD application after Skupper listeners are healthy.
 
 ## Grafana dashboard inventory
 
@@ -159,13 +162,13 @@ Spoke Kiali instances provide full local mesh graphs. Hub Kiali shows hub-cluste
 | --------- | ----- | ----------- |
 | `east-west-traffic` | Hub | Hub, Prometheus-East, Prometheus-West |
 | `multi-cluster-istio` | Hub | Hub, Prometheus-East, Prometheus-West |
-| `local-metrics` | Each spoke | Local Prometheus |
+| `local-metrics` | Each spoke | Local Prometheus (UWM/Thanos) |
 
 ## References
 
 - [OpenShift Observability](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/monitoring/)
 - [Red Hat Service Interconnect](https://docs.redhat.com/en/documentation/red_hat_service_interconnect/2.1)
-- [OpenTelemetry on OpenShift](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/red_hat_build_of_opentelemetry/)
-- [Kiali Service Mesh observability](https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/service_mesh/)
+- [OSSM 3.2 ambient mode](https://docs.redhat.com/en/documentation/red_hat_openshift_service_mesh/3.2/html/installing/ossm-istio-ambient-mode)
+- [Kiali on OSSM 3.2](https://docs.redhat.com/en/documentation/red_hat_openshift_service_mesh/3.2/html/observability/kiali-operator-provided-by-red-hat)
 
-Charts: `components/observability`, `components/grafana-dashboards`, `components/spoke-dashboards`, `components/kiali`, `components/opentelemetry`, `components/istio-monitoring`, `components/service-interconnect`, `components/spoke-interconnect`.
+Charts: `components/observability`, `components/grafana-dashboards`, `components/spoke-dashboards`, `components/kiali`, `components/kafka-console`, `components/opentelemetry`, `components/istio-monitoring`, `components/service-interconnect`, `components/spoke-interconnect`.

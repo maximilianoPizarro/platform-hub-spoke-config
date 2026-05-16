@@ -20,7 +20,10 @@ flowchart TB
     L_GW_W["Listener: ie-gateway-west<br/>port 8080"]
     L_PM_E["Listener: prometheus-east<br/>port 9091"]
     L_PM_W["Listener: prometheus-west<br/>port 9091"]
+    L_K_E["Listener: kafka-east-tst<br/>port 9092"]
+    L_K_W["Listener: kafka-west-tst<br/>port 9092"]
     GRAFANA["Grafana Datasources"]
+    KAFKA_C["Kafka Console"]
     L_PM_E -->|"svc.cluster.local"| GRAFANA
     L_PM_W -->|"svc.cluster.local"| GRAFANA
   end
@@ -30,10 +33,13 @@ flowchart TB
     TOKEN_E["AccessToken<br/>(hub-token)"]
     CONN_GW_E["Connector:<br/>ie-gateway-east"]
     CONN_PM_E["Connector:<br/>prometheus-east"]
+    CONN_K_E["Connector:<br/>kafka-east-tst"]
     SGW_E["Spoke Gateway<br/>:8080"]
     TQ_E["Thanos Querier<br/>:9091"]
+    KAFKA_E["Kafka bootstrap<br/>:9092"]
     SGW_E --> CONN_GW_E
     TQ_E --> CONN_PM_E
+    KAFKA_E --> CONN_K_E
   end
 
   subgraph West["West Spoke"]
@@ -41,10 +47,13 @@ flowchart TB
     TOKEN_W["AccessToken<br/>(hub-token)"]
     CONN_GW_W["Connector:<br/>ie-gateway-west"]
     CONN_PM_W["Connector:<br/>prometheus-west"]
+    CONN_K_W["Connector:<br/>kafka-west-tst"]
     SGW_W["Spoke Gateway<br/>:8080"]
     TQ_W["Thanos Querier<br/>:9091"]
+    KAFKA_W["Kafka bootstrap<br/>:9092"]
     SGW_W --> CONN_GW_W
     TQ_W --> CONN_PM_W
+    KAFKA_W --> CONN_K_W
   end
 
   AG -.->|"redeem"| TOKEN_E
@@ -55,6 +64,10 @@ flowchart TB
   CONN_PM_E ===|"VAN"| L_PM_E
   CONN_GW_W ===|"VAN"| L_GW_W
   CONN_PM_W ===|"VAN"| L_PM_W
+  CONN_K_E ===|"VAN"| L_K_E
+  CONN_K_W ===|"VAN"| L_K_W
+  L_K_E --> KAFKA_C
+  L_K_W --> KAFKA_C
 ```
 
 ## Link establishment flow
@@ -90,6 +103,10 @@ sequenceDiagram
 | `Listener/ie-gateway-west` | Receives spoke-gateway traffic from west |
 | `Listener/prometheus-east` | Receives Prometheus metrics from east |
 | `Listener/prometheus-west` | Receives Prometheus metrics from west |
+| `Listener/kafka-east-tst` | Kafka bootstrap (dev-cluster) from east |
+| `Listener/kafka-west-tst` | Kafka bootstrap (dev-cluster) from west |
+| `Listener/kafka-east-stormshift` | Kafka bootstrap (factory-cluster) from east |
+| `Listener/kafka-west-stormshift` | Kafka bootstrap (factory-cluster) from west |
 
 ### Spoke (`components/spoke-interconnect`)
 
@@ -98,9 +115,22 @@ sequenceDiagram
 | `Namespace/service-interconnect` | Skupper workspace |
 | `Site/<clusterName>` | Declares the spoke as a Skupper site |
 | `Connector/ie-gateway-<cluster>` | Exposes local spoke-gateway to hub |
-| `Connector/prometheus-<cluster>` | Exposes local Thanos Querier to hub |
+| `Connector/prometheus-<cluster>` | Exposes auth proxy → Thanos Querier to hub |
+| `Connector/kafka-<cluster>-tst` | Exposes `dev-cluster-kafka-bootstrap` to hub |
+| `Connector/kafka-<cluster>-stormshift` | Exposes `factory-cluster-kafka-bootstrap` to hub |
 
 The `AccessToken` is created manually via `ManagedClusterAction` since it contains sensitive claim data that should not be stored in Git.
+
+## Kafka Console and broker DNS
+
+Skupper forwards **TCP** to Kafka bootstrap (`:9092`) correctly. The Kafka client then receives **broker metadata** with spoke-internal hostnames (for example `dev-cluster-broker-0.dev-cluster-kafka-brokers.industrial-edge-tst-all.svc`), which do not resolve on the hub.
+
+**Resolution pattern:**
+
+1. **Spokes** — set per-broker `advertisedHost` in Strimzi with a unique suffix per cluster (`dev-cluster-broker-0-east`, `dev-cluster-broker-0-west`, …).
+2. **Hub** — `components/kafka-console/templates/broker-dns.yaml` creates headless Services and Endpoints mapping those hostnames to Skupper listener ClusterIPs (populated via Helm `lookup` at sync time).
+
+After deploying Skupper listeners, sync the `kafka-console` application so Endpoints are filled. See [Observability](observability.md#kafka-console-hub).
 
 ## Spoke gateway aggregation
 
