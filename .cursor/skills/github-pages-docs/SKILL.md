@@ -25,23 +25,29 @@ Use this skill when authoring or restructuring **`docs/`** static documentation 
 ```
 docs/
 ├── _config.yml                  # Jekyll configuration
+├── _includes/
+│   └── head_custom.html         # Custom CSS + favicon
+├── assets/
+│   └── css/custom.css           # Red Hat design overrides
 ├── Gemfile                      # Ruby gems
-├── index.md                     # Home page
-├── architecture.md              # Platform architecture overview
-├── getting-started.md           # Prerequisites and deployment steps
-├── deploy-acm-gitops.md         # ACM + GitOps deployment guide
-├── branch-strategy.md           # Single-branch multi-cluster strategy
-├── hub-gateway.md               # Hub gateway as F5 analog
-├── industrial-edge.md           # Industrial Edge application details
-├── observability.md             # Monitoring and observability stack
+├── index.md                     # Home page (nav_order: 1)
+├── architecture.md              # Platform architecture with Mermaid diagrams (nav_order: 2)
+├── getting-started.md           # Prerequisites and deployment steps (nav_order: 3)
+├── deploy-acm-gitops.md         # ACM + GitOps deployment guide (nav_order: 4)
+├── branch-strategy.md           # Single-branch multi-cluster strategy (nav_order: 9)
+├── hub-gateway.md               # Hub gateway as F5 analog (nav_order: 6)
+├── industrial-edge.md           # Industrial Edge application details (nav_order: 8)
+├── observability.md             # Monitoring and observability stack (nav_order: 7)
+├── service-interconnect.md      # Skupper cross-cluster connectivity (nav_order: 10)
 └── products/
-    ├── index.md                 # Red Hat Products overview (has_children: true)
+    ├── index.md                 # Red Hat Products overview (has_children: true, nav_order: 5)
     ├── acm.md                   # Advanced Cluster Management
     ├── acs.md                   # Advanced Cluster Security
     ├── amq-streams.md           # AMQ Streams (Kafka)
     ├── camel-k.md               # Camel K
     ├── connectivity-link.md     # Connectivity Link (Kuadrant)
     ├── developer-hub.md         # Developer Hub (Backstage)
+    ├── mailpit.md               # Mailpit SMTP testing
     ├── openshift-ai.md          # OpenShift AI
     ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
     ├── pipelines.md             # OpenShift Pipelines (Tekton)
@@ -144,8 +150,16 @@ When documenting platform-specific topics, include these sections where relevant
 - **What it does in this architecture** — one paragraph connecting the product to the hub-spoke pattern
 - **How it's deployed** — GitOps-driven (ArgoCD Application), operator channel, namespace
 - **Key resources created** — CRDs, ConfigMaps, Routes
+- **Mermaid diagram** — architecture or flow diagrams using fenced `mermaid` blocks. Use `flowchart TB` or `flowchart LR` for architecture, `sequenceDiagram` for flows
 - **Links to official docs** — always use `docs.redhat.com` URLs, not community/upstream
 - **Troubleshooting notes** — known issues specific to this deployment (e.g. OOM, SCC, TLS)
+
+### Diagram conventions
+
+- Use `subgraph` blocks to group resources by cluster (Hub, East, West)
+- Label nodes with role and port/namespace when relevant
+- Use `-->` for data flow, `-.->` for claim/bootstrap, `===` for VAN/network links
+- Keep diagrams focused — one concern per diagram (architecture, data flow, sync flow)
 
 ---
 

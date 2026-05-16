@@ -205,11 +205,90 @@ Define ConsoleLinks in a dedicated component with role-based rendering (`hub`/`s
 - **Spoke-only links**: usually none — operators (DevSpaces, ArgoCD) create their own ConsoleLinks automatically
 - **Avoid duplicating** links that operators already create (ArgoCD, DevSpaces)
 
+## Service Interconnect (Skupper) for cross-cluster exposure
+
+Skupper v2alpha1 creates a Virtual Application Network (VAN) linking hub and spoke clusters. Key resources:
+
+- **Hub**: `Site`, `AccessGrant`, `Listener` (per exposed service)
+- **Spoke**: `Site`, `AccessToken` (from hub grant), `Connector` (per local service to expose)
+
+### Spoke gateway aggregation pattern
+
+Instead of exposing every Industrial Edge service individually via Skupper, deploy a **spoke-gateway** (Gateway API `Gateway` + `HTTPRoute`) that aggregates all services behind a single entry point. Skupper then exposes only this gateway.
+
+```yaml
+# spoke-interconnect: Connector pointing to the spoke-gateway
+apiVersion: skupper.io/v2alpha1
+kind: Connector
+metadata:
+  name: ie-gateway-{{ .Values.clusterName }}
+  namespace: service-interconnect
+spec:
+  routingKey: ie-gateway-{{ .Values.clusterName }}
+  host: spoke-gateway-istio.spoke-gateway-system.svc.cluster.local
+  port: 8080
+```
+
+### AccessToken for link establishment
+
+The `AccessToken` on spokes is created manually (via `ManagedClusterAction`) because it contains sensitive claim data (ca, code, url from the hub's `AccessGrant`). Do NOT store AccessTokens in Git.
+
+```yaml
+apiVersion: skupper.io/v2alpha1
+kind: AccessToken
+metadata:
+  name: hub-token
+  namespace: service-interconnect
+spec:
+  ca: "<hub-grant-ca>"
+  code: "<hub-grant-code>"
+  url: "<hub-grant-url>"
+```
+
+The AccessToken automatically creates a `Link` with correct TLS credentials and router endpoints. Do NOT manually create `Link` resources — the endpoints in the hub's `RouterAccess` change and the AccessToken handles this correctly.
+
+### Prometheus metrics export via Skupper
+
+Add a second `Connector` on each spoke to expose `thanos-querier`:
+
+```yaml
+apiVersion: skupper.io/v2alpha1
+kind: Connector
+metadata:
+  name: prometheus-{{ .Values.clusterName }}
+spec:
+  routingKey: prometheus-{{ .Values.clusterName }}
+  host: thanos-querier.openshift-monitoring.svc.cluster.local
+  port: 9091
+```
+
+Hub Grafana datasources then point to `prometheus-east.service-interconnect.svc.cluster.local:9091` and `prometheus-west.service-interconnect.svc.cluster.local:9091`.
+
+## Kiali + OSSM Console plugin
+
+Deploy Kiali with the `OSSMConsole` CR on both hub and spokes to activate the dynamic console plugin:
+
+```yaml
+apiVersion: kiali.io/v1alpha1
+kind: OSSMConsole
+metadata:
+  name: ossmconsole
+  namespace: openshift-cluster-observability-operator
+spec:
+  version: default
+  kiali:
+    serviceName: kiali
+    serviceNamespace: openshift-cluster-observability-operator
+```
+
+The `kiali-ossm` operator subscription must be deployed before the CR. Add it to the `subscriptions` list in the ApplicationSet `valuesObject` for the `operators` component.
+
 ## Grafana dashboards for east-west
 
-- Configure Prometheus-compatible data sources per region.
-- Standardize dashboard UIDs and labels so hub Grafana can load both without duplication.
-- Capture Kafka consumer lag and factory KPIs consistently across regions for apples-to-apples comparisons.
+- Hub Grafana has three datasources: Hub (local Thanos), Prometheus-East (via Skupper), Prometheus-West (via Skupper).
+- Dashboard variables `ds_east` and `ds_west` select the remote datasources.
+- Spoke Grafana instances have a single local Prometheus datasource with `local-metrics` dashboard.
+- Configure `[auth.basic] enabled = true` as a separate INI section (NOT a nested value under `[auth]`) to avoid 401 errors on the Grafana API.
 
 ## Quick verification commands
 
@@ -223,4 +302,9 @@ oc get consoleplugin
 # Kiali/Prometheus
 oc logs deploy/kiali -n openshift-cluster-observability-operator --tail=10 | grep 401
 oc get servicemonitor,podmonitor -n istio-system
+# Skupper
+oc get site,accessgrant,listener -n service-interconnect
+oc get grafanadatasource -n openshift-cluster-observability-operator
+# OSSM Console
+oc get ossmconsole -A
 ```

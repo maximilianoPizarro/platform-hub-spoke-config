@@ -21,8 +21,17 @@ Weighted rules enable **canary** or **active-active** distributions between serv
 
 The hub gateway routes traffic to spoke cluster OpenShift Routes via `ExternalName` services:
 
-```
-Browser → Hub OpenShift Router (HTTPS) → Istio Gateway (port 8080) → ExternalName Service → Spoke OpenShift Router (HTTP port 80) → Backend Pod
+```mermaid
+flowchart LR
+  Browser["Browser"] --> Router["Hub OpenShift<br/>Router (HTTPS)"]
+  Router --> IGW["Istio Gateway<br/>(port 8080)"]
+  IGW --> WP["Waypoint Proxy<br/>(circuit breaking)"]
+  WP --> EXT_E["ExternalName<br/>Service (east)"]
+  WP --> EXT_W["ExternalName<br/>Service (west)"]
+  EXT_E --> SPOKE_E["East OpenShift<br/>Router (HTTP:80)"]
+  EXT_W --> SPOKE_W["West OpenShift<br/>Router (HTTP:80)"]
+  SPOKE_E --> POD_E["Backend Pod"]
+  SPOKE_W --> POD_W["Backend Pod"]
 ```
 
 ### Front / API split
@@ -39,6 +48,18 @@ Traffic is split into separate `Service` objects per cluster and traffic type to
 All four services use `ExternalName` pointing to the same spoke Route hostname, but Istio tracks them as distinct destinations. In Kiali's traffic graph, each appears as a separate node.
 
 The `HTTPRoute` uses two rules:
+
+```mermaid
+flowchart TB
+  REQ["Incoming Request"] --> MATCH{Path?}
+  MATCH -->|"/api/*"| API["API rule<br/>(session affinity)"]
+  MATCH -->|"/*"| FRONT["Frontend rule<br/>(weighted split)"]
+  API --> API_E["east-api<br/>weight: 100"]
+  API --> API_W["west-api<br/>weight: 0"]
+  FRONT --> FRONT_E["east-front<br/>weight: 50"]
+  FRONT --> FRONT_W["west-front<br/>weight: 50"]
+```
+
 1. **`/api` prefix** → routed to `*-api` services (defaults to east 100%, west 0% for Socket.IO session affinity).
 2. **Catch-all** → routed to `*-front` services (split by `gateway.weights.east` / `west`).
 

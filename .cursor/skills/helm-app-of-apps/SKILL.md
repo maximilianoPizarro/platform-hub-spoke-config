@@ -76,6 +76,37 @@ Use waves consistently across the fleet:
 
 Keep dependent workloads **strictly greater** than their prerequisites.
 
+## Spoke components via ApplicationSet
+
+The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix generator** (cluster x component). Spoke-specific values are injected via `valuesObject`:
+
+```yaml
+valuesObject:
+  clusterDomain: '{{.clusterDomain}}'
+  clusterName: '{{.clusterName}}'
+  clusterRole: spoke
+  hubClusterDomain: <hub-domain>
+  subscriptions:
+    - name: skupper-operator
+      namespace: openshift-operators
+      channel: stable-2
+      source: redhat-operators
+    - name: grafana-operator
+      namespace: openshift-operators
+      channel: v5
+      source: community-operators
+    - name: kiali-ossm
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
+```
+
+Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`.
+
+### Adding operator subscriptions to spokes
+
+Add new operator subscriptions to the `subscriptions` list in the ApplicationSet `valuesObject` (NOT in the individual component templates). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. This ensures operators install before their CRDs are needed by other components.
+
 ## Externalizing deployer.domain
 
 Never hardcode cluster-specific URLs in templates. Pass **`deployer.domain`** (and `clusters.*.domain` when needed) via Helm values or `--set` flags so the same chart renders for hub, east, and west.
@@ -220,6 +251,28 @@ Deploy `iot-consumer` alongside `line-dashboard` with:
 - `SOCKET_PATH=/api/service-web/socket`
 - A path-based Route (`/api`) pointing to port 3000
 - A ConfigMap overriding `conf/config.json` with **`websocketHost: ""`** (empty string = same origin). Never use `localhost:3000` (the image default) or an absolute cross-origin URL — Socket.IO connects to the current page's origin, and the path-based route proxies `/api` to port 3000.
+
+### Grafana auth.basic INI section rendering
+
+The Grafana CR `spec.config` maps to `grafana.ini` sections. When configuring `auth.basic`, use a **separate top-level key** `auth.basic` — NOT a nested `basic` value under `auth`:
+
+```yaml
+# CORRECT
+config:
+  auth:
+    disable_login_form: "false"
+  auth.basic:
+    enabled: "true"
+
+# WRONG — renders as "basic = [auth.basic]" under [auth]
+config:
+  auth:
+    basic: |
+      [auth.basic]
+      enabled = true
+```
+
+The wrong pattern causes 401 errors on the Grafana API, preventing dashboards from syncing.
 
 ### Operator deprecation: Kuadrant → Red Hat Connectivity Link
 

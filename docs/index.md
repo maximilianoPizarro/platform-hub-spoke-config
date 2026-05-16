@@ -15,48 +15,52 @@ This repository models a **GitOps-first platform** where:
 - **Hub cluster** runs ACM, OpenShift GitOps (Argo CD), observability aggregation, Developer Hub, ACS Central, Mailpit for notifications, and gateway-style HTTP routing with **circuit breaking** for shared services.
 - **Spoke clusters** (east/west regions) host **Industrial Edge** patterns: sensor and MQTT-style ingestion, Kafka pipelines, optional ML scoring, and dashboards fed by Prometheus-compatible metrics.
 - **Service Mesh 3 ambient** reduces sidecar overhead while retaining ztunnel-based L4 and waypoint-based L7 policy where needed.
-- **Hub Gateway** splits traffic into **front** and **API** services per spoke, with per-service **circuit breaking** via `DestinationRule` (outlier detection + connection pools enforced by the waypoint proxy).
-- **Connectivity Link** aligns with Kubernetes Gateway API and Kuadrant policies (often introduced gradually; policies may start disabled).
-- **Grafana dashboards** roll up cluster and application signals for operators.
+- **Hub Gateway** splits traffic into **front** and **API** services per spoke, with per-service **circuit breaking** via `DestinationRule`.
+- **Service Interconnect (Skupper)** bridges spoke services and metrics to the hub via a Virtual Application Network, without VPN or firewall changes.
+- **Spoke Gateways** aggregate Industrial Edge services per spoke for simplified cross-cluster exposure.
+- **Kiali + OSSM Console** provides service mesh topology visualization on every cluster via the OpenShift Console plugin.
+- **Grafana dashboards** roll up cluster and application signals from all clusters.
 - **ACS** provides centralized policy, CVE visibility, and SecuredCluster agents on spokes.
 
 ```mermaid
 flowchart TB
-  subgraph Hub["Hub cluster"]
+  subgraph Hub["Hub Cluster"]
+    ARGO["ArgoCD / GitOps"]
     ACM["ACM"]
-    ARGO["Argo CD / GitOps"]
-    OBS["Observability / Grafana"]
-    GW["Hub Gateway / Gateway API"]
+    GW["Hub Gateway<br/>(Gateway API)"]
+    SKUPPER_H["Skupper<br/>(Listeners)"]
+    OBS["Grafana<br/>(multi-cluster)"]
+    KIALI_H["Kiali"]
     ACS_C["ACS Central"]
-    MAIL["Mailpit"]
   end
 
-  subgraph East["East spoke -- Industrial Edge"]
-    IE_E["Factories / sensors"]
-    MQTT_E["MQTT"]
-    K_E["Kafka"]
-    ML_E["ML / scoring"]
-    D_E["Dashboards"]
+  subgraph East["East Spoke"]
+    IE_E["Industrial Edge<br/>(sensors → MQTT → Kafka → ML)"]
+    SGW_E["Spoke Gateway"]
+    SKUPPER_E["Skupper<br/>(Connectors)"]
+    GRAFANA_E["Grafana (local)"]
+    KIALI_E["Kiali"]
   end
 
-  subgraph West["West spoke -- Industrial Edge"]
-    IE_W["Factories / sensors"]
-    MQTT_W["MQTT"]
-    K_W["Kafka"]
-    ML_W["ML / scoring"]
-    D_W["Dashboards"]
+  subgraph West["West Spoke"]
+    IE_W["Industrial Edge<br/>(sensors → MQTT → Kafka → ML)"]
+    SGW_W["Spoke Gateway"]
+    SKUPPER_W["Skupper<br/>(Connectors)"]
+    GRAFANA_W["Grafana (local)"]
+    KIALI_W["Kiali"]
   end
 
   Git[(Git repo)] --> ARGO
   ARGO --> ACM
-  ACM --> East
-  ACM --> West
-  IE_E --> MQTT_E --> K_E --> ML_E --> D_E
-  IE_W --> MQTT_W --> K_W --> ML_W --> D_W
-  GW -->|"front/api split + circuit breaking"| East
-  GW -->|"front/api split + circuit breaking"| West
-  OBS --> East
-  OBS --> West
+  ACM -->|"ApplicationSet"| East
+  ACM -->|"ApplicationSet"| West
+  GW -->|"front/api + circuit breaking"| East
+  GW -->|"front/api + circuit breaking"| West
+  SKUPPER_E <-->|"VAN"| SKUPPER_H
+  SKUPPER_W <-->|"VAN"| SKUPPER_H
+  SKUPPER_H -->|"metrics"| OBS
+  SGW_E --> SKUPPER_E
+  SGW_W --> SKUPPER_W
 ```
 
 ## Quick links
@@ -70,6 +74,7 @@ flowchart TB
 | Hub Gateway | [Hub Gateway](hub-gateway.md) |
 | Observability | [Observability](observability.md) |
 | Industrial Edge | [Industrial Edge](industrial-edge.md) |
+| Service Interconnect | [Service Interconnect](service-interconnect.md) |
 | Branch strategy | [Branch Strategy](branch-strategy.md) |
 
 ## Red Hat products used
@@ -85,5 +90,6 @@ flowchart TB
 - Red Hat build of Apache Camel / Camel K
 - Red Hat OpenShift Pipelines (Tekton)
 - Red Hat Developer Hub (Backstage)
+- Red Hat Service Interconnect (Skupper)
 - Mailpit (SMTP testing for notifications)
 - Observability stack (Prometheus-compatible metrics, Grafana, OpenTelemetry, Kiali)
