@@ -1,6 +1,0 @@
-clusterDomain: ""
-
-postgresql:
-  database: cdcdb
-  username: cdcuser
-  password: cdc-demo-2024

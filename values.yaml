@@ -269,15 +269,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
-    # CDC Demo (Debezium + Kafka + PostgreSQL -> Mailpit)
-    - id: cdc-demo
+    # IE Anomaly Alerter (vibration/temperature -> Mailpit)
+    - id: ie-anomaly-alerter
       enabled: true
-      path: cdc-demo
-      destinationNamespace: kafka-cdc
-      syncWave: "6"
+      path: ie-anomaly-alerter
+      destinationNamespace: industrial-edge-tst-all
+      syncWave: "7"
       prune: true
       selfHeal: true
-      skipDryRunOnMissingResource: true
+      skipDryRunOnMissingResource: false
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

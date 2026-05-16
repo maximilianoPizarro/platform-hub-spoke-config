@@ -1,0 +1,18 @@
+clusterDomain: ""
+
+mqtt:
+  host: messaging.industrial-edge-tst-all.svc
+  port: 1883
+  topics:
+    vibration: "iot-sensor/sw/vibration"
+    temperature: "iot-sensor/sw/temperature"
+
+thresholds:
+  vibration: 15.0
+  temperature: 80.0
+
+mailpit:
+  url: "http://mailpit.mailpit.svc:8025/api/v1/send"
+
+healthReport:
+  intervalSeconds: 300
