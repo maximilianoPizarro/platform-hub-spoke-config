@@ -67,6 +67,11 @@ spec:
           containers:
             - name: grafana
               image: docker.io/grafana/grafana:11.4.0
+              env:
+                - name: GF_SECURITY_ADMIN_PASSWORD
+                  value: admin
+                - name: GF_SECURITY_ADMIN_USER
+                  value: admin
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
@@ -113,11 +118,10 @@ spec:
     name: Prometheus-East
     type: prometheus
     access: proxy
-    url: https://prometheus-east.service-interconnect.svc.cluster.local:9091
+    url: http://prometheus-east.service-interconnect.svc.cluster.local:9091
     isDefault: false
     jsonData:
       timeInterval: 5s
-      tlsSkipVerify: true
 ---
 apiVersion: grafana.integreatly.org/v1beta1
 kind: GrafanaDatasource
@@ -134,8 +138,7 @@ spec:
     name: Prometheus-West
     type: prometheus
     access: proxy
-    url: https://prometheus-west.service-interconnect.svc.cluster.local:9091
+    url: http://prometheus-west.service-interconnect.svc.cluster.local:9091
     isDefault: false
     jsonData:
       timeInterval: 5s
-      tlsSkipVerify: true
