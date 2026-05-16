@@ -195,5 +195,5 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 spec:
   routingKey: kafka-{{ .Values.clusterName }}-stormshift
-  host: dev-cluster-kafka-bootstrap.industrial-edge-stormshift-messaging.svc.cluster.local
+  host: factory-cluster-kafka-bootstrap.industrial-edge-stormshift-messaging.svc.cluster.local
   port: 9092

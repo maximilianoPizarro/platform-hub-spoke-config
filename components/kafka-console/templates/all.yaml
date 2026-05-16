@@ -19,16 +19,24 @@ spec:
     - name: dev-cluster-east
       listener: plain
       properties:
-        bootstrap.servers: kafka-east-tst.service-interconnect.svc.cluster.local:9092
+        values:
+          - name: bootstrap.servers
+            value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
       listener: plain
       properties:
-        bootstrap.servers: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
+        values:
+          - name: bootstrap.servers
+            value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
       listener: plain
       properties:
-        bootstrap.servers: kafka-west-tst.service-interconnect.svc.cluster.local:9092
+        values:
+          - name: bootstrap.servers
+            value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
       listener: plain
       properties:
-        bootstrap.servers: kafka-west-stormshift.service-interconnect.svc.cluster.local:9092
+        values:
+          - name: bootstrap.servers
+            value: kafka-west-stormshift.service-interconnect.svc.cluster.local:9092
