@@ -73,12 +73,12 @@ spec:
   metrics:
     - providers:
         - name: prometheus
-{{- $waypointNamespaces := list
-  "industrial-edge-tst-all"
-  "industrial-edge-stormshift-messaging"
-  "industrial-edge-data-lake"
-  "hub-gateway-system"
-}}
+{{- $waypointNamespaces := list "hub-gateway-system" }}
+{{- if ne .Values.clusterRole "hub" }}
+{{- $waypointNamespaces = append $waypointNamespaces "industrial-edge-tst-all" }}
+{{- $waypointNamespaces = append $waypointNamespaces "industrial-edge-stormshift-messaging" }}
+{{- $waypointNamespaces = append $waypointNamespaces "industrial-edge-data-lake" }}
+{{- end }}
 {{- range $waypointNamespaces }}
 ---
 apiVersion: gateway.networking.k8s.io/v1

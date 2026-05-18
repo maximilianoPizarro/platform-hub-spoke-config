@@ -36,7 +36,6 @@ spec:
         helm:
           valuesObject:
             clusterName: '{{`{{name}}`}}'
-            clusterDomain: '{{`{{metadata.labels.domain}}`}}'
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
             eastDomain: {{ .Values.clusters.east.domain | quote }}
             westDomain: {{ .Values.clusters.west.domain | quote }}

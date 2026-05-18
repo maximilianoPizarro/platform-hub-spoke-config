@@ -307,7 +307,12 @@ spec:
         clusterName: hub
         role: primary
         clusterRole: hub
-    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3" "istio-monitoring" "service-interconnect" "mailpit") }}
+    {{- else if eq .path "servicemeshoperator3" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterRole: hub
+    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}

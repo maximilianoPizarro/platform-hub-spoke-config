@@ -120,3 +120,7 @@ subscriptions:
     namespace: openshift-operators
     channel: 7.12.x
     source: redhat-operators
+  - name: rhods-operator
+    namespace: redhat-ods-operator
+    channel: stable-2.25
+    source: redhat-operators
