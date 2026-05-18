@@ -13,6 +13,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
+  targetNamespaces:
+    - kubecost
   upgradeStrategy: Default
 ---
 apiVersion: operators.coreos.com/v1alpha1
