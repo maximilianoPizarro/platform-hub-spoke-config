@@ -14,22 +14,15 @@ spec:
   generators:
     - matrix:
         generators:
-          - merge:
-              mergeKeys:
-                - name
-              generators:
-                - clusterDecisionResource:
-                    configMapRef: acm-hub-spoke-placement-decisions
-                    labelSelector:
-                      matchLabels:
-                        cluster.open-cluster-management.io/placement: hub-spoke-placement
-                    requeueAfterSeconds: 180
-                - list:
-                    elements:
-                      - name: east
-                        clusterDomain: {{ .Values.clusters.east.domain | quote }}
-                      - name: west
-                        clusterDomain: {{ .Values.clusters.west.domain | quote }}
+          - clusterDecisionResource:
+              configMapRef: acm-hub-spoke-placement-decisions
+              labelSelector:
+                matchLabels:
+                  cluster.open-cluster-management.io/placement: hub-spoke-placement
+              requeueAfterSeconds: 180
+              values:
+                eastDomain: {{ .Values.clusters.east.domain | quote }}
+                westDomain: {{ .Values.clusters.west.domain | quote }}
           - list:
               elements:
                 - id: namespaces
@@ -97,7 +90,7 @@ spec:
         path: '{{`{{.path}}`}}'
         helm:
           valuesObject:
-            clusterDomain: '{{`{{.clusterDomain}}`}}'
+            clusterDomain: '{{`{{ if eq .name "east" }}{{ .values.eastDomain }}{{ else }}{{ .values.westDomain }}{{ end }}`}}'
             clusterName: '{{`{{.name}}`}}'
             clusterRole: spoke
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
@@ -127,7 +120,7 @@ spec:
                 channel: 7.12.x
                 source: redhat-operators
             global:
-              localClusterDomain: '{{`{{.clusterDomain}}`}}'
+              localClusterDomain: '{{`{{ if eq .name "east" }}{{ .values.eastDomain }}{{ else }}{{ .values.westDomain }}{{ end }}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}
       destination:
         name: '{{`{{.name}}`}}'
