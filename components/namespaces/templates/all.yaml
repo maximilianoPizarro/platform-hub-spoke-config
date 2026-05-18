@@ -11,12 +11,13 @@
   "openshift-cluster-observability-operator"
   "developer-hub"
   "devspaces"
-  "redhat-connectivity-link-operator"
 }}
 {{- $ieNoMeshNamespaces := list "industrial-edge-data-lake" }}
 {{- $noMeshNamespaces := list
   "gitea"
   "stackrox"
+  # RHCL dns-operator manages cluster DNS; ambient ztunnel breaks it (CrashLoopBackOff on spokes)
+  "redhat-connectivity-link-operator"
 }}
 {{- if ne .Values.clusterRole "hub" }}
 {{- $ambientNamespaces = concat $ambientNamespaces $ieAmbientNamespaces }}
