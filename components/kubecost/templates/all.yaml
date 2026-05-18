@@ -37,6 +37,9 @@ subjects:
   - kind: ServiceAccount
     name: kubecost-prometheus-server
     namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-forecasting
+    namespace: kubecost
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
