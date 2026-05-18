@@ -1,3 +1,4 @@
+{{- if ne .Values.clusterRole "spoke" }}
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
@@ -32,3 +33,4 @@ spec:
     targetPort: 8008
   tls:
     termination: edge
+{{- end }}

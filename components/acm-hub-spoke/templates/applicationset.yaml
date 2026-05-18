@@ -115,6 +115,14 @@ spec:
                 namespace: openshift-operators
                 channel: stable
                 source: redhat-operators
+              - name: amq-streams
+                namespace: openshift-operators
+                channel: stable
+                source: redhat-operators
+              - name: amq-broker-rhel8
+                namespace: openshift-operators
+                channel: 7.12.x
+                source: redhat-operators
             global:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}
