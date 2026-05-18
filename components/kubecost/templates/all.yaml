@@ -40,6 +40,9 @@ subjects:
   - kind: ServiceAccount
     name: kubecost-forecasting
     namespace: kubecost
+  - kind: ServiceAccount
+    name: default
+    namespace: kubecost
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
