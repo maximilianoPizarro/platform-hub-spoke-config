@@ -47,6 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
   toc.appendChild(list);
   wrap.classList.add('has-page-toc');
-  wrap.insertBefore(toc, content.nextSibling);
+  content.insertAdjacentElement('afterend', toc);
 });
 </script>

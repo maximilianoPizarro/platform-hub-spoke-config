@@ -19,6 +19,8 @@
   --rh-color-surface-dark: #1F1F1F;
   --rh-color-interactive-blue: #0066CC;
   --rh-color-interactive-blue-lighter: #73BCF7;
+  --rh-content-max: 48rem;
+  --rh-content-with-toc-max: 64rem;
 }
 
 /* ── Typography ── */
@@ -41,58 +43,127 @@ code, pre, .highlight {
   font-family: 'Red Hat Mono', monospace !important;
 }
 
-/* ── Sidebar: Red Hat logo in header ── */
-.site-header {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+/* ── Sidebar layout: pin footer, scroll nav ── */
+.side-bar {
+  display: flex !important;
+  flex-direction: column !important;
+  border-top: 3px solid var(--rh-color-brand-red-on-dark) !important;
 }
 
-.site-logo-custom {
-  display: block !important;
-  padding: 0.5rem 1rem 0.75rem !important;
+.side-bar .site-nav {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+
+.side-bar > .site-footer {
+  flex-shrink: 0 !important;
+  margin-top: auto !important;
+}
+
+/* ── Sidebar header: centered Red Hat logo ── */
+.site-header {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1.25rem 1rem 1rem !important;
+  width: 100% !important;
+}
+
+.site-header .site-title {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  padding-right: 0 !important;
+}
+
+.site-header .site-logo,
+.site-header .site-logo::before {
+  display: none !important;
 }
 
 .site-logo-img {
   display: block !important;
-  height: 28px !important;
+  height: 48px !important;
   width: auto !important;
-  max-width: 140px !important;
+  max-width: 200px !important;
+  margin: 0 auto !important;
 }
 
-/* Hide duplicate default logo from theme config when custom header logo is used */
-.site-header img:not(.site-logo-img) {
-  display: none !important;
+.site-header .site-button {
+  position: absolute !important;
+  top: 1rem !important;
+  right: 0.75rem !important;
 }
 
-/* Hide default "This site uses Just the Docs" — replaced by nav_footer_custom */
+/* ── Sidebar footer: author attribution (visible on dark) ── */
 .side-bar .site-footer > p {
   display: none !important;
 }
 
-/* ── Sidebar footer: author attribution ── */
 .site-footer-custom {
   padding: 1rem 1rem 1.25rem !important;
   border-top: 1px solid var(--rh-color-black-700) !important;
   line-height: 1.5 !important;
+  color: var(--rh-color-black-300) !important;
+}
+
+.site-footer-custom p {
+  margin: 0.25rem 0 0 !important;
+  color: var(--rh-color-black-300) !important;
+  font-size: 0.85rem !important;
 }
 
 .site-footer-custom a {
   color: var(--rh-color-interactive-blue-lighter) !important;
-  font-weight: 500;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.site-footer-custom a:hover {
+  color: var(--rh-color-white) !important;
 }
 
 .site-footer-logo {
-  display: block;
-  margin-bottom: 0.5rem;
+  display: block !important;
+  margin-bottom: 0.5rem !important;
+  height: 20px !important;
+  width: auto !important;
 }
 
-/* ── Layout: content + TOC without empty gap ── */
+.site-footer-author {
+  font-size: 0.9rem !important;
+}
+
+.site-footer-role {
+  color: var(--rh-color-black-400) !important;
+}
+
+/* ── Main area: unified background, centered column ── */
+body,
+.side-bar {
+  background-color: var(--rh-color-surface-darkest) !important;
+}
+
+.main {
+  background-color: var(--rh-color-surface-dark) !important;
+}
+
+.main-header,
 .main-content-wrap {
-  max-width: 72rem !important;
+  width: 100% !important;
+  max-width: var(--rh-content-max) !important;
   margin-left: auto !important;
   margin-right: auto !important;
   padding-left: 2rem !important;
   padding-right: 2rem !important;
+  box-sizing: border-box !important;
+}
+
+.main-content-wrap {
+  background-color: transparent !important;
 }
 
 .main-content {
@@ -110,10 +181,15 @@ code, pre, .highlight {
   }
 }
 
-@media (min-width: 90rem) {
+@media (min-width: 75rem) {
+  .main-header,
+  .main-content-wrap {
+    max-width: var(--rh-content-with-toc-max) !important;
+  }
+
   .main-content-wrap.has-page-toc {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 200px;
+    grid-template-columns: minmax(0, 1fr) 11rem;
     column-gap: 2rem;
     align-items: start;
   }
@@ -124,6 +200,7 @@ code, pre, .highlight {
 
   .main-content-wrap.has-page-toc .site-nav-toc {
     grid-column: 2;
+    display: block !important;
   }
 }
 
@@ -131,13 +208,12 @@ code, pre, .highlight {
 .site-nav-toc {
   position: sticky;
   top: 4rem;
-  width: 200px;
+  width: 11rem;
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
   font-size: 0.8rem;
   border-left: 2px solid var(--rh-color-brand-red-on-dark);
   padding-left: 1rem;
-  flex-shrink: 0;
 }
 
 .site-nav-toc a {
@@ -162,9 +238,9 @@ code, pre, .highlight {
   padding-left: 0;
 }
 
-@media (max-width: 89.99rem) {
+@media (max-width: 74.99rem) {
   .site-nav-toc {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -176,16 +252,6 @@ code, pre, .highlight {
   border: 1px solid var(--rh-color-black-700);
 }
 
-/* ── Dark mode colors ── */
-body,
-.side-bar {
-  background-color: var(--rh-color-surface-darkest) !important;
-}
-
-.main-content-wrap {
-  background-color: var(--rh-color-surface-dark) !important;
-}
-
 /* Links */
 a,
 .nav-list .nav-list-item a.active,
@@ -195,11 +261,6 @@ a,
 
 a:hover {
   color: var(--rh-color-white) !important;
-}
-
-/* Brand accent: top border on sidebar */
-.side-bar {
-  border-top: 3px solid var(--rh-color-brand-red-on-dark) !important;
 }
 
 /* Navigation active state */
