@@ -1,7 +1,22 @@
 {{- /*
   Headless Services + EndpointSlices (Argo CD excludes legacy Endpoints).
   Maps broker advertised hostnames to Skupper listener ClusterIPs on the hub.
+  Creates the IE namespaces needed for Kafka broker DNS on the hub.
 */ -}}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: industrial-edge-stormshift-messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
 {{- $skupperNs := "service-interconnect" }}
 {{- $eastTst := lookup "v1" "Service" $skupperNs "kafka-east-tst" }}
 {{- $westTst := lookup "v1" "Service" $skupperNs "kafka-west-tst" }}
