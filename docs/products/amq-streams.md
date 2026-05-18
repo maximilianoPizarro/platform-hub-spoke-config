@@ -22,6 +22,11 @@ Red Hat **AMQ Streams** is the enterprise distribution of **Apache Kafka** on Op
 *Topic browser — `temperature` messages on `dev-cluster-west` via Skupper.*
 {: .fs-2 .text-grey-dk-000 }
 
+![Kafka Console – Cluster detail]({{ site.baseurl }}/assets/images/product-kafka-console-amq-streams-3.png)
+{: .mb-4 }
+*Kafka Console — cluster detail view with broker metrics and consumer group lag.*
+{: .fs-2 .text-grey-dk-000 }
+
 ## Industrial Edge usage
 
 - **Sensor and MQTT-derived topics** land in Kafka via integrations (often Camel K).

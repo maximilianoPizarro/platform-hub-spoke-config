@@ -195,7 +195,7 @@ Always reference with `{{ site.baseurl }}` prefix:
 | `connectivity-link-spoke.png` | `products/connectivity-link.md` (Spoke) |
 | `connectivity-link-spoke-gateway.png` | `products/connectivity-link.md` (Spoke gateway) |
 | `ACS.png`, `ACS-2.png` | `products/acs.md` |
-| `product-kafka-console-amq-streams.png` (+ `-2`) | `products/amq-streams.md` (Kafka Console — **not** `service-interconnect.md`; Skupper page links there) |
+| `product-kafka-console-amq-streams.png` (+ `-2`, `-3`) | `products/amq-streams.md` (Kafka Console — **not** `service-interconnect.md`; Skupper page links there) |
 | `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
 
 **Operator discovery:** Each `docs/products/*.md` page includes an **Operator discovery** subsection; `products/index.md` has a summary table (annotations vs CRDs).
