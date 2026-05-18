@@ -9,80 +9,18 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
-  goTemplate: true
-  goTemplateOptions: ["missingkey=zero"]
   generators:
-    - matrix:
-        generators:
-          - merge:
-              generators:
-                - clusterDecisionResource:
-                    configMapRef: acm-placement
-                    labelSelector:
-                      matchLabels:
-                        cluster.open-cluster-management.io/placement: hub-spoke-placement
-                    requeueAfterSeconds: 180
-                - clusters: {}
-              mergeKeys:
-                - server
-          - list:
-              elements:
-                - id: namespaces
-                  path: components/namespaces
-                  namespace: openshift-gitops
-                - id: operators
-                  path: components/operators
-                  namespace: openshift-operators
-                - id: servicemeshoperator3
-                  path: components/servicemeshoperator3
-                  namespace: openshift-operators
-                - id: industrial-edge-tst
-                  path: components/industrial-edge-tst
-                  namespace: industrial-edge-tst-all
-                - id: industrial-edge-stormshift
-                  path: components/industrial-edge-stormshift
-                  namespace: industrial-edge-stormshift-messaging
-                - id: industrial-edge-pipelines
-                  path: components/industrial-edge-pipelines
-                  namespace: industrial-edge-ci
-                - id: acs-secured-cluster
-                  path: components/acs-secured-cluster
-                  namespace: stackrox
-                - id: observability
-                  path: components/observability
-                  namespace: openshift-cluster-observability-operator
-                - id: spoke-dashboards
-                  path: components/spoke-dashboards
-                  namespace: openshift-cluster-observability-operator
-                - id: istio-monitoring
-                  path: components/istio-monitoring
-                  namespace: istio-system
-                - id: console-links
-                  path: components/console-links
-                  namespace: openshift-gitops
-                - id: spoke-gateway
-                  path: components/spoke-gateway
-                  namespace: spoke-gateway-system
-                - id: spoke-interconnect
-                  path: components/spoke-interconnect
-                  namespace: service-interconnect
-                - id: rhcl-operator
-                  path: components/rhcl-operator
-                  namespace: redhat-connectivity-link-operator
-                - id: kiali
-                  path: components/kiali
-                  namespace: openshift-cluster-observability-operator
-                - id: ie-anomaly-alerter
-                  path: components/ie-anomaly-alerter
-                  namespace: industrial-edge-tst-all
-                - id: kubecost
-                  path: components/kubecost
-                  namespace: kubecost
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: hub-spoke-placement
+        requeueAfterSeconds: 180
   template:
     metadata:
-      name: '{{`{{.id}}-{{.name}}`}}'
+      name: '{{`{{name}}-spoke-components`}}'
       annotations:
-        apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{.name}}`}}'
+        apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{name}}`}}'
         apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
       labels:
         app.kubernetes.io/part-of: platform-hub-spoke
@@ -92,124 +30,21 @@ spec:
       source:
         repoURL: {{ .Values.gitops.repoUrl }}
         targetRevision: {{ .Values.gitops.revision | default "main" | quote }}
-        path: '{{`{{.path}}`}}'
+        path: components/spoke-components
         helm:
           valuesObject:
-            clusterDomain: '{{`{{index .metadata.labels "domain"}}`}}'
-            clusterName: '{{`{{.name}}`}}'
-            clusterRole: spoke
+            clusterName: '{{`{{name}}`}}'
+            clusterDomain: '{{`{{metadata.labels.domain}}`}}'
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
-            subscriptions:
-              - name: skupper-operator
-                namespace: openshift-operators
-                channel: stable-2
-                source: redhat-operators
-              - name: grafana-operator
-                namespace: openshift-operators
-                channel: v5
-                source: community-operators
-              - name: kiali-ossm
-                namespace: openshift-operators
-                channel: stable
-                source: redhat-operators
-              - name: rhacs-operator
-                namespace: openshift-operators
-                channel: stable
-                source: redhat-operators
-              - name: amq-streams
-                namespace: openshift-operators
-                channel: stable
-                source: redhat-operators
-              - name: amq-broker-rhel8
-                namespace: openshift-operators
-                channel: 7.12.x
-                source: redhat-operators
-            global:
-              localClusterDomain: '{{`{{index .metadata.labels "domain"}}`}}'
-              hubClusterDomain: {{ .Values.clusterDomain | quote }}
+            eastDomain: {{ .Values.clusters.east.domain | quote }}
+            westDomain: {{ .Values.clusters.west.domain | quote }}
+            clusterRole: spoke
+            gitops:
+              repoUrl: {{ .Values.gitops.repoUrl | quote }}
+              revision: {{ .Values.gitops.revision | default "main" | quote }}
       destination:
-        name: '{{`{{.name}}`}}'
-        namespace: '{{`{{.namespace}}`}}'
-      ignoreDifferences:
-        - group: route.openshift.io
-          kind: Route
-          jsonPointers:
-            - /spec/host
-            - /status
-        - group: apps
-          kind: Deployment
-          jsonPointers:
-            - /spec/template/metadata/annotations
-        - group: ""
-          kind: Service
-          jsonPointers:
-            - /spec/clusterIP
-            - /spec/clusterIPs
-        - group: ""
-          kind: Secret
-          jsonPointers:
-            - /data
-        - group: kafka.strimzi.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: platform.stackrox.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: grafana.integreatly.org
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: operators.coreos.com
-          kind: Subscription
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: operators.coreos.com
-          kind: OperatorGroup
-          jsonPointers:
-            - /metadata/annotations
-            - /metadata/labels
-            - /spec
-        - group: tekton.dev
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /metadata/labels
-            - /spec/tasks
-        - group: broker.amq.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: ""
-          kind: Namespace
-          jsonPointers:
-            - /metadata/annotations
-            - /metadata/labels
-        - group: skupper.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: gateway.networking.k8s.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: kiali.io
-          kind: "*"
-          jsonPointers:
-            - /metadata/annotations
-            - /status
-        - group: console.openshift.io
-          kind: ConsoleLink
-          jsonPointers:
-            - /metadata/annotations
+        name: local-cluster
+        namespace: openshift-gitops
       syncPolicy:
         automated:
           selfHeal: true
@@ -217,5 +52,3 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
-          - RespectIgnoreDifferences=true
-          - SkipDryRunOnMissingResource=true
