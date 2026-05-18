@@ -78,12 +78,12 @@ Keep dependent workloads **strictly greater** than their prerequisites.
 
 ## Spoke components via ApplicationSet
 
-The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix generator** (cluster x component). Spoke-specific values are injected via `valuesObject`:
+The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix** generator: **`merge` (PlacementDecision × static `east`/`west` domains)** × **component list**. Spokes must appear in **PlacementDecision** and be **registered in Argo CD** (via **GitOpsCluster**). Values use **`{{.name}}`** (Argo cluster name) and **`{{.clusterDomain}}`** from the merge list in `applicationset.yaml`.
 
 ```yaml
 valuesObject:
   clusterDomain: '{{.clusterDomain}}'
-  clusterName: '{{.clusterName}}'
+  clusterName: '{{.name}}'
   clusterRole: spoke
   hubClusterDomain: <hub-domain>
   subscriptions:

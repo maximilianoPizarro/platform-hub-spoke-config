@@ -1,6 +1,7 @@
 clusterDomain: ""
 gitops:
   repoUrl: ""
+  revision: "main"
 clusters:
   east:
     domain: ""

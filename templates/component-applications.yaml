@@ -154,6 +154,13 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+    # RHDH operator may shrink spec.application.appConfig.configMaps / extraFiles after sync;
+    # ignoring avoids flip-flop so Git keeps catalog + auth ConfigMaps and User entities load.
+    - group: rhdh.redhat.com
+      kind: Backstage
+      jsonPointers:
+        - /spec/application/appConfig/configMaps
+        - /spec/application/extraFiles
   {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
   {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
   {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
@@ -219,6 +226,7 @@ spec:
         clusterDomain: {{ $domain }}
         gitops:
           repoUrl: {{ $.Values.gitops.repoUrl | quote }}
+          revision: {{ $.Values.gitops.revision | default "main" | quote }}
         clusters:
           east:
             domain: {{ $eastDomain | quote }}

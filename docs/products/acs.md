@@ -16,6 +16,11 @@ Red Hat **Advanced Cluster Security for Kubernetes (ACS)** centralizes Kubernete
 *ACS Central — hub and spoke clusters registered (hub, east, west).*
 {: .fs-2 .text-grey-dk-000 }
 
+![ACS Central – Console view]({{ site.baseurl }}/assets/images/ACS-2.png)
+{: .mb-4 }
+*ACS Central — additional console perspective (policies, vulnerabilities, or runtime visibility).*
+{: .fs-2 .text-grey-dk-000 }
+
 ## Topology for hub-spoke
 
 | Component | Location | Role |

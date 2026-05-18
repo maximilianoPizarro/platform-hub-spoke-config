@@ -87,6 +87,12 @@ data:
     catalog:
       import:
         entityFilename: catalog-info.yaml
+      locations:
+        # Same CM as OCM providers — avoids losing locations if operator drops an extra ConfigMap ref.
+        - type: file
+          target: /opt/app-root/src/catalog-users.yaml
+          rules:
+            - allow: [User, Group]
       providers:
         ocm:
           default:
@@ -111,25 +117,7 @@ data:
     #   host: dev.azure.com
     #   organization: ${AZURE_ORG}
 ---
-# Separate ConfigMaps avoid RHDH merge flattening nested resolver keys and catalog locations.
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app-config-catalog-rhdh
-  namespace: developer-hub
-  labels:
-    rhdh.redhat.com/ext-config-sync: "true"
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-data:
-  app-config.yaml: |
-    catalog:
-      locations:
-        - type: file
-          target: /opt/app-root/src/catalog/users.yaml
-          rules:
-            - allow: [User, Group]
----
+# Auth stays in its own ConfigMap so YAML merge never flattens signIn.resolvers options.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -148,9 +136,13 @@ data:
           production:
             clientId: ${GITHUB_CLIENT_ID}
             clientSecret: ${GITHUB_CLIENT_SECRET}
+            additionalScopes:
+              - user:email
             signIn:
               resolvers:
                 - resolver: usernameMatchingUserEntityName
+                  dangerouslyAllowSignInWithoutUserInCatalog: true
+                - resolver: emailMatchingUserEntityProfileEmail
                   dangerouslyAllowSignInWithoutUserInCatalog: true
 ---
 apiVersion: v1
@@ -250,16 +242,15 @@ spec:
     appConfig:
       configMaps:
         - name: app-config-rhdh
-        - name: app-config-catalog-rhdh
         - name: app-config-auth-rhdh
     dynamicPluginsConfigMapName: dynamic-plugins-rhdh
     extraFiles:
       configMaps:
         - name: developer-hub-catalog-users
           key: users.yaml
-          mountPath: /opt/app-root/src/catalog
+          mountPath: /opt/app-root/src/catalog-users.yaml
           containers:
-            - backstage-backend
+            - "*"
     route:
       enabled: true
       host: developer-hub.{{ .Values.clusterDomain }}

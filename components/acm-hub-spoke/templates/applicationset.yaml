@@ -11,14 +11,22 @@ spec:
   generators:
     - matrix:
         generators:
-          - list:
-              elements:
-                - clusterName: east
-                  targetRevision: main
-                  clusterDomain: {{ .Values.clusters.east.domain | quote }}
-                - clusterName: west
-                  targetRevision: main
-                  clusterDomain: {{ .Values.clusters.west.domain | quote }}
+          # Merge PlacementDecision clusters (registered in Argo via GitOpsCluster) with Helm-supplied DNS per logical name.
+          - merge:
+              mergeKeys:
+                - name
+              generators:
+                - clusterDecisionResource:
+                    configMapRef: acm-hub-spoke-placement-decisions
+                    labelSelector:
+                      matchLabels:
+                        cluster.open-cluster-management.io/placement: hub-spoke-placement
+                - list:
+                    elements:
+                      - name: east
+                        clusterDomain: {{ .Values.clusters.east.domain | quote }}
+                      - name: west
+                        clusterDomain: {{ .Values.clusters.west.domain | quote }}
           - list:
               elements:
                 - id: namespaces
@@ -74,7 +82,7 @@ spec:
                   namespace: kubecost
   template:
     metadata:
-      name: '{{`{{.id}}-{{.clusterName}}`}}'
+      name: '{{`{{.id}}-{{.name}}`}}'
       labels:
         app.kubernetes.io/part-of: platform-hub-spoke
         apps.open-cluster-management.io/cluster-set: global
@@ -82,12 +90,12 @@ spec:
       project: default
       source:
         repoURL: {{ .Values.gitops.repoUrl }}
-        targetRevision: '{{`{{.targetRevision}}`}}'
+        targetRevision: {{ .Values.gitops.revision | default "main" | quote }}
         path: '{{`{{.path}}`}}'
         helm:
           valuesObject:
             clusterDomain: '{{`{{.clusterDomain}}`}}'
-            clusterName: '{{`{{.clusterName}}`}}'
+            clusterName: '{{`{{.name}}`}}'
             clusterRole: spoke
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
             subscriptions:
@@ -111,7 +119,7 @@ spec:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}
       destination:
-        name: '{{`{{.clusterName}}`}}'
+        name: '{{`{{.name}}`}}'
         namespace: '{{`{{.namespace}}`}}'
       ignoreDifferences:
         - group: route.openshift.io

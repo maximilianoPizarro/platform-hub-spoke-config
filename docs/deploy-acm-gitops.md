@@ -47,6 +47,26 @@ Common axes:
 
 This matches hub-spoke scaling: adding a spoke with correct labels yields new `Application` instances automatically.
 
+## Troubleshooting: `industrial-edge-spoke` shows no Applications
+
+The OpenShift / ACM UI may report *no Argo applications* when any link in this chain is missing:
+
+1. **Managed clusters** are **Imported / Available** (`oc get managedcluster`).
+2. Each spoke used by this repo should be named **`east`** and **`west`** (Argo cluster secret name = `ManagedCluster` name), **or** add matching entries to the **merge list** in `components/acm-hub-spoke/templates/applicationset.yaml` (`name` + `clusterDomain`) for your real cluster names.
+3. **`ManagedClusterSetBinding` `global`** exists in **`openshift-gitops`** and clusters carry **`cluster.open-cluster-management.io/clusterset: global`** (see chart templates).
+4. **`Placement` `hub-spoke-placement`** selects your spokes (`region` in `east` | `west` by default).
+5. **`PlacementDecision`** objects exist in **`openshift-gitops`** with decisions listing those cluster names:
+
+   ```bash
+   oc get placementdecisions.cluster.open-cluster-management.io -n openshift-gitops \
+     -l cluster.open-cluster-management.io/placement=hub-spoke-placement -o yaml
+   ```
+
+6. **`GitOpsCluster` `hub-spoke-gitops`** is reconciled so Argo registers the same clusters (**Settings → Clusters** in Argo CD).
+7. **RBAC**: Role **`applicationset-placementdecisions`** binds **`openshift-gitops-applicationset-controller`** so the **clusterDecisionResource** generator can **list** `placementdecisions`. If your GitOps version uses a different ServiceAccount name, run `oc get sa -n openshift-gitops` and update the RoleBinding subject.
+
+The ApplicationSet uses **`clusterDecisionResource`** (PlacementDecision) **merged** with the static **`east` / `west`** list so Apps are only generated when a cluster is **both** placed **and** registered in Argo CD.
+
 ## Step-by-step deployment
 
 1. **Install OpenShift GitOps** on the hub (subscription stable channel) if not already present.

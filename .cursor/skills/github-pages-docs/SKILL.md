@@ -194,7 +194,7 @@ Always reference with `{{ site.baseurl }}` prefix:
 | `connectivity-link-hub-gateway.png` | `products/connectivity-link.md` (Hub gateway) |
 | `connectivity-link-spoke.png` | `products/connectivity-link.md` (Spoke) |
 | `connectivity-link-spoke-gateway.png` | `products/connectivity-link.md` (Spoke gateway) |
-| `ACS.png` | `products/acs.md` |
+| `ACS.png`, `ACS-2.png` | `products/acs.md` |
 | `product-kafka-console-amq-streams.png` (+ `-2`) | `products/amq-streams.md` (Kafka Console — **not** `service-interconnect.md`; Skupper page links there) |
 | `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
 
