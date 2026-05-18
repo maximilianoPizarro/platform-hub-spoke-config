@@ -87,7 +87,14 @@ spec:
 | No `istio_tcp_*` in Prometheus | ztunnel not Ready | Fix CNI first, confirm `PodMonitor` in `ztunnel` namespace |
 | InstallPlan blocked on CRD v1alpha1 removal | TP2 → GA upgrade | Delete `Istio`/`IstioCNI` CRs and sailoperator CRDs, reinstall `stable-3.2` |
 
-Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces`.
+Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces`, except workloads that break when ztunnel intercepts in-namespace database traffic:
+
+| Namespace | Mesh mode | Reason |
+| --------- | --------- | ------ |
+| Most app namespaces (Industrial Edge, `hub-gateway-system`, `developer-hub`, …) | **ambient** | L4/L7 telemetry and policy |
+| `stackrox` | **off mesh** | ACS Central ↔ PostgreSQL |
+| `gitea` | **off mesh** | Gitea chart init → PostgreSQL via ClusterIP |
+| `industrial-edge-data-lake` | **off mesh** | Data lake / MinIO patterns |
 
 ## Metrics and dashboards
 

@@ -158,6 +158,34 @@ oc get csv -n openshift-operators | grep servicemesh
 - Label namespaces with `istio.io/dataplane-mode: ambient` for ztunnel redirection (with GA, ztunnel must also be running).
 - Scrape **ztunnel** via `PodMonitor` in namespace `ztunnel` (port `ztunnel-stats`, path `/stats/prometheus`) and grant UWM RoleBinding in `ztunnel`.
 
+### Namespaces excluded from ambient (`components/namespaces`)
+
+GitOps maintains two lists in `components/namespaces/templates/all.yaml`:
+
+| List | Label / behavior |
+| ---- | ---------------- |
+| `$ambientNamespaces` | `istio.io/dataplane-mode: ambient` |
+| `$noMeshNamespaces` | No mesh label — plain cluster networking |
+
+**Keep off ambient (verified on hub):**
+
+| Namespace | Symptom if ambient | Fix |
+| --------- | ------------------ | --- |
+| `stackrox` | ACS Central ↔ PostgreSQL TLS fails; route down or flaky | `$noMeshNamespaces` |
+| `gitea` | `configure-gitea` init: `connection reset by peer` to PostgreSQL ClusterIP; pod `Init:Error` | `$noMeshNamespaces` |
+| `industrial-edge-data-lake` | Data lake / MinIO patterns | `$noMeshNamespaces` |
+
+**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`, `redhat-connectivity-link-operator`.
+
+Kiali may show Gitea/ACS as outside the mesh — expected. Gitea remains reachable via Route and cluster DNS for Developer Hub / DevSpaces.
+
+### ACS Central (hub)
+
+- Operator + Central: `components/acs-operator` → namespace `stackrox`
+- SecuredCluster hub + spokes: `components/acs-secured-cluster` (init bundles required per cluster: `hub`, `east`, `west`)
+- ConsoleLink route: `central-stackrox.<hubClusterDomain>`
+- Spoke operator: `rhacs-operator` subscription via ApplicationSet `openshift-operators` (not `targetNamespaces` OperatorGroup)
+
 ## Hub Gateway as F5 analog
 
 - Implement **Gateway API** `Gateway` + routing with weighted backends for traffic shaping.
@@ -673,6 +701,8 @@ subjects:
 - `kubecost-forecasting` deployment does NOT set `serviceAccountName` → uses `default` SA
 
 ## Developer Hub (RHDH) GitHub OAuth
+
+Catalog users (e.g. workshop GitHub accounts) can be provisioned via `components/developer-hub/templates/catalog-users.yaml` and mounted into the Backstage catalog. Set `dangerouslyAllowSignInWithoutUserInCatalog: true` under `auth.providers.github.production.signIn.resolvers` (not at the root of `app-config`).
 
 Configure GitHub sign-in in `app-config.yaml`:
 

@@ -20,16 +20,42 @@ Use this skill when authoring or restructuring **`docs/`** static documentation 
 - **`aux_links`**: top-right shortcuts (GitHub).
 - **`mermaid.version`**: pins Mermaid for diagrams.
 
+## Just the Docs customization (this repo)
+
+Just the Docs does **not** use `site_header_custom.html`. Valid override includes:
+
+| File | Purpose |
+| ---- | ------- |
+| `_includes/title.html` | Sidebar logo — overrides theme `title.html` (renders `<img class="site-logo-img">` when `logo:` is set in `_config.yml`) |
+| `_includes/nav_footer_custom.html` | Sidebar footer — author name and role only (**no** Red Hat logo) |
+| `_includes/head_custom.html` | Loads `custom.css`, favicon, client-side “On this page” TOC (`site-nav-toc`) |
+
+**Logo:** set in `_config.yml` as `logo: "/assets/images/rh-logo.svg"`. Size is controlled in CSS (`height: 32px`), not the HTML `width`/`height` attributes alone.
+
+**Layout CSS variables** (`docs/assets/css/custom.css`):
+
+- `--rh-sidebar-width: 264px`
+- `--rh-content-max: 44rem` — default content column
+- `--rh-content-with-toc-max: 52rem` — content + right TOC grid (≥75rem viewport)
+
+`.main` uses `width: calc(100vw - sidebar)` and `align-items: center` so the content column is centered without a black void on the right. `body` and `.main` share `--rh-color-surface-dark`.
+
+**Do not** add `site_header_custom.html` — it is ignored by Just the Docs and confuses maintainers.
+
+`footer_content` in `_config.yml` is empty; attribution lives only in `nav_footer_custom.html`.
+
 ## Existing documentation structure
 
 ```
 docs/
-├── _config.yml                  # Jekyll configuration (logo, footer_content with author link)
+├── _config.yml                  # url, baseurl, logo path, color_scheme: dark
 ├── _includes/
-│   └── head_custom.html         # Custom CSS + favicon + right-side TOC script
+│   ├── title.html               # Sidebar Red Hat logo (img)
+│   ├── nav_footer_custom.html   # Author footer (no logo)
+│   └── head_custom.html         # custom.css + favicon + right-side TOC script
 ├── assets/
-│   ├── css/custom.css           # Red Hat design overrides + right-side TOC styling
-│   └── images/rh-logo.svg       # Red Hat logo used in header and footer
+│   ├── css/custom.css           # Red Hat branding, layout, TOC
+│   └── images/                  # Product screenshots (see table below)
 ├── Gemfile                      # Ruby gems
 ├── index.md                     # Home page (nav_order: 1)
 ├── architecture.md              # Platform architecture with Mermaid diagrams (nav_order: 2)
@@ -51,7 +77,8 @@ docs/
 │   ├── openshift-ai.md          # OpenShift AI
 │   ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
 │   ├── pipelines.md             # OpenShift Pipelines (Tekton)
-│   └── service-mesh.md          # OSSM3 3.2 GA ambient, IstioCNI profile, ztunnel
+│   ├── service-mesh.md          # OSSM3 3.2 GA; hero image = Kiali
+│   └── connectivity-link.md     # RHCL; hub + hub-gateway + spoke screenshots
 └── community/
     ├── index.md                 # Community & Third-Party (has_children: true, nav_order: 6)
     ├── kubecost.md              # Kubecost cost monitoring (Red Hat certified)
@@ -147,6 +174,31 @@ nav_order: N
 
 Keep links authoritative (`docs.redhat.com`, upstream operators). Prefer short actionable paragraphs over marketing copy.
 
+## Product screenshots (`docs/assets/images/`)
+
+Always reference with `{{ site.baseurl }}` prefix:
+
+```markdown
+![Caption]({{ site.baseurl }}/assets/images/<file>.png)
+{: .mb-4 }
+*Italic caption under image.*
+{: .fs-2 .text-grey-dk-000 }
+```
+
+| File | Used on |
+| ---- | ------- |
+| `product-kiali-service-mesh.png` | `products/service-mesh.md` (hero) |
+| `product-grafana-observability.png` | `products/service-mesh.md`, `observability.md` |
+| `connectivity-link-hub.png` | `products/connectivity-link.md` (intro) |
+| `connectivity-link-hub-gateway.png` | `products/connectivity-link.md` (Hub gateway) |
+| `connectivity-link-spoke.png` | `products/connectivity-link.md` (Spoke) |
+| `connectivity-link-spoke-gateway.png` | `products/connectivity-link.md` (Spoke gateway) |
+| `ACS.png` | `products/acs.md` |
+| `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
+
+After adding images, verify HTTP 200 on GitHub Pages:  
+`https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/images/<file>.png`
+
 ## Content guidelines for this platform
 
 When documenting platform-specific topics, include these sections where relevant:
@@ -159,7 +211,9 @@ When documenting platform-specific topics, include these sections where relevant
 - **Troubleshooting notes** — known issues specific to this deployment (e.g. OOM, SCC, TLS)
 
 **Topic routing for this repo:**
-- Mesh install, ztunnel, `IstioCNI` ambient profile → `docs/products/service-mesh.md`
+- Mesh install, ztunnel, `IstioCNI` ambient profile, **namespaces on/off ambient** → `docs/products/service-mesh.md`
+- ACS Central, init bundles, **`stackrox` off mesh** → `docs/products/acs.md`
+- Connectivity Link screenshots and RHCL operator → `docs/products/connectivity-link.md`
 - Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS/metrics → `docs/observability.md`
 - Skupper, broker `advertisedHost`, EndpointSlice → `docs/service-interconnect.md` + `docs/products/amq-streams.md`
 - Kubecost multicluster, federated ETL, MinIO, SCC → `docs/community/kubecost.md`
@@ -191,6 +245,12 @@ Just the Docs links between pages using the navigation hierarchy. If a parent/ch
 - Verify `parent:` in child front matter exactly matches the parent page's `title:`.
 - Verify `has_children: true` is set on the parent page.
 - Use `nav_order` to control ordering; gaps in numbering are fine.
+
+### Layout: large empty margin on the right
+
+- Ensure `custom.css` sets `.main { width: calc(100vw - var(--rh-sidebar-width)); align-items: center; }` and matching `body` background.
+- Content max-width is intentional (`52rem` with TOC); do not use `position: fixed` TOC on the viewport edge.
+- Hard-refresh after deploy (`Ctrl+Shift+R`) — GitHub Pages caches CSS.
 
 ### GitHub Actions build failures
 

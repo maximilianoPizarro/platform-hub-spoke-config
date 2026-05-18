@@ -18,7 +18,7 @@ This platform composes multiple Red Hat operators and patterns. Use the child pa
 | [Advanced Cluster Security](acs.md) | Vulnerability management, runtime risk | `components/acs-secured-cluster/` |
 | [OpenShift GitOps](openshift-gitops.md) | Declarative continuous delivery (Argo CD) | `components/openshift-gitops/` |
 | [OpenShift Service Mesh 3](service-mesh.md) | Ambient mesh, ztunnel, waypoints | `components/servicemeshoperator3/` |
-| [Connectivity Link](connectivity-link.md) | Kuadrant + Gateway API policies | `components/connectivity-link/` |
+| [Connectivity Link](connectivity-link.md) | RHCL / Gateway API (hub + spoke gateway screenshots) | `components/rhcl-operator/` |
 | [Service Interconnect](../service-interconnect.md) | Skupper VAN for cross-cluster connectivity | `components/service-interconnect/` |
 | [OpenShift AI](openshift-ai.md) | DataScienceCluster, model serving | `components/openshift-ai/` |
 | [AMQ Streams](amq-streams.md) | Kafka for telemetry pipelines | `components/industrial-edge-*/` |

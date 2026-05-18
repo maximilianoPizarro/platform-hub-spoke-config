@@ -228,7 +228,7 @@ helm template test . -f values-west.yaml --set deployer.domain=apps.west.example
 | Component | Type | Sync Wave | Description |
 |-----------|------|-----------|-------------|
 | `openshift-gitops` | Vendored | 0 | ArgoCD configuration with custom health checks |
-| `namespaces` | Vendored | 1 | Namespace provisioning with `istio.io/dataplane-mode: ambient` |
+| `namespaces` | Vendored | 1 | Ambient labels for app namespaces; `gitea` and `stackrox` excluded (DB/init) |
 | `operators` | Vendored | 2 | OLM subscriptions (Service Mesh, Pipelines, AMQ, Camel K, RHODS, etc.) |
 | `acm-operator` | New | 3 | ACM Subscription + MultiClusterHub |
 | `acs-operator` | New | 3 | ACS Subscription + Central CR |

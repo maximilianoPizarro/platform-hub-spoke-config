@@ -23,6 +23,8 @@ Red Hat **Advanced Cluster Security for Kubernetes (ACS)** centralizes Kubernete
 | **Central** | Hub | Policy console, vulnerability DB integration, admission coordination |
 | **SecuredCluster** | Hub + spokes | Sensor, collector, and admission control per cluster |
 
+The `stackrox` namespace is listed in **`$noMeshNamespaces`** (`components/namespaces`) — do **not** label it `istio.io/dataplane-mode: ambient`. Ambient ztunnel breaks Central ↔ PostgreSQL TLS and Central becomes unreachable.
+
 Hub and spokes register with Central using **init bundles** (TLS secrets in namespace `stackrox`). Generate once per cluster from Central:
 
 ```bash

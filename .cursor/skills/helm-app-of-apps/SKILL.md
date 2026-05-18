@@ -169,6 +169,24 @@ env:
     value: "50"
 ```
 
+### Gitea namespace — not ambient mesh
+
+`gitea` is in `$noMeshNamespaces` in `components/namespaces/templates/all.yaml`. **Do not** label it `istio.io/dataplane-mode: ambient`.
+
+With ambient enabled, the Gitea chart init container `configure-gitea` fails migrating against PostgreSQL:
+
+```text
+read tcp …-><postgresql-clusterIP>:5432: read: connection reset by peer
+```
+
+PostgreSQL pod is healthy; ztunnel interception of pod→Service traffic breaks the init handshake. Same class of issue as ACS Central in `stackrox`.
+
+Gitea chart: `connectivityLink.apps[]` entry `gitea-chart` (Helm repo `https://dl.gitea.com/charts/`, chart `gitea`). Wrapper routes/SCC: `components/gitea/`. Requires `anyuid` SCC (see below).
+
+### ACS `stackrox` namespace — not ambient mesh
+
+Keep `stackrox` in `$noMeshNamespaces`. Ambient breaks Central ↔ `central-db` PostgreSQL. Documented in `docs/products/acs.md`.
+
 ### OpenShift SCC for third-party images
 
 Third-party containers (Gitea, MinIO) often run as non-root UID (e.g. 1000). OpenShift's default `restricted` SCC blocks this. Grant `anyuid`:
