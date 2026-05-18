@@ -94,3 +94,15 @@ spec:
           hs.status = "Progressing"
         end
         return hs
+    rbac.authorization.k8s.io/Role:
+      health.lua: |
+        hs = {}
+        hs.status = "Healthy"
+        hs.message = "Ready"
+        return hs
+    rbac.authorization.k8s.io/RoleBinding:
+      health.lua: |
+        hs = {}
+        hs.status = "Healthy"
+        hs.message = "Ready"
+        return hs
