@@ -157,6 +157,13 @@ body {
 
 .main-content {
   max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.main-header {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 /* Override Just the Docs centered / max-width content column */
