@@ -62,6 +62,40 @@ oc create secret generic auto-import-secret \
 oc label secret auto-import-secret -n east managedcluster-import=true
 ```
 
+### Argo CD cluster secrets (fast-path without full ACM import)
+
+If spokes are not fully imported in ACM yet (workshop environments), register them directly as Argo CD cluster secrets. The `acm-hub-spoke` chart includes `argocd-cluster-secrets.yaml` — it renders a Secret with label `argocd.argoproj.io/secret-type: cluster` when both `apiUrl` and `token` are set:
+
+```yaml
+# components/acm-hub-spoke/templates/argocd-cluster-secrets.yaml
+{{- range $name, $cluster := .Values.managedClusters }}
+{{- if and $cluster.apiUrl $cluster.token }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}-cluster-secret
+  namespace: openshift-gitops
+  labels:
+    argocd.argoproj.io/secret-type: cluster
+stringData:
+  name: {{ $name }}
+  server: {{ $cluster.apiUrl }}
+  config: |
+    { "bearerToken": "{{ $cluster.token }}", "tlsClientConfig": { "insecure": true } }
+{{- end }}
+{{- end }}
+```
+
+**NEVER commit tokens to Git.** Pass them at deploy time:
+
+```bash
+helm upgrade field-content . \
+  --set clusters.east.token=sha256~... \
+  --set clusters.west.token=sha256~...
+```
+
+Or create the secrets directly with `oc apply` on the hub.
+
 ### ignoreDifferences for ACM resources
 
 ACM controllers continuously update annotations, labels, and status on `ManagedCluster` and `KlusterletAddonConfig`. Add these to the Application's `ignoreDifferences` to prevent ArgoCD from reporting constant drift:
@@ -702,9 +736,14 @@ subjects:
 
 ## Developer Hub (RHDH) GitHub OAuth
 
-Catalog users (e.g. workshop GitHub accounts) can be provisioned via `components/developer-hub/templates/catalog-users.yaml` and mounted into the Backstage catalog. Set `dangerouslyAllowSignInWithoutUserInCatalog: true` under `auth.providers.github.production.signIn.resolvers` (not at the root of `app-config`).
+Catalog users are provisioned via `components/developer-hub/templates/catalog-users.yaml` and mounted as a single file at `/opt/app-root/src/catalog-users.yaml` (extraFiles with `containers: ["*"]`). The `catalog.locations` entry lives in **`app-config-rhdh`** (same ConfigMap as OCM providers) to avoid losing locations if the operator drops extra ConfigMap refs.
 
-Configure GitHub sign-in in `app-config.yaml`:
+Auth lives in a **separate** ConfigMap `app-config-auth-rhdh` to prevent YAML merge flattening `signIn.resolvers` options. The resolver chain is:
+
+1. `usernameMatchingUserEntityName` (matches GitHub username to `User.metadata.name`)
+2. `emailMatchingUserEntityProfileEmail` (fallback by email)
+
+Both have `dangerouslyAllowSignInWithoutUserInCatalog: true`. OAuth scope `user:email` is requested via `additionalScopes`.
 
 ```yaml
 auth:
@@ -714,8 +753,18 @@ auth:
       production:
         clientId: ${GITHUB_CLIENT_ID}
         clientSecret: ${GITHUB_CLIENT_SECRET}
+        additionalScopes:
+          - user:email
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName
+              dangerouslyAllowSignInWithoutUserInCatalog: true
+            - resolver: emailMatchingUserEntityProfileEmail
+              dangerouslyAllowSignInWithoutUserInCatalog: true
 signInPage: github
 ```
+
+The Backstage CR references **two** ConfigMaps: `app-config-rhdh`, `app-config-auth-rhdh`. Argo `ignoreDifferences` on `/spec/application/appConfig/configMaps` and `/spec/application/extraFiles` prevents flip-flop when the operator reconciles.
 
 - Mount credentials via `envFrom.secretRef` in the Backstage CR deployment patch
 - Secret `developer-hub-github-auth` created **manually** (never in Git)

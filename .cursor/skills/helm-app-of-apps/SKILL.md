@@ -78,7 +78,7 @@ Keep dependent workloads **strictly greater** than their prerequisites.
 
 ## Spoke components via ApplicationSet
 
-The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix** generator: **`merge` (PlacementDecision × static `east`/`west` domains)** × **component list**. Spokes must appear in **PlacementDecision** and be **registered in Argo CD** (via **GitOpsCluster**). Values use **`{{.name}}`** (Argo cluster name) and **`{{.clusterDomain}}`** from the merge list in `applicationset.yaml`.
+The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix** generator: **static `east`/`west` list** × **component list**. Values use **`{{.name}}`** (Argo cluster name) and **`{{.clusterDomain}}`** from the list in `applicationset.yaml`.
 
 ```yaml
 valuesObject:
@@ -99,15 +99,44 @@ valuesObject:
       namespace: openshift-operators
       channel: stable
       source: redhat-operators
+    - name: rhacs-operator
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
+    - name: amq-streams
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
+    - name: amq-broker-rhel8
+      namespace: openshift-operators
+      channel: 7.12.x
+      source: redhat-operators
 ```
 
-Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`, `ie-anomaly-alerter`.
+Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`, `ie-anomaly-alerter`, `kubecost`.
 
 Hub-only components include `kafka-console` (Streams for Apache Kafka Console — all spoke Kafka clusters via Skupper), `grafana-dashboards`, `hub-gateway`, `service-interconnect`.
 
 ### Adding operator subscriptions to spokes
 
-Add new operator subscriptions to the `subscriptions` list in the ApplicationSet `valuesObject` (NOT in the individual component templates). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. This ensures operators install before their CRDs are needed by other components.
+Add new operator subscriptions to the `subscriptions` list in the ApplicationSet `valuesObject` (NOT in the individual component templates). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. This ensures operators install before their CRDs are needed by other components. **Critical**: `amq-streams` and `amq-broker-rhel8` must be in this list or `industrial-edge-tst` and `industrial-edge-stormshift` will fail on spokes (missing Kafka/ActiveMQArtemis CRDs).
+
+### Spoke cluster registration in Argo CD
+
+Spokes must be registered as Argo CD cluster secrets before the ApplicationSet can deploy to them. The `acm-hub-spoke` chart includes `argocd-cluster-secrets.yaml` which generates secrets when `managedClusters.<name>.token` is set:
+
+```bash
+# Pass tokens at deploy time — NEVER commit tokens to Git
+helm upgrade field-content . \
+  --set clusters.east.token=sha256~... \
+  --set clusters.west.token=sha256~...
+```
+
+Or create them directly via `oc apply` with label `argocd.argoproj.io/secret-type: cluster`.
+
+### Hub-only resources (clusterRole guard)
+
+Some CRDs only exist on the hub (e.g. `InferenceService` from OpenShift AI). Guard these with `{{- if ne .Values.clusterRole "spoke" }}` in the component template. Example: `components/industrial-edge-tst/templates/anomaly-detection.yaml`.
 
 ## Externalizing deployer.domain
 
