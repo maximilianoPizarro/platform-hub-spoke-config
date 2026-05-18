@@ -14,15 +14,17 @@ spec:
   generators:
     - matrix:
         generators:
-          - clusterDecisionResource:
-              configMapRef: acm-placement
-              labelSelector:
-                matchLabels:
-                  cluster.open-cluster-management.io/placement: hub-spoke-placement
-              requeueAfterSeconds: 180
-              values:
-                eastDomain: {{ .Values.clusters.east.domain | quote }}
-                westDomain: {{ .Values.clusters.west.domain | quote }}
+          - merge:
+              generators:
+                - clusterDecisionResource:
+                    configMapRef: acm-placement
+                    labelSelector:
+                      matchLabels:
+                        cluster.open-cluster-management.io/placement: hub-spoke-placement
+                    requeueAfterSeconds: 180
+                - clusters: {}
+              mergeKeys:
+                - server
           - list:
               elements:
                 - id: namespaces
@@ -93,7 +95,7 @@ spec:
         path: '{{`{{.path}}`}}'
         helm:
           valuesObject:
-            clusterDomain: '{{`{{ if eq .name "east" }}{{ .values.eastDomain }}{{ else }}{{ .values.westDomain }}{{ end }}`}}'
+            clusterDomain: '{{`{{index .metadata.labels "domain"}}`}}'
             clusterName: '{{`{{.name}}`}}'
             clusterRole: spoke
             hubClusterDomain: {{ .Values.clusterDomain | quote }}
@@ -123,7 +125,7 @@ spec:
                 channel: 7.12.x
                 source: redhat-operators
             global:
-              localClusterDomain: '{{`{{ if eq .name "east" }}{{ .values.eastDomain }}{{ else }}{{ .values.westDomain }}{{ end }}`}}'
+              localClusterDomain: '{{`{{index .metadata.labels "domain"}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}
       destination:
         name: '{{`{{.name}}`}}'
