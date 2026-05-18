@@ -9,12 +9,23 @@ nav_order: 3
 
 Red Hat **Advanced Cluster Security for Kubernetes (ACS)** centralizes Kubernetes-native security: build-time image scanning, deployment-time policy, and runtime detection.
 
+**Git path:** `components/acs-operator/` (hub), `components/acs-secured-cluster/` (hub + spokes)
+
 ## Topology for hub-spoke
 
 | Component | Location | Role |
 | --------- | -------- | ---- |
 | **Central** | Hub | Policy console, vulnerability DB integration, admission coordination |
-| **SecuredCluster** | Spokes | Sensors collecting runtime and orchestrator events |
+| **SecuredCluster** | Hub + spokes | Sensor, collector, and admission control per cluster |
+
+Hub and spokes register with Central using **init bundles** (TLS secrets in namespace `stackrox`). Generate once per cluster from Central:
+
+```bash
+roxctl -e central.stackrox:443 --password "$ROX_ADMIN_PASSWORD" --insecure-skip-tls-verify \
+  central init-bundles generate <cluster-name> --output-secrets - | oc apply -n stackrox -f -
+```
+
+Cluster names: `hub`, `east`, `west`. The `rhacs-operator` subscription on spokes is deployed via `openshift-operators` (ApplicationSet `subscriptions` list).
 
 ## Capabilities used
 
