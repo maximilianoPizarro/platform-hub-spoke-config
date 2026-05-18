@@ -1,3 +1,4 @@
 clusterName: ""
 clusterDomain: ""
 hubClusterDomain: ""
+clusterRole: spoke

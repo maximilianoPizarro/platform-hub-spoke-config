@@ -34,6 +34,10 @@ operators:
       namespace: openshift-operators
       channel: stable
       source: redhat-operators
+    - name: rhacs-operator
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
 
 apps:
   - id: namespaces

@@ -14,7 +14,6 @@
 }}
 {{- $noMeshNamespaces := list
   "industrial-edge-data-lake"
-  "stackrox"
 }}
 {{- range $ambientNamespaces }}
 ---

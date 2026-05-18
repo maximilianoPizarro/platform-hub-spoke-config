@@ -103,6 +103,10 @@ spec:
                 namespace: openshift-operators
                 channel: stable
                 source: redhat-operators
+              - name: rhacs-operator
+                namespace: openshift-operators
+                channel: stable
+                source: redhat-operators
             global:
               localClusterDomain: '{{`{{.clusterDomain}}`}}'
               hubClusterDomain: {{ .Values.clusterDomain | quote }}

@@ -118,6 +118,14 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: acs-secured-cluster
+      enabled: true
+      path: acs-secured-cluster
+      destinationNamespace: stackrox
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     - id: developer-hub
       enabled: true
       path: developer-hub

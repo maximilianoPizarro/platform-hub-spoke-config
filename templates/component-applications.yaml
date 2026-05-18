@@ -244,6 +244,13 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+    {{- else if eq .path "acs-secured-cluster" }}
+    helm:
+      valuesObject:
+        clusterName: hub
+        clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain }}
+        clusterRole: hub
     {{- else if eq .path "acm-operator" }}
     helm:
       valuesObject:
