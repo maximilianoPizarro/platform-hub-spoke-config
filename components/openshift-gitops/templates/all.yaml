@@ -55,6 +55,8 @@ spec:
     defaultPolicy: role:admin
     policy: |
       g, system:cluster-admins, role:admin
+      g, system:masters, role:admin
+      g, admin, role:admin
     scopes: '[groups]'
   repo:
     resources:
