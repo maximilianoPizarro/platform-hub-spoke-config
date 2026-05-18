@@ -145,10 +145,11 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka
         disabled: true
+      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-backend-dynamic
-        disabled: false
+        disabled: true
       - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-frontend
-        disabled: false
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
         disabled: false
         pluginConfig:
@@ -158,17 +159,11 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.ci/content
                     importName: EntityTektonPipelinesContent
+      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
-        disabled: false
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
-        disabled: false
-        pluginConfig:
-          dynamicPlugins:
-            frontend:
-              backstage-community.plugin-redhat-argocd:
-                mountPoints:
-                  - mountPoint: entity.page.cd/content
-                    importName: ArgocdDeploymentLifecycle
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
         disabled: true
       - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-module-http-request-dynamic
