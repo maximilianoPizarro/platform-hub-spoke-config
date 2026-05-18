@@ -160,4 +160,18 @@ spec:
   href: "https://kafka-console.{{ $domain }}"
   location: ApplicationMenu
   text: "Kafka Console (All Clusters)"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-kubecost
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwQkNENCI+PHBhdGggZD0iTTExLjggMTAuOWMtMi4yNy0uNTktNC0yLjYtNC00Ljk3IDAtMi44IDIuMi01IDUuMDEtNWEzLjEyIDMuMTIgMCAwIDEgMi4wOS43OEwxMiAzLjl2Mmgxdi0ybDMuMDktMS43OGMuNTgtLjQgMS4zLS42NSAyLjA5LS42NSAyLjggMCA1LjAxIDIuMiA1LjAxIDUgMCAyLjM3LTEuNzMgNC4zOC00IDQuOTdDMTguNiAxMi42NyAxNi4xNiAxNSAxMyAxNWgtMmMtMy4xNiAwLTUuNi0yLjMzLTYtNS4xem0wIDBjLjQgMi43NyAyLjg0IDUuMSA2IDUuMUgxNGMzLjE2IDAgNS42LTIuMzMgNi01LjEiLz48cGF0aCBkPSJNMTIgMjJjLTIuNzYgMC01LTIuMjQtNS01czIuMjQtNSA1LTUgNSAyLjI0IDUgNS0yLjI0IDUtNSA1em0wLThjLTEuNjYgMC0zIDEuMzQtMyAzczEuMzQgMyAzIDMgMy0xLjM0IDMtMy0xLjM0LTMtMy0zeiIvPjwvc3ZnPg=="
+    section: "Platform Hub-Spoke"
+  href: "https://kubecost.{{ $hubDomain }}"
+  location: ApplicationMenu
+  text: "Kubecost (Cost Management)"
 {{- end }}

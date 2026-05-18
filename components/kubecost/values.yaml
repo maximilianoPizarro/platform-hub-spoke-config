@@ -6,13 +6,10 @@ role: primary
 clusterName: hub
 clusterRole: hub
 
-# Federated ETL object storage (S3-compatible, e.g. NooBaa/MinIO). Leave empty to skip secret/CR until configured.
+# Federated ETL object storage (MinIO deployed in industrial-edge-ml-workspace)
 federatedStore:
-  enabled: false
-  secretName: kubecost-federated-store
-  # Example for NooBaa/MinIO on hub:
-  # bucket: kubecost-federated
-  # endpoint: https://s3-openshift-storage.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
-  # region: us-east-1
-  # accessKey: ""
-  # secretKey: ""
+  bucket: kubecost
+  endpoint: minio.industrial-edge-ml-workspace.svc.cluster.local:9000
+  region: us-east-1
+  accessKey: minio
+  secretKey: minio123

@@ -17,6 +17,27 @@ spec:
     - kubecost
   upgradeStrategy: Default
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubecost-anyuid-scc
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:anyuid
+subjects:
+  - kind: ServiceAccount
+    name: kubecost-cost-analyzer
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-grafana
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-prometheus-server
+    namespace: kubecost
+---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -31,11 +52,10 @@ spec:
   source: certified-operators
   sourceNamespace: openshift-marketplace
 ---
-{{- if .Values.federatedStore.enabled }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ .Values.federatedStore.secretName }}
+  name: kubecost-federated-store
   namespace: kubecost
   annotations:
     argocd.argoproj.io/sync-wave: "3"
@@ -44,13 +64,12 @@ stringData:
   federated-store.yaml: |
     type: S3
     config:
-      bucket: {{ .Values.federatedStore.bucket | required "federatedStore.bucket is required when federatedStore.enabled=true" }}
-      endpoint: {{ .Values.federatedStore.endpoint | required "federatedStore.endpoint is required when federatedStore.enabled=true" }}
+      bucket: {{ .Values.federatedStore.bucket }}
+      endpoint: {{ .Values.federatedStore.endpoint }}
       region: {{ .Values.federatedStore.region | default "us-east-1" }}
-      access_key: {{ .Values.federatedStore.accessKey | required "federatedStore.accessKey is required when federatedStore.enabled=true" }}
-      secret_key: {{ .Values.federatedStore.secretKey | required "federatedStore.secretKey is required when federatedStore.enabled=true" }}
-      insecure: false
-{{- end }}
+      access_key: {{ .Values.federatedStore.accessKey }}
+      secret_key: {{ .Values.federatedStore.secretKey }}
+      insecure: true
 ---
 {{- $isAgent := or (eq .Values.role "agent") (eq .Values.clusterRole "spoke") }}
 apiVersion: charts.kubecost.com/v1alpha1
@@ -67,13 +86,11 @@ spec:
   federatedETL:
     federatedCluster: true
     agentOnly: {{ $isAgent }}
-  {{- if .Values.federatedStore.enabled }}
   kubecostModel:
-    federatedStorageConfigSecret: {{ .Values.federatedStore.secretName }}
+    federatedStorageConfigSecret: kubecost-federated-store
   {{- if not $isAgent }}
   kubecostAggregator:
     deployMethod: statefulset
-  {{- end }}
   {{- end }}
   prometheus:
     server:
@@ -84,3 +101,20 @@ spec:
   service:
     type: ClusterIP
   {{- end }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: kubecost
+  namespace: kubecost
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  host: kubecost.{{ .Values.clusterDomain }}
+  to:
+    kind: Service
+    name: kubecost-cost-analyzer
+  port:
+    targetPort: 9090
+  tls:
+    termination: edge
