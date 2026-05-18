@@ -43,7 +43,7 @@ spec:
               repoUrl: {{ .Values.gitops.repoUrl | quote }}
               revision: {{ .Values.gitops.revision | default "main" | quote }}
       destination:
-        name: local-cluster
+        server: https://kubernetes.default.svc
         namespace: openshift-gitops
       syncPolicy:
         automated:
