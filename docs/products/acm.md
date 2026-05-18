@@ -34,6 +34,12 @@ Typical objects you will encounter:
 
 Install specifics live in the `acm-operator` and `acm-hub-spoke` component charts in `components/`.
 
+## Operator discovery
+
+ACM controllers reconcile **`ManagedCluster`**, **`ManagedClusterSet`**, **`Placement`**, **`PlacementDecision`**, **`ManifestWork`**, and **`GitOpsCluster`** APIs directly against etcd — **`Deployments do not carry ACM annotations`** for fleet enrollment.
+
+Imported spokes inherit **`ManagedCluster`** metadata (`labels.annotations`), **`ManagedClusterSet` bindings**, and feature-addon statuses driven by **`ManagedClusterAddon`** controllers — inspect hub namespaces **`open-cluster-management*`**, **`openshift-gitops`**, and cluster-scope **`managedcluster`** objects (`oc get managedcluster`) rather than hunting workload namespaces.
+
 ## Documentation
 
 - [Red Hat ACM 2.16 documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.16)

@@ -24,6 +24,12 @@ Red Hat **OpenShift AI** operationalizes data science workloads on OpenShift: no
 
 Industrial Edge charts such as `industrial-edge-data-science-cluster` and `industrial-edge-data-science-project` wrap operator-managed namespaces and projects.
 
+## Operator discovery
+
+The **OpenShift AI operator** reconciles **`DataScienceCluster`** (`datasciencecluster.opendatahub.io`) cluster-wide — downstream components (`Dashboard`, `ModelMeshServing`, …) appear once DSC reaches **`Phase: Ready`**.
+
+Namespaces such as **`redhat-ods-applications`** host dashboard/workbenches operator-managed — operators bind workloads via CR ownership references rather than requiring arbitrary **`Deployment.metadata.annotations`** so controllers discover pods.
+
 ## Documentation
 
 - [Red Hat OpenShift AI documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_ai/)

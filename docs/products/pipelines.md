@@ -17,6 +17,12 @@ Red Hat **OpenShift Pipelines** delivers **Tekton** CRDs for CI/CD native to Kub
 - Tekton `Pipeline` and `PipelineRun` objects live alongside GitOps-managed workloads.
 - Integration with corporate registries and signing flows stays outside this chart but hooks cleanly via workspaces and secrets.
 
+## Operator discovery
+
+**OpenShift Pipelines operator** watches **`TektonConfig`** / **`TektonPipeline`** / **`TektonTrigger`** cluster-scope CRs — controllers automatically provision Tekton controllers (`tekton-pipelines-controller`, …) and webhook deployments **without per-namespace enrollment annotations**.
+
+Namespaces become usable once **`Pipeline`** / **`PipelineRun`** CRDs apply there — RBAC ServiceAccounts supply credentials GitOps charts attach.
+
 ## Documentation
 
 - [OpenShift Pipelines documentation](https://docs.redhat.com/en/documentation/openshift_pipelines/)

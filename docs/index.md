@@ -6,7 +6,9 @@ nav_order: 1
 
 # Platform Hub-Spoke Config
 
-**Multi-cluster GitOps platform using Red Hat products** -- a hub-spoke topology that centralizes governance with Red Hat Advanced Cluster Management (ACM), delivers Industrial Edge workloads on regional spokes, uses OpenShift Service Mesh in ambient mode for east-west connectivity, layers Connectivity Link (Kuadrant) for API-aware ingress policy, exposes Grafana dashboards for cross-cluster visibility, and integrates Advanced Cluster Security (ACS) for vulnerability and runtime protection.
+**Multi-cluster GitOps platform using Red Hat products** — a hub-spoke topology that centralizes governance with Red Hat Advanced Cluster Management (ACM), delivers Industrial Edge workloads on regional spokes, uses OpenShift Service Mesh in ambient mode for east-west connectivity, layers Connectivity Link (Kuadrant) for API-aware ingress policy, exposes Grafana dashboards for cross-cluster visibility, and integrates Advanced Cluster Security (ACS) for vulnerability and runtime protection.
+
+Read **concept → mechanics → operations**: start with [Architecture](architecture.md), install via [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md), then use platform chapters (**Hub Gateway**, **Observability**, **Industrial Edge**) before drilling into individual **[Red Hat Products](products/)**.
 
 ## Overview
 
@@ -76,6 +78,17 @@ flowchart TB
 | Industrial Edge | [Industrial Edge](industrial-edge.md) |
 | Service Interconnect | [Service Interconnect](service-interconnect.md) |
 | Branch strategy | [Branch Strategy](branch-strategy.md) |
+
+## Recommended reading order
+
+1. [Architecture](architecture.md) — mental model of hub, spokes, GitOps, and observability pipes  
+2. [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md) — bring clusters under GitOps  
+3. [Hub Gateway](hub-gateway.md) — weighted ingress and circuit breaking  
+4. [Observability](observability.md) — Grafana, Kiali, Kafka Console  
+5. [Industrial Edge](industrial-edge.md) — factory data pipeline pattern  
+6. [Red Hat Products](products/index.md) — operator specifics (discovery annotations live here)
+
+Screenshots support **click-to-zoom** in full-screen modal — handy after deploying dashboards.
 
 ## Red Hat products used
 

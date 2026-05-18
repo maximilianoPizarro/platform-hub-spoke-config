@@ -7,7 +7,9 @@ has_children: true
 
 # Red Hat Products
 
-This platform composes multiple Red Hat operators and patterns. Use the child pages for installation notes, CRDs, and documentation links.
+This platform composes multiple Red Hat operators and patterns. Each child page answers three questions for operators who arrived via **[Getting Started](../getting-started.md)**: what ships here, **what signals tell an operator it has reconciled**, and **how workloads join inventory** (CRDs vs annotations vs explicit registrations).
+
+Keep **[Discover workloads consistently](../architecture.md#components-on-the-hub-vs-spokes)** in mind as context — namespaces rarely manage ACM fleets directly; charts declare APIs operators reconcile against Git.
 
 ## Overview
 
@@ -24,3 +26,27 @@ This platform composes multiple Red Hat operators and patterns. Use the child pa
 | [AMQ Streams](amq-streams.md) | Kafka for telemetry pipelines | `components/industrial-edge-*/` |
 | [Apache Camel / Camel K](camel-k.md) | Integrations (MQTT, S3, Kafka) | `components/camel-k/` |
 | [OpenShift Pipelines](pipelines.md) | Tekton CI/CD for Industrial Edge | `components/industrial-edge-pipelines/` |
+
+## Operator discovery — annotations & registrations at a glance
+
+Most visibility comes from **CRDs**, but namespaces carry mesh/policy hints when controllers reconcile selectively:
+
+| Product | Where workloads surface | Typical annotation / label / CR binding |
+| ------- | ------------------------- | ------------------------------------------ |
+| [ACM](acm.md) | Fleet hub inventory | **`ManagedCluster`**, **`Placement`** — spokes inherit ACM labels during import (no Git annotation magic). |
+| [Developer Hub](developer-hub.md) | Catalog / plugins | **`Backstage`** CR + `app-config-*` ConfigMaps; OCM reads **`ManagedCluster`** cluster-scope CRs (needs RBAC on SA). |
+| [ACS](acs.md) | Central clusters UI | **`SecuredCluster`** in each cluster's **`stackrox`** namespace + TLS Secrets from **init bundles**. |
+| [GitOps](openshift-gitops.md) | Argo CD Applications | **`Application`** / **`ApplicationSet`** — paths/branches define drift detection targets. |
+| [Service Mesh](service-mesh.md) | Ambient dataplane | Namespace **`istio.io/dataplane-mode: ambient`** (see **`components/namespaces`**); exceptions **`stackrox`**, **`gitea`**, **`industrial-edge-data-lake`**, … stay **off mesh**. |
+| [Connectivity Link](connectivity-link.md) | Gateway exposure | Gateway API **`Gateway`** / **`HTTPRoute`** CRDs Kuadrant/DNS controllers reconcile (explicit refs). |
+| [OpenShift AI](openshift-ai.md) | DS pipelines / serving | **`DataScienceCluster`** operator provisioning — namespaces created/managed by operator CRs. |
+| [AMQ Streams](amq-streams.md) | Kafka Console UI | This repo: **`Console`** CR (`kafkaClusters[].namespace` + bootstrap URL). Strimzi **`Kafka`** CRs live in those namespaces. |
+| [Camel K](camel-k.md) | Integrations | **`IntegrationPlatform`** (per-operator scope) selects Camel runtime profile for that namespace set. |
+| [Pipelines](pipelines.md) | Tekton controllers | **`TektonConfig`** cluster-wide / operator-managed — namespaces enabled by operator policy. |
+| [Service Interconnect](../service-interconnect.md) | Cross-cluster Services | **`Site`**, **`Listener`**, **`Connector`** Skupper CRs — **not** workload Deployment annotations. |
+
+Details and YAML snippets live on each product page under **Operator discovery**.
+
+---
+
+**Next:** pick your deployment lane — mesh labels ([Service Mesh](service-mesh.md)), fleet placement ([ACM](acm.md)), or Kafka plumbing ([AMQ Streams](amq-streams.md)).

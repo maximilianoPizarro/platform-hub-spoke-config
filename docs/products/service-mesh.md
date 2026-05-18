@@ -96,12 +96,13 @@ Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces
 | `gitea` | **off mesh** | Gitea chart init → PostgreSQL via ClusterIP |
 | `industrial-edge-data-lake` | **off mesh** | Data lake / MinIO patterns |
 
+## Operator discovery
+
+The Sail/Istio operator watches **`Istio`**, **`IstioCNI`**, **`ZTunnel`**, and **`Telemetry`** cluster/network namespaces (`istio-system`, `istio-cni`, `ztunnel`). Application workloads are enrolled **implicitly** by labeling namespaces **`istio.io/dataplane-mode: ambient`** (set via **`components/namespaces`**). Optionally declare waypoint **`Gateway`** resources where HTTP policy/L7 metrics matter — controllers reconcile those refs regardless of Deployment annotations.
+
 ## Metrics and dashboards
 
-![Grafana – East-West Traffic & Service Mesh]({{ site.baseurl }}/assets/images/product-grafana-observability.png)
-{: .mb-4 }
-*Service Mesh L4 metrics in the East-West Traffic Grafana dashboard.*
-{: .fs-2 .text-grey-dk-000 }
+**Screenshots:** the Grafana gallery lives on **[Observability](../observability.md)** (four panels with click-to-zoom). Below is the metric cheat-sheet — keep Grafana UX details there to avoid duplicating captions here.
 
 | Metric family | Source | When available |
 | ------------- | ------ | -------------- |

@@ -66,6 +66,12 @@ The `developer-hub` component chart provisions:
 - ServiceAccount with OCM ClusterRole
 - Route: `developer-hub.<clusterDomain>`
 
+## Operator discovery
+
+The RHDH operator watches **`Backstage`** CRs (`rhdh.redhat.com/v1alpha5`) and referenced **`ConfigMaps`** (`spec.application.appConfig.configMaps`). **Workload Pods do not register plugins automatically.** Dynamic plugins ship inside the operator-managed Deployment template — Catalog **`locations`** come solely from merged **`app-config.yaml`** snippets (`catalog.providers.ocm`, `catalog.import.locations`, etc.).
+
+The **OCM plugin** reads cluster-scope **`ManagedCluster`** APIs via ServiceAccount RBAC (`backstage-ocm-plugin` ClusterRole). Successful reconciliation correlates with `ManagedCluster` CRDs imported via ACM — nothing analogous exists per-namespace annotations beyond **`catalog`** ConfigMaps.
+
 ## Links
 
 - [Red Hat Developer Hub product documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub/)

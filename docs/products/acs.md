@@ -34,6 +34,14 @@ roxctl -e central.stackrox:443 --password "$ROX_ADMIN_PASSWORD" --insecure-skip-
 
 Cluster names: `hub`, `east`, `west`. The `rhacs-operator` subscription on spokes is deployed via `openshift-operators` (ApplicationSet `subscriptions` list).
 
+## Operator discovery
+
+**RHACS controller manager** watches **`SecuredCluster`** CRs inside **`stackrox`** (platform.stackrox.io) plus **`Central`** objects where Central installs live.
+
+Admission/collector assets reconcile once **`collector-tls`**, **`sensor-tls`**, and **`admission-control-tls`** Secrets exist — YAML manifests originate from **`roxctl central init-bundles generate`** output keyed by cluster label (**Deployments do not declare ACS enrollment annotations**).
+
+Avoid **`istio.io/dataplane-mode: ambient`** on **`stackrox`** — ambient interception breaks Central ↔ PostgreSQL TLS (see topology table above).
+
 ## Capabilities used
 
 - **CVE scanning** for images referenced by Industrial Edge and platform workloads.

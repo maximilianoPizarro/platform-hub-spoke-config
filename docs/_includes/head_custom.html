@@ -50,3 +50,62 @@ document.addEventListener('DOMContentLoaded', function() {
   content.insertAdjacentElement('afterend', toc);
 });
 </script>
+<script defer>
+document.addEventListener('DOMContentLoaded', function() {
+  var content = document.querySelector('.main-content');
+  if (!content) return;
+
+  var dlg = document.createElement('dialog');
+  dlg.className = 'doc-img-lightbox';
+  dlg.setAttribute('aria-label', 'Enlarged screenshot');
+  dlg.innerHTML =
+    '<button type="button" class="doc-img-lightbox-close" aria-label="Close">&times;</button>' +
+    '<img alt="" decoding="async">';
+  document.body.appendChild(dlg);
+
+  var lbImg = dlg.querySelector('img');
+  var closeBtn = dlg.querySelector('.doc-img-lightbox-close');
+
+  function openLb(src, alt) {
+    lbImg.src = src;
+    lbImg.alt = alt || 'Screenshot';
+    dlg.showModal();
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLb() {
+    dlg.close();
+    document.body.style.overflow = '';
+    lbImg.removeAttribute('src');
+  }
+
+  closeBtn.addEventListener('click', closeLb);
+  dlg.addEventListener('click', function(e) {
+    if (e.target === dlg) closeLb();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && dlg.open) closeLb();
+  });
+
+  content.querySelectorAll('img').forEach(function(img) {
+    var src = img.currentSrc || img.src;
+    if (!src || src.indexOf('data:') === 0) return;
+    img.classList.add('doc-img-zoomable');
+    if (!img.title) img.title = 'Click to enlarge';
+    var altText = (img.getAttribute('alt') || '').trim();
+    img.setAttribute('aria-label', (altText ? altText + ' — ' : '') + 'Click to enlarge');
+    img.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      openLb(img.currentSrc || img.src, img.alt);
+    });
+    img.addEventListener('keydown', function(ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        openLb(img.currentSrc || img.src, img.alt);
+      }
+    });
+    img.tabIndex = 0;
+    img.setAttribute('role', 'button');
+  });
+});
+</script>

@@ -127,6 +127,10 @@ The Industrial Edge `line-dashboard` (iot-frontend) requires an `iot-consumer` s
 - Combine with **Service Mesh ambient** when east-west encryption between gateway hops and workloads matters.
 - Monitor the gateway Envoy proxy metrics at port 15020 `/stats/prometheus`.
 
+---
+
+**Next:** attach HTTPRoutes per **[Connectivity Link](products/connectivity-link.md)** policies when Kuadrant enforcement tightens, then verify backends inside **[Service Mesh](products/service-mesh.md)** ambient namespaces.
+
 ## References
 
 - [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)

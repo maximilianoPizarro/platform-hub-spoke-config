@@ -12,10 +12,7 @@ nav_order: 12
 
 **Red Hat Service Interconnect** creates a Virtual Application Network (VAN) that connects services across clusters without requiring VPN tunnels, direct network routes, or firewall changes. In this platform, Skupper bridges spoke Industrial Edge services and Prometheus metrics to the hub for centralized observability.
 
-![Kafka Console via Skupper]({{ site.baseurl }}/assets/images/product-kafka-console-amq-streams.png)
-{: .mb-4 }
-*Kafka Console on the hub accessing 5 clusters via Skupper VAN — evidence of Service Interconnect in action.*
-{: .fs-2 .text-grey-dk-000 }
+The diagram below shows **listeners and connectors** only. For Kafka Console screenshots and broker DNS details, see **[AMQ Streams](products/amq-streams.md)** and **[Observability — Kafka Console](observability.md#kafka-console-hub)** (same topic, split so Skupper stays focused on VAN mechanics).
 
 ## Architecture
 
@@ -130,18 +127,11 @@ sequenceDiagram
 
 The `AccessToken` is created manually via `ManagedClusterAction` since it contains sensitive claim data that should not be stored in Git.
 
-## Kafka Console and broker DNS
+## Kafka bootstrap over Skupper
 
-Skupper forwards **TCP** to Kafka bootstrap (`:9092`) correctly. The Kafka client then receives **broker metadata** with spoke-internal hostnames (for example `dev-cluster-broker-0.dev-cluster-kafka-brokers.industrial-edge-tst-all.svc`), which do not resolve on the hub.
+Skupper forwards **TCP** to Kafka bootstrap (`:9092`). Clients then receive broker metadata with spoke-internal DNS names that **do not resolve on the hub** until you add hub-side DNS mappings (`EndpointSlice`) and matching Strimzi **advertisedHost** values on the spokes.
 
-**Resolution pattern:**
-
-1. **Spokes** — set per-broker `advertisedHost` in Strimzi with a unique suffix per cluster (`dev-cluster-broker-0-east`, `dev-cluster-broker-0-west`, …).
-2. **Hub** — `components/kafka-console/templates/broker-dns.yaml` creates headless Services and **`EndpointSlice`** resources mapping those hostnames to Skupper listener ClusterIPs (Helm `lookup` per broker IP — avoid nested lookups in slice `addresses`).
-
-Argo CD excludes **`Endpoints`** from sync; EndpointSlice is the supported GitOps pattern for broker DNS on the hub.
-
-After deploying Skupper listeners, sync the `kafka-console` application so EndpointSlices are populated. See [Observability](observability.md#kafka-console-hub).
+That fix is documented once (step-by-step and screenshots) under **[Observability → Kafka Console](observability.md#kafka-console-hub)** — keep Skupper docs limited to listeners/connectors above.
 
 ## Spoke gateway aggregation
 
@@ -168,6 +158,12 @@ flowchart LR
 ## Operator deployment
 
 The `skupper-operator` subscription is deployed to spokes via the `operators` component in the ApplicationSet `valuesObject`. This ensures the CRDs are available before Skupper CRs are applied.
+
+## Operator discovery
+
+Skupper controllers reconcile **`Site`**, **`AccessGrant`**, **`AccessToken`**, **`Link`**, **`Listener`**, and **`Connector`** CRs (`skupper.io` / Skupper v2 APIs). Spokes expose workloads by targeting **`spec.routingKey`** / connector selectors — **Kubernetes Deployments do not need Skupper annotations** for discovery (CR linking wires listeners ↔ connectors).
+
+Tokens (`AccessToken`) bridge clusters via HTTPS grant servers — rotate manually when recycling demo clusters.
 
 ## References
 

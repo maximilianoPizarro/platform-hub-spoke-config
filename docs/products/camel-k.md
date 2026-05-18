@@ -18,6 +18,10 @@ The Red Hat build of **Apache Camel K** runs lightweight integration code as Kub
 
 Camel K is typically installed via Operator Lifecycle Manager subscription; see `connectivityLink.operators.subscriptions` for channel pinning.
 
+## Operator discovery
+
+**Camel K operator** watches **`IntegrationPlatform`** (cluster or namespace scope), **`Integration`**, **`KameletBinding`**, **`Pipe`**, … CRDs installed via subscription (`components/camel-k`). Namespaces gain Camel runtime capabilities once **`IntegrationPlatform`** references point there — applications declare integrations via CRDs rather than Pod annotations.
+
 ## Links
 
 - [Red Hat build of Apache Camel K](https://developers.redhat.com/products/red-hat-build-of-apache-camel/overview)

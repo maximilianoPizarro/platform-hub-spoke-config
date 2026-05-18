@@ -38,6 +38,12 @@ nav_order: 6
 *Spoke gateway aggregating Industrial Edge services for cross-cluster exposure.*
 {: .fs-2 .text-grey-dk-000 }
 
+## Operator discovery
+
+Connectivity Link / Kuadrant controllers reconcile **Gateway API** **`Gateway`**, **`HTTPRoute`**, **`GatewayClass`**, plus Kuadrant **`DNSPolicy`**, **`TLSPolicy`**, **`AuthPolicy`**, **`RateLimitPolicy`** pairs explicitly referenced in manifests — controllers watch clusters via operator subscriptions (`components/rhcl-operator`), **not** via blanket Deployment annotations.
+
+Typical hub/spoke wiring attaches **`HTTPRoute`** `spec.parentRefs` to Gateway objects (`hub-gateway-system`, …); verify reconciliation by inspecting **`Gateway`** status conditions rather than Pod labels alone.
+
 ## Links
 
 - [Connectivity Link documentation](https://docs.redhat.com/en/documentation/red_hat_connectivity_link/)

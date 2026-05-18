@@ -265,6 +265,10 @@ The **[Multicloud GitOps](https://validatedpatterns.io/patterns/multicloud-gitop
 
 This platform extends that idea with **Industrial Edge** workloads, **Service Mesh ambient**, **Connectivity Link**, optional **OpenShift AI**, **ACS** depth, and **Service Interconnect** for cross-cluster service exposure -- tuned for factory-style telemetry and east-west observability rather than only infrastructure provisioning.
 
+---
+
+**Next:** translate diagrams into installs via **[Getting Started](getting-started.md)** / **[Deploy with ACM and GitOps](deploy-acm-gitops.md)**, then follow **[Observability](observability.md)** once workloads expose Prometheus signals.
+
 ## Official documentation
 
 - [ACM Architecture](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.16/html/about/welcome-to-red-hat-advanced-cluster-management-for-kubernetes)

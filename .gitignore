@@ -2,3 +2,6 @@
 charts/
 .DS_Store
 agent-tools/
+
+# Helm template scratch output (URLs belong in values — chart is developer-hub/templates/)
+components/_dh-*.yaml

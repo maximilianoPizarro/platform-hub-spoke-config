@@ -78,7 +78,6 @@ docs/
 │   ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
 │   ├── pipelines.md             # OpenShift Pipelines (Tekton)
 │   ├── service-mesh.md          # OSSM3 3.2 GA; hero image = Kiali
-│   └── connectivity-link.md     # RHCL; hub + hub-gateway + spoke screenshots
 └── community/
     ├── index.md                 # Community & Third-Party (has_children: true, nav_order: 6)
     ├── kubecost.md              # Kubecost cost monitoring (Red Hat certified)
@@ -185,16 +184,21 @@ Always reference with `{{ site.baseurl }}` prefix:
 {: .fs-2 .text-grey-dk-000 }
 ```
 
+**Click-to-zoom:** `_includes/head_custom.html` attaches a `<dialog>` lightbox to `.main-content img` (cursor `zoom-in`, keyboard activatable). Keep meaningful `alt` text — it feeds the modal.
+
 | File | Used on |
 | ---- | ------- |
 | `product-kiali-service-mesh.png` | `products/service-mesh.md` (hero) |
-| `product-grafana-observability.png` | `products/service-mesh.md`, `observability.md` |
+| `product-grafana-observability.png` … `-4.png` | `observability.md` (Grafana gallery — avoid duplicating on `service-mesh.md`) |
 | `connectivity-link-hub.png` | `products/connectivity-link.md` (intro) |
 | `connectivity-link-hub-gateway.png` | `products/connectivity-link.md` (Hub gateway) |
 | `connectivity-link-spoke.png` | `products/connectivity-link.md` (Spoke) |
 | `connectivity-link-spoke-gateway.png` | `products/connectivity-link.md` (Spoke gateway) |
 | `ACS.png` | `products/acs.md` |
+| `product-kafka-console-amq-streams.png` (+ `-2`) | `products/amq-streams.md` (Kafka Console — **not** `service-interconnect.md`; Skupper page links there) |
 | `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
+
+**Operator discovery:** Each `docs/products/*.md` page includes an **Operator discovery** subsection; `products/index.md` has a summary table (annotations vs CRDs).
 
 After adding images, verify HTTP 200 on GitHub Pages:  
 `https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/images/<file>.png`
@@ -204,6 +208,7 @@ After adding images, verify HTTP 200 on GitHub Pages:
 When documenting platform-specific topics, include these sections where relevant:
 
 - **What it does in this architecture** — one paragraph connecting the product to the hub-spoke pattern
+- **Operator discovery** — how controllers find workloads (CRDs vs namespace labels vs explicit registrations); see `products/index.md` table for cross-links
 - **How it's deployed** — GitOps-driven (ArgoCD Application), operator channel, namespace
 - **Key resources created** — CRDs, ConfigMaps, Routes
 - **Mermaid diagram** — architecture or flow diagrams using fenced `mermaid` blocks. Use `flowchart TB` or `flowchart LR` for architecture, `sequenceDiagram` for flows

@@ -17,6 +17,12 @@ Red Hat **OpenShift GitOps** delivers **Argo CD** as an operator-managed control
 *Argo CD login page with OpenShift SSO integration.*
 {: .fs-2 .text-grey-dk-000 }
 
+## Operator discovery
+
+OpenShift GitOps ships classic **`Application`** / **`ApplicationSet`** / **`AppProject`** CRDs scoped namespaces **`openshift-gitops`** (or custom installs).
+
+Operators reconcile Git manifests referenced via **`spec.source.repoURL`** plus Helm overlays — nothing analogous exists inside workload **`Deployments`** beyond **`argocd.argoproj.io/***` annotations Argo injects **after** sync for drift tooling (**those annotations advertise GitOps ownership**, they **do not** trigger enrollment).
+
 ## Patterns in this repository
 
 | Pattern | Description |

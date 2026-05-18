@@ -31,6 +31,12 @@ Red Hat **AMQ Streams** is the enterprise distribution of **Apache Kafka** on Op
 
 Charts: `components/industrial-edge-tst`, `components/industrial-edge-stormshift`, `components/industrial-edge-data-lake`.
 
+## Operator discovery
+
+**Strimzi Cluster Operator** watches **`Kafka`**, **`KafkaNodePool`**, **`KafkaTopic`**, … wherever CRDs land — namespaces (`industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-data-lake`) simply host those manifests.
+
+The hub **Kafka Console** ships via **`Console`** CR (`console.streamshub.github.com/v1alpha1` in **`components/kafka-console/templates/all.yaml`**) with **`spec.kafkaClusters[]`** entries naming namespaces **plus bootstrap URLs** — discovery is **explicit GitOps**, not an annotation on random Deployments. Remote clusters still require **`metricsSources`** entries when Prometheus differs per spoke.
+
 ## Metrics (Grafana)
 
 Kafka brokers expose JMX metrics via Strimzi's `jmxPrometheusExporter` ConfigMap. Scraping requires:

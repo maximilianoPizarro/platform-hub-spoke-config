@@ -8,6 +8,8 @@ nav_order: 8
 
 The **Industrial Edge** validated pattern models discrete manufacturing and operational technology (OT) connectivity to Kubernetes: sensors, MQTT, Kafka-centric pipelines, CI/CD for edge software, and ML-assisted insights.
 
+After operators discover Kafka clusters (see **[AMQ Streams](products/amq-streams.md#operator-discovery)**) and mesh namespaces receive ambient labels (**[Service Mesh](products/service-mesh.md#operator-discovery)**), use this page as the **business narrative** tying workloads together — before diving back into **[Observability](../observability.md)** for dashboards.
+
 ## Factory pattern
 
 Factories emit telemetry through brokers and integrations. Kubernetes namespaces isolate teams while GitOps keeps spoke clusters aligned with approved revisions.

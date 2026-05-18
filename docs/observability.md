@@ -6,7 +6,7 @@ nav_order: 7
 
 # Observability
 
-Observability ties together **metrics**, **logs**, **traces**, and **mesh visualization** so operators can compare east and west Industrial Edge clusters from the hub.
+Observability ties together **metrics**, **logs**, **traces**, and **mesh visualization** so operators can compare east and west Industrial Edge clusters from the hub. It sits mid-flight between **[architecture](architecture.md)** (why telemetry crosses Skupper) and **[Industrial Edge](industrial-edge.md)** (what applications emit). **Screenshots** below open full-screen when clicked — useful for reading dense Grafana legends.
 
 ![Grafana – East-West Traffic Dashboard]({{ site.baseurl }}/assets/images/product-grafana-observability.png)
 {: .mb-4 }
@@ -16,6 +16,16 @@ Observability ties together **metrics**, **logs**, **traces**, and **mesh visual
 ![Grafana – Multi-Cluster Istio Metrics]({{ site.baseurl }}/assets/images/product-grafana-observability-2.png)
 {: .mb-4 }
 *Multi-Cluster Istio Metrics — L4 ztunnel throughput and cross-cluster error rates via Service Interconnect.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Grafana – Fleet KPI panels]({{ site.baseurl }}/assets/images/product-grafana-observability-3.png)
+{: .mb-4 }
+*Additional Grafana fleet KPI panels — Kafka and mesh signals aggregated across clusters.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Grafana – Extended dashboards]({{ site.baseurl }}/assets/images/product-grafana-observability-4.png)
+{: .mb-4 }
+*Extended observability dashboard views — drill-down metrics aligned with hub Grafana dashboards.*
 {: .fs-2 .text-grey-dk-000 }
 
 ## Observability architecture
@@ -211,3 +221,7 @@ Re-sync the `kafka-console` Argo CD application after Skupper listeners are heal
 - [Kiali on OSSM 3.2](https://docs.redhat.com/en/documentation/red_hat_openshift_service_mesh/3.2/html/observability/kiali-operator-provided-by-red-hat)
 
 Charts: `components/observability`, `components/grafana-dashboards`, `components/spoke-dashboards`, `components/kiali`, `components/kafka-console`, `components/opentelemetry`, `components/istio-monitoring`, `components/service-interconnect`, `components/spoke-interconnect`.
+
+---
+
+**Next:** tighten workload telemetry wiring from **[OpenShift Service Mesh](products/service-mesh.md)** (ztunnel prerequisites), then revisit **[Service Interconnect](service-interconnect.md)** when Prometheus crosses clusters via Skupper.
