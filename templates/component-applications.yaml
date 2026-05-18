@@ -156,6 +156,18 @@ spec:
         - /status
     # RHDH operator may shrink spec.application.appConfig.configMaps / extraFiles after sync;
     # ignoring avoids flip-flop so Git keeps catalog + auth ConfigMaps and User entities load.
+    - group: argoproj.io
+      kind: ArgoCD
+      jsonPointers:
+        - /spec/resourceCustomizations
+        - /metadata/annotations
+        - /status
+    - group: sailoperator.io
+      kind: Istio
+      jsonPointers:
+        - /spec/profile
+        - /metadata/annotations
+        - /status
     - group: rhdh.redhat.com
       kind: Backstage
       jsonPointers:
