@@ -61,7 +61,6 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   namespace: ztunnel
-  profile: ambient
 ---
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry
