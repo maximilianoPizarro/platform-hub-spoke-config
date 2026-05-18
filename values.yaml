@@ -14,9 +14,11 @@ clusters:
   east:
     domain: "apps.cluster-2847b.dynamic2.redhatworkshops.io"
     apiUrl: "https://api.cluster-2847b.dynamic2.redhatworkshops.io:6443"
+    # token: set via --set clusters.east.token=sha256~... (never commit tokens)
   west:
     domain: "apps.cluster-5zjkk.dynamic2.redhatworkshops.io"
     apiUrl: "https://api.cluster-5zjkk.dynamic2.redhatworkshops.io:6443"
+    # token: set via --set clusters.west.token=sha256~... (never commit tokens)
 
 connectivityLink:
   operators:

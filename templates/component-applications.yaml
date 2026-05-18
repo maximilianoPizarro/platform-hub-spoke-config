@@ -236,9 +236,11 @@ spec:
           east:
             apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
             domain: {{ $eastDomain | quote }}
+            token: {{ $.Values.clusters.east.token | default "" | quote }}
           west:
             apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
             domain: {{ $westDomain | quote }}
+            token: {{ $.Values.clusters.west.token | default "" | quote }}
     {{- else if eq .path "hub-gateway" }}
     helm:
       valuesObject:

@@ -11,6 +11,8 @@ managedClusters:
   east:
     apiUrl: ""
     domain: ""
+    token: ""
   west:
     apiUrl: ""
     domain: ""
+    token: ""
