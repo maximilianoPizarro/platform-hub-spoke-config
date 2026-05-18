@@ -91,6 +91,14 @@ data:
             name: hub
             url: https://kubernetes.default.svc.cluster.local:443
             skipTLSVerify: true
+    auth:
+      environment: production
+      providers:
+        github:
+          production:
+            clientId: ${GITHUB_CLIENT_ID}
+            clientSecret: ${GITHUB_CLIENT_SECRET}
+    signInPage: github
     proxy:
       endpoints:
         '/rhacs':
@@ -215,3 +223,8 @@ spec:
         template:
           spec:
             serviceAccountName: developer-hub
+            containers:
+              - name: backstage-backend
+                envFrom:
+                  - secretRef:
+                      name: developer-hub-github-auth

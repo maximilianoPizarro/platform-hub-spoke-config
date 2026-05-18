@@ -87,7 +87,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTkuNCAzLjUtNi44OSA2Ljg5TDQgMTEuODhsLTEuNDktMS40OUwxIDExLjg4bDMgMyA4LjM5LTguMzktMS40OS0xLjVMMTIgM2wtMi42LjV6TTIxIDEyaDl2Mmg5di0yek0yMSA4aDl2MmgtOVY4eiIvPjwvc3ZnPg=="
     section: "Platform Hub-Spoke"
-  href: "https://backstage-developer-hub-developer-hub.{{ $domain }}"
+  href: "https://developer-hub.{{ $domain }}"
   location: ApplicationMenu
   text: "Developer Hub"
 ---
