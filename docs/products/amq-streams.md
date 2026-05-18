@@ -7,7 +7,20 @@ nav_order: 8
 
 # AMQ Streams
 
+**Git path:** `components/industrial-edge-*/` (Kafka clusters per environment)
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **AMQ Streams** is the enterprise distribution of **Apache Kafka** on OpenShift, including operators for Kafka, KRaft mode, Kafka Connect, and **MirrorMaker 2** for geo replication.
+
+![Kafka Console – 5 clusters connected]({{ site.baseurl }}/assets/images/product-kafka-console-amq-streams.png)
+{: .mb-4 }
+*Streams for Apache Kafka Console showing all connected clusters (hub + east/west spokes).*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kafka Console – Topic messages]({{ site.baseurl }}/assets/images/product-kafka-console-amq-streams-2.png)
+{: .mb-4 }
+*Topic browser — `temperature` messages on `dev-cluster-west` via Skupper.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Industrial Edge usage
 

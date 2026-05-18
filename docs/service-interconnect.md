@@ -1,12 +1,21 @@
 ---
 layout: default
 title: Service Interconnect
-nav_order: 10
+parent: Red Hat Products
+nav_order: 12
 ---
 
 # Service Interconnect (Skupper)
 
+**Git path:** `components/service-interconnect/`
+{: .fs-3 .text-grey-dk-000 }
+
 **Red Hat Service Interconnect** creates a Virtual Application Network (VAN) that connects services across clusters without requiring VPN tunnels, direct network routes, or firewall changes. In this platform, Skupper bridges spoke Industrial Edge services and Prometheus metrics to the hub for centralized observability.
+
+![Kafka Console via Skupper]({{ site.baseurl }}/assets/images/product-kafka-console-amq-streams.png)
+{: .mb-4 }
+*Kafka Console on the hub accessing 5 clusters via Skupper VAN — evidence of Service Interconnect in action.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Architecture
 

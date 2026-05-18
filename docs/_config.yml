@@ -10,7 +10,7 @@ baseurl: "/platform-hub-spoke-config"
 
 color_scheme: dark
 
-logo: "https://www.redhat.com/cms/managed-files/styles/wysiwyg_full_width/s3/Logo-Red_Hat-A-Reverse-RGB.svg"
+logo: "/platform-hub-spoke-config/assets/images/rh-logo.svg"
 
 aux_links:
   "GitHub":
@@ -18,12 +18,15 @@ aux_links:
   "Red Hat Docs":
     - "https://docs.redhat.com"
 
+aux_links_new_tab: true
+
 nav_enabled: true
 search_enabled: true
 heading_anchors: true
 back_to_top: true
 back_to_top_text: "Back to top"
-footer_content: "Platform Hub-Spoke GitOps"
+
+footer_content: '<img src="/platform-hub-spoke-config/assets/images/rh-logo.svg" alt="Red Hat" style="height:20px;vertical-align:middle;margin-right:8px;">Platform Hub-Spoke GitOps &mdash; Autor: <a href="https://maximilianopizarro.github.io" target="_blank" style="color:#73BCF7;">Maximiliano Pizarro</a>'
 
 mermaid:
   version: "10.9.0"

@@ -7,7 +7,15 @@ nav_order: 2
 
 # Developer Hub
 
+**Git path:** `components/developer-hub/`
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **Developer Hub** is the enterprise distribution of [Backstage](https://backstage.io/), providing a software catalog, templates, and plugins for OpenShift-centric workflows.
+
+![Developer Hub – GitHub sign-in]({{ site.baseurl }}/assets/images/product-developer-hub.png)
+{: .mb-4 }
+*Developer Hub sign-in page with GitHub OAuth integration.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Plugins relevant to this platform
 

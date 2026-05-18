@@ -9,6 +9,11 @@ nav_order: 7
 
 Red Hat **OpenShift AI** operationalizes data science workloads on OpenShift: notebooks, model training pipelines, and **model serving** with scalable inference routes.
 
+![OpenShift AI – Data Science Projects]({{ site.baseurl }}/assets/images/openshift-ia.png)
+{: .mb-4 }
+*OpenShift AI home — data science projects and model training workflows.*
+{: .fs-2 .text-grey-dk-000 }
+
 ## Platform integration
 
 | Concern | Notes |

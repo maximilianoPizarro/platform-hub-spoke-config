@@ -1,13 +1,25 @@
 ---
 layout: default
 title: Kubecost
-parent: Red Hat Products
-nav_order: 10
+parent: Community & Third-Party
+nav_order: 1
 ---
 
 # Kubecost
 
 Red Hat certified **Kubecost** operator provides Kubernetes cost monitoring and optimization via Federated ETL for multicluster visibility.
+
+**Git path:** `components/kubecost/`
+
+![Kubecost – Cluster Details]({{ site.baseurl }}/assets/images/kubecost.png)
+{: .mb-4 }
+*Kubecost hub cluster overview — nodes, namespaces, cost and efficiency metrics.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kubecost – Allocations by namespace]({{ site.baseurl }}/assets/images/kubecost-2.png)
+{: .mb-4 }
+*Cost allocations by namespace — stackrox, open-cluster-management, openshift-gitops, and platform workloads.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Role in this platform
 
@@ -85,4 +97,4 @@ config:
 ## Links
 
 - [Kubecost documentation](https://docs.kubecost.com/)
-- [Red Hat certified Kubecost operator](https://catalog.redhat.com/software/container-stacks/detail/63fc89b1c5223f56e6cc0cdd)
+- [Red Hat Ecosystem Catalog — Kubecost Operator](https://catalog.redhat.com/en/software/containers/kubecost/operator/668b7eaee2edda86e70a09cf)

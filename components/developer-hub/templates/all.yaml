@@ -98,6 +98,10 @@ data:
           production:
             clientId: ${GITHUB_CLIENT_ID}
             clientSecret: ${GITHUB_CLIENT_SECRET}
+            signIn:
+              resolvers:
+                - resolver: usernameMatchingUserEntityName
+    dangerouslyAllowSignInWithoutUserInCatalog: true
     signInPage: github
     proxy:
       endpoints:

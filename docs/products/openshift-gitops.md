@@ -7,7 +7,15 @@ nav_order: 4
 
 # OpenShift GitOps
 
+**Git path:** `components/openshift-gitops/`
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **OpenShift GitOps** delivers **Argo CD** as an operator-managed control plane for declarative Git-driven deployments on OpenShift.
+
+![Argo CD – Login]({{ site.baseurl }}/assets/images/product-argocd-openshift-gitops.png)
+{: .mb-4 }
+*Argo CD login page with OpenShift SSO integration.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Patterns in this repository
 

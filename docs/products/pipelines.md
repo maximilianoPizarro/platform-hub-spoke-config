@@ -7,6 +7,9 @@ nav_order: 10
 
 # OpenShift Pipelines
 
+**Git path:** `components/industrial-edge-pipelines/`
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **OpenShift Pipelines** delivers **Tekton** CRDs for CI/CD native to Kubernetes — ideal for building container images, running tests, and promoting Industrial Edge artifacts across environments.
 
 ## Industrial Edge CI/CD

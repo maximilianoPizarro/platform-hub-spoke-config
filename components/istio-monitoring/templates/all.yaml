@@ -89,6 +89,13 @@ spec:
       interval: 15s
       path: /metrics
       scheme: http
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_strimzi_io_cluster]
+          targetLabel: strimzi_io_cluster
+{{- if $.Values.clusterSuffix }}
+          regex: (.+)
+          replacement: ${1}{{ $.Values.clusterSuffix }}
+{{- end }}
 ---
 {{- end }}
 {{- range $rbacNamespaces }}

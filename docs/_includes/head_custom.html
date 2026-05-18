@@ -1,2 +1,42 @@
 <link rel="stylesheet" href="{{ '/assets/css/custom.css' | relative_url }}">
 <link rel="icon" href="https://www.redhat.com/favicon.ico" type="image/x-icon">
+<script defer>
+document.addEventListener('DOMContentLoaded', function() {
+  var headings = document.querySelectorAll('.main-content h2, .main-content h3');
+  if (headings.length < 2) return;
+  var toc = document.createElement('nav');
+  toc.className = 'site-nav-toc';
+  toc.setAttribute('aria-label', 'On this page');
+  var title = document.createElement('strong');
+  title.textContent = 'On this page';
+  title.style.display = 'block';
+  title.style.marginBottom = '0.5rem';
+  title.style.color = '#fff';
+  title.style.fontSize = '0.85rem';
+  toc.appendChild(title);
+  var list = document.createElement('ul');
+  var currentH2List = list;
+  headings.forEach(function(h) {
+    if (!h.id) return;
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent.replace(/^#\s*/, '');
+    li.appendChild(a);
+    if (h.tagName === 'H3') {
+      var subList = currentH2List.querySelector('ul') || document.createElement('ul');
+      if (!subList.parentNode) {
+        var lastLi = currentH2List.lastElementChild;
+        if (lastLi) lastLi.appendChild(subList);
+      }
+      subList.appendChild(li);
+    } else {
+      list.appendChild(li);
+      currentH2List = li;
+    }
+  });
+  toc.appendChild(list);
+  var main = document.querySelector('.main-content-wrap') || document.body;
+  main.appendChild(toc);
+});
+</script>

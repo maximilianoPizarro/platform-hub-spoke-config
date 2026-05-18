@@ -1,11 +1,18 @@
 ---
 layout: default
 title: Mailpit
-parent: Red Hat Products
-nav_order: 11
+parent: Community & Third-Party
+nav_order: 2
 ---
 
 # Mailpit
+
+**Git path:** `components/mailpit/`
+
+![Mailpit – IE Alerts inbox]({{ site.baseurl }}/assets/images/mailpit.png)
+{: .mb-4 }
+*Mailpit web UI — captured Industrial Edge vibration anomaly alerts from east spoke.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Role in this platform
 
@@ -35,5 +42,3 @@ Configure the RHDH notifications backend to send via SMTP to `mailpit.mailpit.sv
 
 - [Mailpit GitHub](https://github.com/axllent/mailpit)
 - [Mailpit API docs](https://mailpit.axllent.org/docs/api-v1/)
-
-Implementation chart: `components/mailpit`.

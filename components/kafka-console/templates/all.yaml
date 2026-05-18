@@ -58,6 +58,12 @@ spec:
             configMapKeyRef:
               name: openshift-service-ca.crt
               key: service-ca.crt
+    - name: prometheus-east
+      type: standalone
+      url: http://prometheus-east.service-interconnect.svc.cluster.local:9091
+    - name: prometheus-west
+      type: standalone
+      url: http://prometheus-west.service-interconnect.svc.cluster.local:9091
   kafkaClusters:
     - name: prod-cluster
       namespace: industrial-edge-data-lake
@@ -69,28 +75,28 @@ spec:
             value: prod-cluster-kafka-bootstrap.industrial-edge-data-lake.svc.cluster.local:9092
     - name: dev-cluster-east
       namespace: industrial-edge-tst-all
-      metricsSource: thanos
+      metricsSource: prometheus-east
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
       namespace: industrial-edge-stormshift-messaging
-      metricsSource: thanos
+      metricsSource: prometheus-east
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
       namespace: industrial-edge-tst-all
-      metricsSource: thanos
+      metricsSource: prometheus-west
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
       namespace: industrial-edge-stormshift-messaging
-      metricsSource: thanos
+      metricsSource: prometheus-west
       properties:
         values:
           - name: bootstrap.servers

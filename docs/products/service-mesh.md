@@ -7,7 +7,15 @@ nav_order: 5
 
 # OpenShift Service Mesh 3
 
+**Git path:** `components/servicemeshoperator3/`
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **OpenShift Service Mesh 3** (OSSM3) provides **ambient mesh** on OpenShift: a per-node **ztunnel** for L4 mTLS and telemetry, plus optional **waypoint** proxies for L7 policy.
+
+![Grafana – East-West Traffic & Service Mesh]({{ site.baseurl }}/assets/images/product-grafana-dashboard.png)
+{: .mb-4 }
+*Service Mesh L4 metrics visualized in the East-West Traffic Grafana dashboard.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Version and channel
 

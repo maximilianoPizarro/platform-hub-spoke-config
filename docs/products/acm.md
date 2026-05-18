@@ -7,7 +7,15 @@ nav_order: 1
 
 # Advanced Cluster Management
 
+**Git path:** `components/acm-hub-spoke/`
+{: .fs-3 .text-grey-dk-000 }
+
 Red Hat **Advanced Cluster Management for Kubernetes (ACM)** provides fleet-wide visibility and lifecycle for OpenShift and Kubernetes clusters. In this repository it anchors **hub-spoke registration**, **policy placement**, and integration with **OpenShift GitOps** via `GitOpsCluster` and related APIs.
+
+![ACM Fleet Management]({{ site.baseurl }}/assets/images/ACM.png)
+{: .mb-4 }
+*ACM Fleet Management — east and west managed clusters registered on the hub.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Role in this solution
 

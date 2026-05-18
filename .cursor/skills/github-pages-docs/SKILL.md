@@ -24,11 +24,12 @@ Use this skill when authoring or restructuring **`docs/`** static documentation 
 
 ```
 docs/
-├── _config.yml                  # Jekyll configuration
+├── _config.yml                  # Jekyll configuration (logo, footer_content with author link)
 ├── _includes/
-│   └── head_custom.html         # Custom CSS + favicon
+│   └── head_custom.html         # Custom CSS + favicon + right-side TOC script
 ├── assets/
-│   └── css/custom.css           # Red Hat design overrides
+│   ├── css/custom.css           # Red Hat design overrides + right-side TOC styling
+│   └── images/rh-logo.svg       # Red Hat logo used in header and footer
 ├── Gemfile                      # Ruby gems
 ├── index.md                     # Home page (nav_order: 1)
 ├── architecture.md              # Platform architecture with Mermaid diagrams (nav_order: 2)
@@ -37,21 +38,24 @@ docs/
 ├── branch-strategy.md           # Single-branch multi-cluster strategy (nav_order: 9)
 ├── hub-gateway.md               # Hub gateway as F5 analog (nav_order: 6)
 ├── industrial-edge.md           # Industrial Edge application details (nav_order: 8)
-    ├── observability.md             # Grafana panels, Kafka metrics, Kiali, Kafka Console (nav_order: 7)
-    ├── service-interconnect.md      # Skupper: metrics, gateways, Kafka (nav_order: 10)
-└── products/
-    ├── index.md                 # Red Hat Products overview (has_children: true, nav_order: 5)
-    ├── acm.md                   # Advanced Cluster Management
-    ├── acs.md                   # Advanced Cluster Security
-    ├── amq-streams.md           # AMQ Streams (Kafka)
-    ├── camel-k.md               # Camel K
-    ├── connectivity-link.md     # Connectivity Link (Kuadrant)
-    ├── developer-hub.md         # Developer Hub (Backstage)
-    ├── mailpit.md               # Mailpit SMTP testing
-    ├── openshift-ai.md          # OpenShift AI
-    ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
-    ├── pipelines.md             # OpenShift Pipelines (Tekton)
-    └── service-mesh.md          # OSSM3 3.2 GA ambient, IstioCNI profile, ztunnel troubleshooting
+├── observability.md             # Grafana panels, Kafka metrics, Kiali, Kafka Console (nav_order: 7)
+├── service-interconnect.md      # Skupper VAN (parent: Red Hat Products, nav_order: 12)
+├── products/
+│   ├── index.md                 # Red Hat Products overview (has_children: true, nav_order: 5)
+│   ├── acm.md                   # Advanced Cluster Management
+│   ├── acs.md                   # Advanced Cluster Security
+│   ├── amq-streams.md           # AMQ Streams (Kafka)
+│   ├── camel-k.md               # Camel K
+│   ├── connectivity-link.md     # Connectivity Link (Kuadrant)
+│   ├── developer-hub.md         # Developer Hub (Backstage)
+│   ├── openshift-ai.md          # OpenShift AI
+│   ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
+│   ├── pipelines.md             # OpenShift Pipelines (Tekton)
+│   └── service-mesh.md          # OSSM3 3.2 GA ambient, IstioCNI profile, ztunnel
+└── community/
+    ├── index.md                 # Community & Third-Party (has_children: true, nav_order: 6)
+    ├── kubecost.md              # Kubecost cost monitoring (Red Hat certified)
+    └── mailpit.md               # Mailpit SMTP testing
 ```
 
 ## Front matter conventions
@@ -158,8 +162,9 @@ When documenting platform-specific topics, include these sections where relevant
 - Mesh install, ztunnel, `IstioCNI` ambient profile → `docs/products/service-mesh.md`
 - Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS/metrics → `docs/observability.md`
 - Skupper, broker `advertisedHost`, EndpointSlice → `docs/service-interconnect.md` + `docs/products/amq-streams.md`
-- Kubecost multicluster, federated ETL, MinIO, SCC → `docs/products/kubecost.md` (new)
+- Kubecost multicluster, federated ETL, MinIO, SCC → `docs/community/kubecost.md`
 - Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
+- Mailpit SMTP testing → `docs/community/mailpit.md`
 
 ### Diagram conventions
 
