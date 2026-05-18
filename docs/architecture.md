@@ -102,6 +102,9 @@ flowchart TB
 | Grafana (local metrics) | | yes |
 | Kiali + OSSM Console plugin | yes | yes |
 | Connectivity Link (RHCL) | yes | yes |
+| Kubecost (primary aggregator) | yes | |
+| Kubecost (agent) | | yes |
+| Kafka Console (all clusters) | yes | |
 
 ## GitOps application delivery flow
 

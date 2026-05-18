@@ -367,13 +367,19 @@ Include `ClusterRoleBinding` `kiali-monitoring-rbac` → `cluster-monitoring-vie
 ### Kafka Console (hub)
 
 Component `components/kafka-console`:
-- `Console` CR with four clusters (east/west × tst/stormshift) via Skupper bootstrap URLs
+- `Console` CR with five clusters (hub prod-cluster + east/west × tst/stormshift) via Skupper bootstrap URLs
 - `broker-dns.yaml` — headless Services + **`EndpointSlice`** (not `Endpoints`) mapping `advertisedHost` names to Skupper listener IPs via Helm `lookup`
 - **Argo CD excludes `Endpoints`** from sync — plain Endpoints in Git are never applied; use `discovery.k8s.io/v1` EndpointSlice instead
 - Store Skupper ClusterIPs in separate template variables per broker (avoid nested `lookup` in `addresses[]` — renders empty endpoints)
 - Requires spoke Kafka `advertisedHost` per `clusterName` suffix in `industrial-edge-tst` / `industrial-edge-stormshift` (`dev-cluster-broker-0-east`, etc.)
 - Hub subscription: `amq-streams-console` in `values.yaml` `connectivityLink.operators.subscriptions`
 - Verify: Console UI `listNodes` / `listTopics` return 200 (not 504)
+
+**Metrics configuration** (critical — `openshift-monitoring` type is broken):
+- Use `metricsSources.type: standalone` with explicit Thanos URL + bearer token from SA secret
+- Each `kafkaCluster` entry MUST have a `namespace` field or metrics won't be fetched
+- Trust store: `openshift-service-ca.crt` ConfigMap (auto-injected in all namespaces)
+- Only clusters running locally (hub `prod-cluster`) have metrics; spoke clusters via Skupper show topics/nodes only
 
 ### Spoke Prometheus auth — Nginx reverse proxy
 
@@ -391,6 +397,48 @@ The community `kuadrant-operator` is deprecated. Use `rhcl-operator` from `redha
 ### OperatorGroup scope for namespace-scoped operators
 
 If an operator (e.g. AMQ Broker) needs CRDs available in specific namespaces, the `OperatorGroup` in that namespace must list those namespaces in `spec.targetNamespaces[]`. For cluster-wide operators, use `spec: {}` (AllNamespaces mode).
+
+**Kubecost operator**: requires `OwnNamespace` mode — `AllNamespaces` NOT supported. Always set:
+```yaml
+spec:
+  targetNamespaces:
+    - kubecost
+```
+
+### Kubecost SCC requirements (privileged, not anyuid)
+
+Kubecost pods run as UID 1001 with `fsGroup: 1001` and include `seccomp` annotations incompatible with `anyuid`. Must grant **`system:openshift:scc:privileged`** to:
+- `kubecost-cost-analyzer`
+- `kubecost-grafana`
+- `kubecost-prometheus-server`
+- `kubecost-forecasting`
+- `default` (used by kubecost-forecasting deployment which has no explicit `serviceAccountName`)
+
+### Kubecost multicluster spoke deployment
+
+Add kubecost to spoke `apps` list with path `components/kubecost` and override values:
+```yaml
+# In east/west templates/component-applications.yaml
+{{- else if eq .id "kubecost" }}
+helm:
+  valuesObject:
+    clusterDomain: {{ $domain }}
+    clusterName: {{ $.Values.clusterName }}
+    role: agent
+    clusterRole: spoke
+    federatedStore:
+      bucket: kubecost
+      endpoint: minio.industrial-edge-ml-workspace.svc.cluster.local:9000
+      region: us-east-1
+      accessKey: minio
+      secretKey: minio123
+```
+
+### Developer Hub GitHub OAuth (non-secret in Git)
+
+The `app-config.yaml` ConfigMap references env vars `${GITHUB_CLIENT_ID}` and `${GITHUB_CLIENT_SECRET}`. The actual credentials are in a manually-created Secret `developer-hub-github-auth` mounted via `envFrom.secretRef` in the Backstage CR deployment patch. Never commit OAuth secrets to Git.
+
+GitHub OAuth callback URL for RHDH: `https://developer-hub.<domain>/api/auth/github/handler/frame`
 
 ### ArgoCD sync stuck or not applying changes
 

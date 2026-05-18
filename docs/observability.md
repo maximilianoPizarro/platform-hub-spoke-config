@@ -162,7 +162,17 @@ See [Service Interconnect](service-interconnect.md) for the full VAN diagram.
 
 ## Kafka Console (hub)
 
-The **Streams for Apache Kafka Console** on the hub registers four clusters (dev/factory × east/west) via Skupper bootstrap services.
+The **Streams for Apache Kafka Console** on the hub registers five clusters: `prod-cluster` (hub, full metrics) + dev/factory × east/west via Skupper bootstrap services.
+
+**Metrics configuration:** The `metricsSources` type `openshift-monitoring` is broken in Console operator 0.12.x (logs: `Prometheus URL is not configured`). Use `type: standalone` with:
+- URL: `https://thanos-querier.openshift-monitoring.svc.cluster.local:9091`
+- Bearer token via `kubernetes.io/service-account-token` Secret
+- TrustStore: `openshift-service-ca.crt` ConfigMap (PEM)
+- `ClusterRoleBinding` for `cluster-monitoring-view`
+
+Each `kafkaCluster` entry **must include `namespace`** — without it, logs show `namespace is required for metrics retrieval`.
+
+Only the hub `prod-cluster` (namespace `industrial-edge-data-lake`) displays full metrics. Spoke clusters via Skupper show topics and nodes but no metrics (their Prometheus data is not federated to hub Thanos).
 
 **Common error:** `Timed out waiting for a node assignment` / `listNodes` — the console reaches bootstrap over Skupper but broker **advertised DNS** from spokes does not resolve on the hub.
 

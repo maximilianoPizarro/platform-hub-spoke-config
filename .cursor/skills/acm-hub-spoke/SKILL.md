@@ -372,6 +372,39 @@ Expose spoke Kafka bootstrap services to the hub with Skupper **Connector** (spo
 
 Console CR (`components/kafka-console`) registers four clusters via bootstrap Skupper DNS; `amq-streams-console` operator subscription on hub.
 
+### Kafka Console metrics configuration
+
+The `Console` CR `metricsSources` type `openshift-monitoring` may NOT work in all operator versions (logs: `Prometheus URL is not configured`). Use **`type: standalone`** with explicit Thanos Querier URL instead:
+
+```yaml
+metricsSources:
+  - name: thanos
+    type: standalone
+    url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+    authentication:
+      bearer:
+        token:
+          valueFrom:
+            secretKeyRef:
+              name: console-metrics-token
+              key: token
+    trustStore:
+      type: PEM
+      content:
+        valueFrom:
+          configMapKeyRef:
+            name: openshift-service-ca.crt
+            key: service-ca.crt
+```
+
+Required supporting resources:
+1. **Secret** `console-metrics-token` (type `kubernetes.io/service-account-token`) for the SA `kafka-console-console-serviceaccount`
+2. **ClusterRoleBinding** `kafka-console-monitoring-view` → `cluster-monitoring-view` for that SA
+3. **Each `kafkaCluster` entry MUST include `namespace`** — without it logs show `namespace is required for metrics retrieval but none was provided`
+4. Metrics only appear for clusters whose Kafka pods run **in the same cluster** as the Console (hub metrics visible, spoke metrics require remote-write or federation)
+5. The `openshift-service-ca.crt` ConfigMap (auto-injected by OpenShift in every namespace) provides the CA for Thanos TLS
+6. The hub `prod-cluster` (namespace `industrial-edge-data-lake`) has full metrics; spoke clusters connected via Skupper only show topics/nodes without metrics unless Prometheus federation is configured
+
 ## Kiali + OSSM Console plugin
 
 Deploy Kiali with the `OSSMConsole` CR on both hub and spokes to activate the dynamic console plugin:
@@ -588,6 +621,84 @@ EOF
 # 6. Force ArgoCD refresh from hub
 oc annotate application operators-west -n openshift-gitops argocd.argoproj.io/refresh=hard --overwrite
 ```
+
+## Kubecost multicluster (Federated ETL)
+
+Red Hat certified Kubecost operator deployed via `components/kubecost/` as hub primary + spoke agents:
+
+### Hub (primary aggregator)
+- `OperatorGroup` with `targetNamespaces: [kubecost]` (OwnNamespace mode — **AllNamespaces NOT supported**)
+- `CostAnalyzer` CR with `federatedETL.federatedCluster: true`, `agentOnly: false`, `kubecostAggregator.deployMethod: statefulset`
+- Route `kubecost.<clusterDomain>` on port 9090
+- ConsoleLink in OpenShift console menu
+
+### Spokes (agents)
+- Same chart with `role: agent`, `clusterRole: spoke` → `agentOnly: true`, no aggregator
+- Must include same `OperatorGroup` with `targetNamespaces: [kubecost]`
+- Federated store secret pointing to hub MinIO (`minio.industrial-edge-ml-workspace.svc.cluster.local:9000`)
+
+### SCC requirements (critical)
+Kubecost pods run as UID 1001 with `fsGroup: 1001` and `seccomp` annotations. Grant **`privileged`** SCC (not just `anyuid`) to ALL service accounts:
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubecost-privileged-scc
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:openshift:scc:privileged
+subjects:
+  - kind: ServiceAccount
+    name: kubecost-cost-analyzer
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-grafana
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-prometheus-server
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: kubecost-forecasting
+    namespace: kubecost
+  - kind: ServiceAccount
+    name: default       # kubecost-forecasting uses default SA
+    namespace: kubecost
+```
+
+**Common errors:**
+- `AllNamespaces InstallModeType not supported` → OperatorGroup missing `targetNamespaces`
+- `forbidden: unable to validate against any security context constraint` → missing privileged SCC binding
+- `kubecost-forecasting` deployment does NOT set `serviceAccountName` → uses `default` SA
+
+## Developer Hub (RHDH) GitHub OAuth
+
+Configure GitHub sign-in in `app-config.yaml`:
+
+```yaml
+auth:
+  environment: production
+  providers:
+    github:
+      production:
+        clientId: ${GITHUB_CLIENT_ID}
+        clientSecret: ${GITHUB_CLIENT_SECRET}
+signInPage: github
+```
+
+- Mount credentials via `envFrom.secretRef` in the Backstage CR deployment patch
+- Secret `developer-hub-github-auth` created **manually** (never in Git)
+- GitHub OAuth App callback URL: `https://developer-hub.<domain>/api/auth/github/handler/frame`
+- **NOT** `/api/oauth/callback` — that path is incorrect for Backstage
+
+### RHDH dynamic plugins known issues (RHDH 1.9)
+These plugins fail with `npm pack ENOENT` and must be `disabled: true`:
+- `backstage-community-plugin-argocd`
+- `backstage-community-plugin-kafka-backend-dynamic` / `backstage-community-plugin-kafka`
+- `kuadrant-backstage-plugin-backend-dynamic` / `kuadrant-backstage-plugin-frontend`
+- `roadiehq-backstage-plugin-argo-cd-backend-dynamic`
+- `backstage-community-plugin-redhat-argocd`
 
 ## Quick verification commands
 

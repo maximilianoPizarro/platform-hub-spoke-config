@@ -156,8 +156,10 @@ When documenting platform-specific topics, include these sections where relevant
 
 **Topic routing for this repo:**
 - Mesh install, ztunnel, `IstioCNI` ambient profile → `docs/products/service-mesh.md`
-- Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS → `docs/observability.md`
+- Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS/metrics → `docs/observability.md`
 - Skupper, broker `advertisedHost`, EndpointSlice → `docs/service-interconnect.md` + `docs/products/amq-streams.md`
+- Kubecost multicluster, federated ETL, MinIO, SCC → `docs/products/kubecost.md` (new)
+- Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
 
 ### Diagram conventions
 
