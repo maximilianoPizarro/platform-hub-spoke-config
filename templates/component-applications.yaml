@@ -269,6 +269,13 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+    {{- else if eq .path "kubecost" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterName: hub
+        role: primary
+        clusterRole: hub
     {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "servicemeshoperator3" "istio-monitoring" "service-interconnect" "mailpit") }}
     helm:
       valuesObject:

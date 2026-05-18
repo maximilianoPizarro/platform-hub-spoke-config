@@ -345,6 +345,21 @@ This typically happens when subscriptions are deleted and recreated while the CS
 
 The `servicemeshoperator3` component chart deploys `Istio`, `IstioCNI`, `ZTunnel`, waypoint `Gateway`s, and `Telemetry` mesh-default — not the OLM Subscription (that lives in `components/operators`).
 
+**`IstioCNI` must use `profile: ambient`** — same as `ZTunnel`. Without it, `istio-cni-node` logs `AmbientEnabled: false`, ztunnel cannot connect to `ztunnel.sock`, and `istio_tcp_*` never appear in Prometheus. Set `values.cni.ambient.reconcileIptablesOnStartup: true` per Red Hat OSSM 3.2 ambient install guide.
+
+**OLM upgrade blocker** (`risk of data loss updating istiocnis.sailoperator.io`): delete `Istio` + `IstioCNI` CRs, delete sailoperator `Istio`/`IstioCNI` CRDs if stuck, reinstall subscription on `stable-3.2`, re-apply mesh manifests from Git.
+
+### Grafana dashboards (hub + spoke)
+
+| Chart | Dashboards | Datasources |
+| ----- | ------------ | ----------- |
+| `grafana-dashboards` (hub) | `east-west-traffic`, `multi-cluster-istio` | Hub Thanos + `Prometheus-East` / `Prometheus-West` via Skupper |
+| `spoke-dashboards` | `local-metrics` | Local Thanos only |
+
+Panel conventions: **gauge** for broker state, **piechart** for leader split, **bargauge** for `kafka_network_requestmetrics_requestspersec_total` and partition counts. Avoid `kafka_server_brokertopicmetrics_*` + `_objectname` filters — not exported by Strimzi JMX scrape on this platform.
+
+Sync-wave **8** for dashboard CRs; instanceSelector `dashboards: grafana` must match Grafana CR labels in `components/observability`.
+
 ### Kiali monitoring RBAC in Git
 
 Include `ClusterRoleBinding` `kiali-monitoring-rbac` → `cluster-monitoring-view` in `components/kiali/templates/all.yaml` **before** the Kiali CR. Set `external_services.prometheus.auth` + `thanos_proxy.enabled: true`. Without this, OSSM Console plugin returns 401 on spokes.
@@ -353,9 +368,12 @@ Include `ClusterRoleBinding` `kiali-monitoring-rbac` → `cluster-monitoring-vie
 
 Component `components/kafka-console`:
 - `Console` CR with four clusters (east/west × tst/stormshift) via Skupper bootstrap URLs
-- `broker-dns.yaml` — headless Services + Endpoints (Helm `lookup` for Skupper ClusterIPs)
-- Requires spoke Kafka `advertisedHost` per `clusterName` in `industrial-edge-tst` / `industrial-edge-stormshift`
+- `broker-dns.yaml` — headless Services + **`EndpointSlice`** (not `Endpoints`) mapping `advertisedHost` names to Skupper listener IPs via Helm `lookup`
+- **Argo CD excludes `Endpoints`** from sync — plain Endpoints in Git are never applied; use `discovery.k8s.io/v1` EndpointSlice instead
+- Store Skupper ClusterIPs in separate template variables per broker (avoid nested `lookup` in `addresses[]` — renders empty endpoints)
+- Requires spoke Kafka `advertisedHost` per `clusterName` suffix in `industrial-edge-tst` / `industrial-edge-stormshift` (`dev-cluster-broker-0-east`, etc.)
 - Hub subscription: `amq-streams-console` in `values.yaml` `connectivityLink.operators.subscriptions`
+- Verify: Console UI `listNodes` / `listTopics` return 200 (not 504)
 
 ### Spoke Prometheus auth — Nginx reverse proxy
 

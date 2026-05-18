@@ -81,9 +81,13 @@ Use **`stable-3.2`** for the Service Mesh operator. Tech Preview (`candidates` /
 | `istio_tcp_connections_opened_total` | ztunnel | Primary spoke/hub L4 signal |
 | `istio_tcp_sent_bytes_total` / `received` | ztunnel | Bytes per workload namespace |
 | `istio_requests_total` | Waypoints, ingress gateways | L7; hub `hub-gateway-istio` always has some traffic |
-| `kafka_server_*` | Strimzi JMX exporter | Requires UWM + PodMonitor on broker pods |
+| `kafka_server_kafkaserver_brokerstate` | Strimzi JMX | `3` = Running; use in Grafana **gauge** panels |
+| `kafka_network_requestmetrics_requestspersec_total` | Strimzi JMX | API activity; use in **bargauge** panels |
+| `kafka_server_replicamanager_leadercount` / `partitioncount` | Strimzi JMX | **piechart** / **bargauge** on hub fleet view |
 
 `components/istio-monitoring` scrapes istiod, gateways/waypoints, ztunnel, and Kafka. Grant UWM RoleBindings in `istio-system`, `ztunnel`, `hub-gateway-system`, and Industrial Edge namespaces.
+
+**Prerequisite for L4 mesh metrics:** `IstioCNI` CR must include `profile: ambient` (not namespace-only). Without it, ztunnel never becomes Ready and `istio_tcp_*` are absent. See [Service Mesh 3 — troubleshooting](products/service-mesh.md#troubleshooting-ztunnel-ztunnelnothealthy).
 
 ## Kiali and OSSM Console plugin
 
@@ -131,11 +135,24 @@ Spoke Grafana uses the **default** Prometheus datasource (local Thanos). Do not 
 
 **Metric panels:**
 
-- Hub `east-west-traffic` — hub gateway HTTP + mesh L4; Kafka via Prometheus-East/West
-- Hub `multi-cluster-istio` — per-cluster L4 TCP on East/West; Kafka comparison row
-- Spoke `local-metrics` — ztunnel L4 panels + Kafka + Industrial Edge workloads
+| Dashboard | Visualizations | Data sources |
+| --------- | -------------- | -------------- |
+| `east-west-traffic` | Gauges (broker state), donut pie (leaders East/West), bargauge (partitions, Kafka API req/s) | Hub + Prometheus-East/West |
+| `multi-cluster-istio` | Timeseries + L4 **bargauge** per cluster | Mixed datasources |
+| `local-metrics` | ztunnel readiness **gauge**, Kafka bargauge/piechart, L4 timeseries | Local Thanos |
+
+- Hub gateway / Istio HTTP panels may show **no data** until clients generate traffic through `hub-gateway-istio` or waypoints.
+- Kafka panels use `kafka_network_requestmetrics_*` and `kafka_server_replicamanager_*` — not `brokertopicmetrics` with `_objectname` filters.
 
 Enable **User Workload Monitoring** on spokes (`cluster-monitoring-config` → `enableUserWorkload: true`).
+
+**Quick validation:**
+
+```bash
+oc get ds -n ztunnel
+oc logs -n istio-cni $(oc get pods -n istio-cni -o name | head -1) | grep AmbientEnabled
+# Expect: AmbientEnabled: true
+```
 
 ## Multi-cluster metrics via Skupper
 
@@ -152,17 +169,19 @@ The **Streams for Apache Kafka Console** on the hub registers four clusters (dev
 **Fix:**
 
 1. Spokes: Strimzi `advertisedHost` per broker with `clusterName` suffix (`dev-cluster-broker-0-east`, etc.)
-2. Hub: headless Services + Endpoints in `components/kafka-console/templates/broker-dns.yaml` (Helm `lookup` of Skupper ClusterIPs)
+2. Hub: headless Services + **`EndpointSlice`** in `components/kafka-console/templates/broker-dns.yaml` (Helm `lookup` of Skupper ClusterIPs per broker)
 
-Re-sync the `kafka-console` Argo CD application after Skupper listeners are healthy.
+Argo CD **excludes `Endpoints`** from managed resources — use `EndpointSlice` so broker DNS syncs via GitOps.
+
+Re-sync the `kafka-console` Argo CD application after Skupper listeners are healthy. Confirm `listNodes` returns 200 in the Console UI.
 
 ## Grafana dashboard inventory
 
 | Dashboard | Scope | Datasources |
 | --------- | ----- | ----------- |
-| `east-west-traffic` | Hub | Hub, Prometheus-East, Prometheus-West |
-| `multi-cluster-istio` | Hub | Hub, Prometheus-East, Prometheus-West |
-| `local-metrics` | Each spoke | Local Prometheus (UWM/Thanos) |
+| `east-west-traffic` | Hub | Hub, Prometheus-East, Prometheus-West — Kafka health row (gauges, pie, bargauge) |
+| `multi-cluster-istio` | Hub | Hub, Prometheus-East, Prometheus-West — L4 bargauge + error/latency timeseries |
+| `local-metrics` | Each spoke | Local Prometheus (UWM/Thanos) — ztunnel + Kafka + workloads |
 
 ## References
 

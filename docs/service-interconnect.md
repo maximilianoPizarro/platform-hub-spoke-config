@@ -128,9 +128,11 @@ Skupper forwards **TCP** to Kafka bootstrap (`:9092`) correctly. The Kafka clien
 **Resolution pattern:**
 
 1. **Spokes** — set per-broker `advertisedHost` in Strimzi with a unique suffix per cluster (`dev-cluster-broker-0-east`, `dev-cluster-broker-0-west`, …).
-2. **Hub** — `components/kafka-console/templates/broker-dns.yaml` creates headless Services and Endpoints mapping those hostnames to Skupper listener ClusterIPs (populated via Helm `lookup` at sync time).
+2. **Hub** — `components/kafka-console/templates/broker-dns.yaml` creates headless Services and **`EndpointSlice`** resources mapping those hostnames to Skupper listener ClusterIPs (Helm `lookup` per broker IP — avoid nested lookups in slice `addresses`).
 
-After deploying Skupper listeners, sync the `kafka-console` application so Endpoints are filled. See [Observability](observability.md#kafka-console-hub).
+Argo CD excludes **`Endpoints`** from sync; EndpointSlice is the supported GitOps pattern for broker DNS on the hub.
+
+After deploying Skupper listeners, sync the `kafka-console` application so EndpointSlices are populated. See [Observability](observability.md#kafka-console-hub).
 
 ## Spoke gateway aggregation
 

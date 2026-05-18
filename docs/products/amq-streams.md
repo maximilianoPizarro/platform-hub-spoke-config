@@ -45,7 +45,7 @@ OpenShift Console link: **Kafka Console (All Clusters)** → `https://kafka-cons
 Brokers must advertise hostnames resolvable **on the hub** after metadata exchange. The platform uses:
 
 - **Spoke** `advertisedHost`: `dev-cluster-broker-0-<east|west>.dev-cluster-kafka-brokers.industrial-edge-tst-all.svc.cluster.local`
-- **Hub** `broker-dns.yaml`: Endpoints pointing each hostname to the correct Skupper listener IP
+- **Hub** `broker-dns.yaml`: **EndpointSlice** (not Endpoints — Argo CD excludes Endpoints) pointing each `advertisedHost` to the correct Skupper listener IP
 
 Without this, the UI shows: `Timed out waiting for a node assignment` / `listNodes`.
 

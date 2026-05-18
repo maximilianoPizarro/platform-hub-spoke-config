@@ -86,8 +86,59 @@ spec:
           "type": "timeseries"
         },
         {
+          "datasource": {"type": "prometheus", "uid": "-- Mixed --"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "continuous-GrYlRd"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "cps"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 8, "w": 24, "x": 0, "y": 11},
+          "id": 4,
+          "options": {
+            "displayMode": "lcd",
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_hub}"},
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))",
+              "legendFormat": "Hub L4 opened",
+              "refId": "A"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_east}"},
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))",
+              "legendFormat": "East L4 opened",
+              "refId": "B"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_west}"},
+              "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))",
+              "legendFormat": "West L4 opened",
+              "refId": "C"
+            },
+            {
+              "datasource": {"type": "prometheus", "uid": "${ds_hub}"},
+              "expr": "sum(rate(istio_tcp_sent_bytes_total[5m]))",
+              "legendFormat": "Hub L4 bytes/s",
+              "refId": "D"
+            }
+          ],
+          "title": "ztunnel L4 throughput (connections & bytes)",
+          "type": "bargauge"
+        },
+        {
           "collapsed": false,
-          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 11},
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 19},
           "id": 200,
           "panels": [],
           "title": "Cross-cluster error rate (5xx)",
@@ -126,7 +177,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 12},
+          "gridPos": {"h": 9, "w": 24, "x": 0, "y": 20},
           "id": 2,
           "options": {
             "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true},
@@ -157,7 +208,7 @@ spec:
         },
         {
           "collapsed": false,
-          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 21},
+          "gridPos": {"h": 1, "w": 24, "x": 0, "y": 29},
           "id": 300,
           "panels": [],
           "title": "Cross-cluster latency (p50 / p95 / p99)",
@@ -193,7 +244,7 @@ spec:
             },
             "overrides": []
           },
-          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 22},
+          "gridPos": {"h": 10, "w": 24, "x": 0, "y": 30},
           "id": 3,
           "options": {
             "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true},

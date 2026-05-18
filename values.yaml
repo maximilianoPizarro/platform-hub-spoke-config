@@ -282,6 +282,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    # Kubecost (Red Hat certified operator - Federated ETL hub primary)
+    - id: kubecost
+      enabled: true
+      path: kubecost
+      destinationNamespace: kubecost
+      syncWave: "12"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
 
 deployer:
   domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"

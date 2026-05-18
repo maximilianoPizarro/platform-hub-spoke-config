@@ -15,23 +15,30 @@ metadata:
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   hostname: kafka-console.{{ .Values.clusterDomain }}
+  metricsSources:
+    - name: openshift-monitoring
+      type: openshift-monitoring
   kafkaClusters:
     - name: dev-cluster-east
+      metricsSource: openshift-monitoring
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
+      metricsSource: openshift-monitoring
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
+      metricsSource: openshift-monitoring
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
+      metricsSource: openshift-monitoring
       properties:
         values:
           - name: bootstrap.servers

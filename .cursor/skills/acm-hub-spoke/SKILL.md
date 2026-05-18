@@ -116,17 +116,38 @@ Use **`channel: stable-3.2`** in `components/operators/templates/servicemeshoper
 Required GitOps resources in `components/servicemeshoperator3/templates/all.yaml`:
 
 1. **`Istio` CR** — `profile: ambient`, `PILOT_ENABLE_AMBIENT: "true"`, **`trustedZtunnelNamespace: ztunnel`**. Do **not** pin `version: v1.24.1`; let the operator choose the Istio version for 3.2.
-2. **`IstioCNI` CR** — namespace only (no hardcoded version).
+2. **`IstioCNI` CR** — **`profile: ambient`** (required). Namespace-only is **not** enough: CNI starts with `AmbientEnabled: false`, never creates `/var/run/ztunnel/ztunnel.sock`, and ztunnel stays `0/N Ready` with `ZTunnelNotHealthy`.
 3. **`ZTunnel` CR** + namespace `ztunnel` — deploys the per-node L4 proxy DaemonSet.
 4. **`Telemetry` mesh-default** in `istio-system` — enables Prometheus metrics from the mesh.
+
+**IstioCNI ambient example** (from Red Hat OSSM 3.2 docs):
+
+```yaml
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+spec:
+  namespace: istio-cni
+  profile: ambient
+  values:
+    cni:
+      ambient:
+        reconcileIptablesOnStartup: true
+```
 
 Verify after sync:
 
 ```bash
 oc get ztunnel -n ztunnel
-oc get ds -n ztunnel
+oc get ds -n ztunnel                    # READY must equal DESIRED
+oc get istio -n istio-system -o jsonpath='{.items[0].status.state}{"\n"}'
+oc logs -n istio-cni $(oc get pods -n istio-cni -o name | head -1) | grep AmbientEnabled
+# Must show: AmbientEnabled: true
 oc get csv -n openshift-operators | grep servicemesh
 ```
+
+**ztunnel stuck / no `istio_tcp_*` metrics:** patch or sync `IstioCNI` with `profile: ambient`, wait for CNI rollout, then ztunnel pods become Ready without reinstalling OSSM.
 
 ### Ambient mesh practices
 
@@ -240,9 +261,16 @@ Without these RoleBindings, targets appear as 0 in Prometheus even though Servic
 - **Envoy sidecars**: port `http-envoy-prom` (15090), path `/stats/prometheus`
 
 **Dashboard metric expectations (OSSM3 GA + ztunnel):**
-- **L4 (ztunnel)**: `istio_tcp_connections_opened_total`, `istio_tcp_sent_bytes_total`, `istio_tcp_received_bytes_total` — available on spokes/hub with ambient enrolled namespaces.
-- **L7 HTTP**: `istio_requests_total` — requires traffic through **waypoints** or **ingress gateways**; hub `hub-gateway-istio` always produces some L7 metrics.
+- **L4 (ztunnel)**: `istio_tcp_connections_opened_total`, `istio_tcp_sent_bytes_total`, `istio_tcp_received_bytes_total` — available once `IstioCNI` has `profile: ambient` and ztunnel DS is Ready; values stay **0** until real mesh traffic flows.
+- **L7 HTTP**: `istio_requests_total` — requires traffic through **waypoints** or **ingress gateways**; hub `hub-gateway-istio` only shows rates when clients hit the gateway.
 - Spoke dashboards (`spoke-dashboards`) should prefer L4 queries when L7 panels show "No data".
+
+**Grafana dashboard panels (`grafana-dashboards`, `spoke-dashboards`):**
+- Use **gauge** for Kafka `kafka_server_kafkaserver_brokerstate` (3 = Running) and under-replicated partitions.
+- Use **piechart** (donut) for leader partition split (East vs West on hub).
+- Use **bargauge** for `kafka_network_requestmetrics_requestspersec_total` and `kafka_server_replicamanager_partitioncount` — these JMX metrics are always scraped.
+- **Do not** use `kafka_server_brokertopicmetrics_*` with `_objectname=~".*OneMinuteRate.*"` — that MBean naming is not present in Strimzi JMX export on this platform; panels stay empty.
+- Hub `east-west-traffic` uses templated datasources `${ds_east}` / `${ds_west}`; spoke `local-metrics` uses default Prometheus only.
 
 ## ConsoleLinks for multi-cluster navigation
 
@@ -408,6 +436,20 @@ Key rules:
 ### Spoke Grafana
 
 Spokes deploy the same `observability` component. The Grafana CR is identical. Spoke dashboards (`spoke-dashboards` component) only contain a `local-metrics` GrafanaDashboard CR, no additional datasources.
+
+**Verify dashboards have data** (from hub or spoke):
+
+```bash
+TOKEN=$(oc create token grafana-thanos-reader -n openshift-cluster-observability-operator --duration=600s)
+oc run promq --rm -i --restart=Never --image=curlimages/curl:latest --command -- sh -c \
+  "curl -sk -H 'Authorization: Bearer $TOKEN' \
+   'https://thanos-querier.openshift-monitoring.svc:9091/api/v1/query?query=count(kafka_server_kafkaserver_brokerstate==3)'"
+# East via Skupper (hub only):
+oc run promq --rm -i --restart=Never --image=curlimages/curl:latest --command -- \
+  curl -sk 'http://prometheus-east.service-interconnect.svc:9091/api/v1/query?query=sum(kafka_network_requestmetrics_requestspersec_total)'
+```
+
+Route: `oc get route grafana-route -n openshift-cluster-observability-operator -o jsonpath='https://{.spec.host}{"\n"}'`
 
 ## ManagedClusterAction / ManagedClusterView limitations
 

@@ -89,6 +89,15 @@ data:
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE']
           headers:
             Authorization: Bearer ${RHACS_API_TOKEN}
+    # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
+    # integrations:
+    #   azure:
+    #     - host: dev.azure.com
+    #       credentials:
+    #         - personalAccessToken: ${AZURE_TOKEN}
+    # azureDevOps:
+    #   host: dev.azure.com
+    #   organization: ${AZURE_ORG}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -126,17 +135,9 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.kubernetes/content
                     importName: EntityKubernetesContent
+      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT). Use redhat-argocd plugin instead.
       - package: ./dynamic-plugins/dist/backstage-community-plugin-argocd
-        disabled: false
-        pluginConfig:
-          dynamicPlugins:
-            frontend:
-              backstage-community.plugin-argocd:
-                mountPoints:
-                  - mountPoint: entity.page.kubernetes/cards
-                    importName: ArgocdDeploymentSummary
-                  - mountPoint: entity.page.kubernetes/cards
-                    importName: ArgocdDeploymentLifecycle
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-topology
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka-backend-dynamic
@@ -184,6 +185,21 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-module-http-request-dynamic
         disabled: false
+      # --- Azure DevOps (disabled - requires AZURE_TOKEN and AZURE_ORG env vars) ---
+      # PAT scopes: Code (Read), Build (Read & Execute), Release (Read), Work Items (Read), Pull Request Threads (Read & Write)
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-azure-devops-backend-dynamic
+        disabled: true
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-azure-devops
+        disabled: true
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-azure-devops:
+                mountPoints:
+                  - mountPoint: entity.page.pull-requests/content
+                    importName: EntityAzurePullRequestsContent
+                  - mountPoint: entity.page.ci/cards
+                    importName: EntityAzurePipelinesContent
 ---
 apiVersion: rhdh.redhat.com/v1alpha5
 kind: Backstage

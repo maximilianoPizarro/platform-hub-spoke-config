@@ -95,6 +95,7 @@ flowchart TB
 | Industrial Edge workloads | | yes |
 | Kafka brokers (regional) | optional | yes |
 | Service Mesh ambient / ztunnel | yes | yes |
+| Istio CNI (`profile: ambient`) | yes | yes |
 | Skupper Site (hub listeners) | yes | |
 | Skupper Site (spoke connectors) | | yes |
 | Grafana (multi-cluster dashboards) | yes | |

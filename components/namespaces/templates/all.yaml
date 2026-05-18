@@ -1,7 +1,6 @@
-{{- $namespaces := list
+{{- $ambientNamespaces := list
   "industrial-edge-tst-all"
   "industrial-edge-stormshift-messaging"
-  "industrial-edge-data-lake"
   "industrial-edge-ml-workspace"
   "industrial-edge-ci"
   "ml-development"
@@ -14,7 +13,10 @@
   "devspaces"
   "redhat-connectivity-link-operator"
 }}
-{{- range $namespaces }}
+{{- $noMeshNamespaces := list
+  "industrial-edge-data-lake"
+}}
+{{- range $ambientNamespaces }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -22,6 +24,15 @@ metadata:
   name: {{ . }}
   labels:
     istio.io/dataplane-mode: ambient
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+{{- end }}
+{{- range $noMeshNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 {{- end }}

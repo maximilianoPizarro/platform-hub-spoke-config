@@ -1,0 +1,18 @@
+clusterDomain: ""
+channel: alpha
+
+# primary = hub aggregator; agent = spoke Federated ETL agent (auto-set when clusterRole=spoke)
+role: primary
+clusterName: hub
+clusterRole: hub
+
+# Federated ETL object storage (S3-compatible, e.g. NooBaa/MinIO). Leave empty to skip secret/CR until configured.
+federatedStore:
+  enabled: false
+  secretName: kubecost-federated-store
+  # Example for NooBaa/MinIO on hub:
+  # bucket: kubecost-federated
+  # endpoint: https://s3-openshift-storage.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+  # region: us-east-1
+  # accessKey: ""
+  # secretKey: ""

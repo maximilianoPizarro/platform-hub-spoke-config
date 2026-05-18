@@ -32,6 +32,11 @@ metadata:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   namespace: istio-cni
+  profile: ambient
+  values:
+    cni:
+      ambient:
+        reconcileIptablesOnStartup: true
 ---
 apiVersion: v1
 kind: Namespace

@@ -56,7 +56,16 @@ spec:
             }
           ],
           "title": "TCP connections opened (L4)",
-          "type": "stat"
+          "type": "gauge",
+          "options": {
+            "minVizHeight": 75,
+            "minVizWidth": 75,
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "sizing": "auto"
+          }
         },
         {
           "datasource": {"type": "prometheus"},
@@ -120,7 +129,51 @@ spec:
             }
           ],
           "title": "TCP bytes received (L4)",
-          "type": "stat"
+          "type": "gauge",
+          "options": {
+            "minVizHeight": 75,
+            "minVizWidth": 75,
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "sizing": "auto"
+          }
+        },
+        {
+          "datasource": {"type": "prometheus"},
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "thresholds"},
+              "mappings": [{"options": {"0": {"color": "red", "text": "Down"}, "1": {"color": "green", "text": "Up"}}, "type": "value"}],
+              "max": 1,
+              "min": 0,
+              "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]},
+              "unit": "none"
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 5, "w": 6, "x": 18, "y": 1},
+          "id": 6,
+          "options": {
+            "minVizHeight": 75,
+            "minVizWidth": 75,
+            "orientation": "auto",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "sizing": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {"type": "prometheus"},
+              "expr": "count(kube_pod_status_phase{namespace=\"ztunnel\", phase=\"Running\"}) / count(kube_pod_info{namespace=\"ztunnel\"})",
+              "legendFormat": "ztunnel ready",
+              "refId": "A"
+            }
+          ],
+          "title": "ztunnel DaemonSet readiness",
+          "type": "gauge"
         },
         {
           "datasource": {"type": "prometheus"},
@@ -201,26 +254,34 @@ spec:
           },
           "gridPos": {"h": 9, "w": 24, "x": 0, "y": 15},
           "id": 5,
-          "options": {
-            "legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true},
-            "tooltip": {"mode": "multi", "sort": "desc"}
+          "fieldConfig": {
+            "defaults": {
+              "color": {"mode": "palette-classic"},
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "reqps"
+            },
+            "overrides": []
           },
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_messagesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
-              "legendFormat": "{{ "{{namespace}}" }} in",
+              "expr": "topk(8, sum(kafka_network_requestmetrics_requestspersec_total) by (request))",
+              "legendFormat": "{{ "{{request}}" }}",
               "refId": "A"
-            },
-            {
-              "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_messagesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
-              "legendFormat": "{{ "{{namespace}}" }} out",
-              "refId": "B"
             }
           ],
-          "title": "Kafka messages in/out per namespace",
-          "type": "timeseries"
+          "title": "Kafka API requests/sec by type",
+          "type": "bargauge",
+          "options": {
+            "displayMode": "gradient",
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "orientation": "horizontal",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
+          }
         },
         {
           "collapsed": false,
@@ -269,56 +330,72 @@ spec:
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesinpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
-              "legendFormat": "{{ "{{namespace}}" }} in",
+              "expr": "count(kafka_server_kafkaserver_brokerstate == 3)",
+              "legendFormat": "running brokers",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_brokertopicmetrics_bytesoutpersec{_objectname=~\".*OneMinuteRate.*\"}) by (namespace)",
-              "legendFormat": "{{ "{{namespace}}" }} out",
+              "expr": "sum(kafka_server_replicamanager_leadercount)",
+              "legendFormat": "leader partitions",
               "refId": "B"
+            },
+            {
+              "datasource": {"type": "prometheus"},
+              "expr": "sum(kafka_server_replicamanager_underreplicatedpartitions)",
+              "legendFormat": "under-replicated",
+              "refId": "C"
             }
           ],
-          "title": "Kafka bytes in/out",
-          "type": "timeseries"
+          "title": "Kafka cluster snapshot",
+          "type": "piechart",
+          "options": {
+            "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"]},
+            "pieType": "donut",
+            "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+            "tooltip": {"mode": "single", "sort": "none"}
+          }
         },
         {
           "datasource": {"type": "prometheus"},
           "fieldConfig": {
             "defaults": {
-              "color": {"mode": "thresholds"},
-              "mappings": [],
-              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 50}, {"color": "red", "value": 100}]}
+              "color": {"mode": "continuous-BlYlRd"},
+              "max": 20,
+              "min": 0,
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+              "unit": "short"
             },
             "overrides": []
           },
           "gridPos": {"h": 9, "w": 12, "x": 12, "y": 25},
           "id": 202,
           "options": {
-            "colorMode": "value",
-            "graphMode": "area",
-            "justifyMode": "auto",
-            "orientation": "auto",
+            "displayMode": "lcd",
+            "minVizHeight": 16,
+            "minVizWidth": 8,
+            "orientation": "horizontal",
             "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
-            "textMode": "auto"
+            "showUnfilled": true,
+            "sizing": "auto",
+            "valueMode": "color"
           },
           "targets": [
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_controller_kafkacontroller_activebrokercount)",
-              "legendFormat": "active brokers",
+              "expr": "sum(kafka_server_replicamanager_partitioncount) by (namespace)",
+              "legendFormat": "{{ "{{namespace}}" }}",
               "refId": "A"
             },
             {
               "datasource": {"type": "prometheus"},
-              "expr": "sum(kafka_server_replicamanager_partitioncount)",
-              "legendFormat": "partitions",
+              "expr": "sum(kafka_server_replicamanager_leadercount) by (namespace)",
+              "legendFormat": "leaders {{ "{{namespace}}" }}",
               "refId": "B"
             }
           ],
-          "title": "Kafka brokers & partitions",
-          "type": "stat"
+          "title": "Partitions & leaders by namespace",
+          "type": "bargauge"
         },
         {
           "collapsed": false,

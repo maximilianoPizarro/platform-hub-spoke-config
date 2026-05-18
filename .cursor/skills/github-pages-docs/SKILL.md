@@ -37,7 +37,7 @@ docs/
 ├── branch-strategy.md           # Single-branch multi-cluster strategy (nav_order: 9)
 ├── hub-gateway.md               # Hub gateway as F5 analog (nav_order: 6)
 ├── industrial-edge.md           # Industrial Edge application details (nav_order: 8)
-    ├── observability.md             # Monitoring, Kiali, Kafka Console, dashboards (nav_order: 7)
+    ├── observability.md             # Grafana panels, Kafka metrics, Kiali, Kafka Console (nav_order: 7)
     ├── service-interconnect.md      # Skupper: metrics, gateways, Kafka (nav_order: 10)
 └── products/
     ├── index.md                 # Red Hat Products overview (has_children: true, nav_order: 5)
@@ -51,7 +51,7 @@ docs/
     ├── openshift-ai.md          # OpenShift AI
     ├── openshift-gitops.md      # OpenShift GitOps (ArgoCD)
     ├── pipelines.md             # OpenShift Pipelines (Tekton)
-    └── service-mesh.md          # OSSM3 3.2 GA ambient + ztunnel
+    └── service-mesh.md          # OSSM3 3.2 GA ambient, IstioCNI profile, ztunnel troubleshooting
 ```
 
 ## Front matter conventions
@@ -153,6 +153,11 @@ When documenting platform-specific topics, include these sections where relevant
 - **Mermaid diagram** — architecture or flow diagrams using fenced `mermaid` blocks. Use `flowchart TB` or `flowchart LR` for architecture, `sequenceDiagram` for flows
 - **Links to official docs** — always use `docs.redhat.com` URLs, not community/upstream
 - **Troubleshooting notes** — known issues specific to this deployment (e.g. OOM, SCC, TLS)
+
+**Topic routing for this repo:**
+- Mesh install, ztunnel, `IstioCNI` ambient profile → `docs/products/service-mesh.md`
+- Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS → `docs/observability.md`
+- Skupper, broker `advertisedHost`, EndpointSlice → `docs/service-interconnect.md` + `docs/products/amq-streams.md`
 
 ### Diagram conventions
 

@@ -52,10 +52,32 @@ The `servicemeshoperator3` chart deploys:
 
 1. Namespaces: `istio-system`, `istio-cni`, `ztunnel`
 2. `Istio` CR — `profile: ambient`, `trustedZtunnelNamespace: ztunnel`
-3. `IstioCNI` CR
+3. `IstioCNI` CR — **`profile: ambient`** and `values.cni.ambient.reconcileIptablesOnStartup: true` (required for ztunnel socket and L4 metrics)
 4. `ZTunnel` CR — must reach `Ready`; verify `oc get ds -n ztunnel`
 5. Waypoint `Gateway` per mesh namespace (Industrial Edge, `hub-gateway-system`)
 6. `Telemetry/mesh-default` in `istio-system`
+
+```yaml
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+spec:
+  namespace: istio-cni
+  profile: ambient
+  values:
+    cni:
+      ambient:
+        reconcileIptablesOnStartup: true
+```
+
+### Troubleshooting ztunnel (`ZTunnelNotHealthy`)
+
+| Symptom | Cause | Fix |
+| ------- | ----- | --- |
+| ztunnel `0/N Ready`, log: `failed to connect ... ztunnel.sock` | `IstioCNI` without `profile: ambient` | Add `profile: ambient` to `IstioCNI` CR; CNI logs must show `AmbientEnabled: true` |
+| No `istio_tcp_*` in Prometheus | ztunnel not Ready | Fix CNI first, confirm `PodMonitor` in `ztunnel` namespace |
+| InstallPlan blocked on CRD v1alpha1 removal | TP2 → GA upgrade | Delete `Istio`/`IstioCNI` CRs and sailoperator CRDs, reinstall `stable-3.2` |
 
 Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces`.
 
@@ -63,14 +85,18 @@ Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces
 
 | Metric family | Source | When available |
 | ------------- | ------ | -------------- |
-| `istio_tcp_*` | ztunnel | Ambient-enrolled namespaces with traffic |
+| `istio_tcp_*` | ztunnel | After `IstioCNI` ambient profile + ztunnel Ready; non-zero only with traffic |
 | `istio_requests_total` | Waypoints / ingress gateways | HTTP through waypoints or `hub-gateway-istio` |
-| Kafka JMX | Strimzi PodMonitor | User Workload Monitoring enabled on spokes |
+| `kafka_server_kafkaserver_brokerstate` | Strimzi JMX | `3` = broker running |
+| `kafka_network_requestmetrics_requestspersec_total` | Strimzi JMX | Reliable throughput signal for Grafana |
+| `kafka_server_replicamanager_*` | Strimzi JMX | Leaders, partitions, under-replicated |
 
 Scraping: `components/istio-monitoring` — PodMonitors for gateways/waypoints, ztunnel, Kafka; RoleBindings for UWM.
 
-- Hub dashboards: `components/grafana-dashboards` (`east-west-traffic`, `multi-cluster-istio`)
-- Spoke dashboards: `components/spoke-dashboards` (`local-metrics` — L4 + Kafka panels)
+- Hub dashboards: `components/grafana-dashboards` — gauges, pie charts, bar gauges for Kafka; L4 bar gauge row on `multi-cluster-istio`
+- Spoke dashboards: `components/spoke-dashboards` — `local-metrics` (ztunnel readiness gauge, Kafka bargauge/piechart, L4 timeseries)
+
+Avoid Grafana queries on `kafka_server_brokertopicmetrics_*` with JMX `_objectname` filters — those series are not present in the current Strimzi scrape config.
 
 ## Kiali and OSSM Console
 
