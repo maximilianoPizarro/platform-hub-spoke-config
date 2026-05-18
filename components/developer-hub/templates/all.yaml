@@ -74,14 +74,23 @@ data:
       kubernetes: true
       argocd: true
       ocm: true
-      kuadrant: true
+    kubernetes:
+      serviceLocatorMethod:
+        type: multiTenant
+      clusterLocatorMethods:
+        - type: config
+          clusters:
+            - name: hub
+              url: https://kubernetes.default.svc.cluster.local:443
+              authProvider: serviceAccount
+              skipTLSVerify: true
     catalog:
       providers:
         ocm:
-          hub:
+          default:
             name: hub
             url: https://kubernetes.default.svc.cluster.local:443
-            skipTLSVerify: false
+            skipTLSVerify: true
     proxy:
       endpoints:
         '/rhacs':
