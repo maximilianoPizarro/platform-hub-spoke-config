@@ -5,3 +5,6 @@ agent-tools/
 
 # Helm template scratch output (URLs belong in values — chart is developer-hub/templates/)
 components/_dh-*.yaml
+
+# Local ACS init-bundle YAML from roxctl (secrets — never commit)
+hub-init.yaml
