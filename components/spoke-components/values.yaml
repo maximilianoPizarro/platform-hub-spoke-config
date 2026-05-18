@@ -61,6 +61,18 @@ components:
   - id: kubecost
     path: components/kubecost
     namespace: kubecost
+  - id: industrial-edge-minio
+    path: components/industrial-edge-minio
+    namespace: industrial-edge-ml-workspace
+  - id: industrial-edge-data-science-cluster
+    path: components/industrial-edge-data-science-cluster
+    namespace: redhat-ods-applications
+  - id: industrial-edge-data-lake
+    path: components/industrial-edge-data-lake
+    namespace: industrial-edge-data-lake
+  - id: industrial-edge-data-science-project
+    path: components/industrial-edge-data-science-project
+    namespace: ml-development
 
 subscriptions:
   - name: skupper-operator
