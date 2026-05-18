@@ -13,10 +13,10 @@
   "devspaces"
 }}
 {{- $ieNoMeshNamespaces := list "industrial-edge-data-lake" }}
+{{- /* RHCL dns-operator: no ambient — CrashLoopBackOff on spokes when meshed */ -}}
 {{- $noMeshNamespaces := list
   "gitea"
   "stackrox"
-  # RHCL dns-operator manages cluster DNS; ambient ztunnel breaks it (CrashLoopBackOff on spokes)
   "redhat-connectivity-link-operator"
 }}
 {{- if ne .Values.clusterRole "hub" }}

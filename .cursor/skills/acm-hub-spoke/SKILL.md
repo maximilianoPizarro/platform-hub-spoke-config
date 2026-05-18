@@ -208,8 +208,9 @@ GitOps maintains two lists in `components/namespaces/templates/all.yaml`:
 | `stackrox` | ACS Central ↔ PostgreSQL TLS fails; route down or flaky | `$noMeshNamespaces` |
 | `gitea` | `configure-gitea` init: `connection reset by peer` to PostgreSQL ClusterIP; pod `Init:Error` | `$noMeshNamespaces` |
 | `industrial-edge-data-lake` | Data lake / MinIO patterns | `$noMeshNamespaces` |
+| `redhat-connectivity-link-operator` | `dns-operator-controller-manager` CrashLoopBackOff under ambient | `$noMeshNamespaces` |
 
-**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`, `redhat-connectivity-link-operator`.
+**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
 
 Kiali may show Gitea/ACS as outside the mesh — expected. Gitea remains reachable via Route and cluster DNS for Developer Hub / DevSpaces.
 
