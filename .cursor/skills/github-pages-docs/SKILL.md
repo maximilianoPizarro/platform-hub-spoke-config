@@ -44,6 +44,20 @@ Just the Docs does **not** use `site_header_custom.html`. Valid override include
 
 `footer_content` in `_config.yml` is empty; attribution lives only in `nav_footer_custom.html`.
 
+### Mobile / responsive rules (critical)
+
+Sidebar layout overrides (`display: flex`, `height: 100vh`, flex-column pinning) **must** be wrapped in `@media (min-width: 50rem)`. Without this guard, the sidebar covers the full viewport on mobile and the `h1` stacks vertically into a 1000 px column.
+
+Key mobile breakpoints:
+- `< 50rem` (800px) — sidebar collapses into Just the Docs' native hamburger drawer; **do not** force `height: 100vh` or `display: flex` on `header.side-bar`
+- `< 31.25rem` (500px) — true phone; sidebar footer hidden, attribution shown under content
+- `≥ 66.5rem` (1064px) — desktop grid with fixed sidebar width + right-side TOC
+
+Mobile header should have:
+- `padding: 0.5rem 0.75rem` on `.site-header`
+- Logo capped at `height: 24px`, `max-width: 110px`
+- `header.side-bar { height: auto; overflow: visible }` below 50rem
+
 ## Existing documentation structure
 
 ```
@@ -61,6 +75,7 @@ docs/
 ├── architecture.md              # Platform architecture with Mermaid diagrams (nav_order: 2)
 ├── getting-started.md           # Prerequisites and deployment steps (nav_order: 3)
 ├── deploy-acm-gitops.md         # ACM + GitOps deployment guide (nav_order: 4)
+├── annotations-reference.md     # Annotations & Labels Reference (nav_order: 10)
 ├── branch-strategy.md           # Single-branch multi-cluster strategy (nav_order: 9)
 ├── hub-gateway.md               # Hub gateway as F5 analog (nav_order: 6)
 ├── industrial-edge.md           # Industrial Edge application details (nav_order: 8)
@@ -224,6 +239,7 @@ When documenting platform-specific topics, include these sections where relevant
 - Kubecost multicluster, federated ETL, MinIO, SCC → `docs/community/kubecost.md`
 - Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
 - Mailpit SMTP testing → `docs/community/mailpit.md`
+- Namespace labels, pod selectors, annotations for feature activation → `docs/annotations-reference.md`
 
 ### Diagram conventions
 
@@ -250,6 +266,14 @@ Just the Docs links between pages using the navigation hierarchy. If a parent/ch
 - Verify `parent:` in child front matter exactly matches the parent page's `title:`.
 - Verify `has_children: true` is set on the parent page.
 - Use `nav_order` to control ordering; gaps in numbering are fine.
+
+### Mobile: sidebar covers viewport / header too large
+
+If the sidebar overlays the entire mobile screen or the page title stacks into a very tall column:
+- Ensure all sidebar layout overrides (`display: flex`, `height: 100vh`, `overflow: hidden`, flex-column pinning) are inside `@media (min-width: 50rem)`.
+- The only unconditional sidebar rule should be `border-top: 3px solid ...` (branding stripe).
+- At `< 50rem`, set `header.side-bar { height: auto; overflow: visible }` to let Just the Docs handle the hamburger drawer.
+- Logo: `height: 24px` on mobile vs `32px` on desktop.
 
 ### Layout: large empty margin on the right
 

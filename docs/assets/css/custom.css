@@ -44,65 +44,62 @@ code, pre, .highlight {
   font-family: 'Red Hat Mono', monospace !important;
 }
 
-/* ── Sidebar layout: pin footer visible at bottom, scroll nav only ── */
+/* ── Mobile: compact header, let Just the Docs handle sidebar collapse ── */
 header.side-bar {
-  display: flex !important;
-  flex-direction: column !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  overflow: hidden !important;
   border-top: 3px solid var(--rh-color-brand-red-on-dark) !important;
 }
 
-header.side-bar .site-nav {
-  flex: 1 1 0 !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  min-height: 0 !important;
-}
+/* ── Desktop sidebar layout: pin footer visible at bottom, scroll nav only ── */
+@media (min-width: 50rem) {
+  header.side-bar {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    align-items: stretch !important;
+  }
 
-header.side-bar > .site-footer {
-  flex: 0 0 auto !important;
-  flex-shrink: 0 !important;
-  margin-top: auto !important;
-  width: 100% !important;
-}
+  header.side-bar .site-nav {
+    flex: 1 1 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+  }
 
-/* ── Just the Docs: sidebar uses align-items:flex-end at md+ → empty wedge left of logo ── */
-header.side-bar {
-  align-items: stretch !important;
-}
+  header.side-bar > .site-footer {
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
+    width: 100% !important;
+    position: static !important;
+    left: auto !important;
+    bottom: auto !important;
+  }
 
-.side-bar .site-header,
-.side-bar .site-nav,
-header.side-bar > .site-footer {
-  width: 100% !important;
-  max-width: 100% !important;
-}
+  .side-bar .site-header,
+  .side-bar .site-nav,
+  header.side-bar > .site-footer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 
-/* Sidebar footer: theme uses position:absolute on small screens — breaks flex column */
-header.side-bar > .site-footer {
-  position: static !important;
-  left: auto !important;
-  bottom: auto !important;
-}
+  .side-bar .site-header {
+    justify-content: center !important;
+    padding-left: 3rem !important;
+    padding-right: 3rem !important;
+  }
 
-/* ── Sidebar header: optical center for logo (menu button consumes right padding) ── */
-.side-bar .site-header {
-  justify-content: center !important;
-  padding-left: 3rem !important;
-  padding-right: 3rem !important;
-}
+  .side-bar .site-header .site-title {
+    justify-content: center !important;
+  }
 
-.side-bar .site-header .site-title {
-  justify-content: center !important;
-}
-
-.side-bar .site-header .site-button {
-  position: absolute !important;
-  top: 50% !important;
-  right: 0.5rem !important;
-  transform: translateY(-50%) !important;
+  .side-bar .site-header .site-button {
+    position: absolute !important;
+    top: 50% !important;
+    right: 0.5rem !important;
+    transform: translateY(-50%) !important;
+  }
 }
 
 /* Desktop / tablet: attribution lives in sidebar only (theme also injects nav_footer in main — hide dup) */
@@ -112,12 +109,36 @@ header.side-bar > .site-footer {
   }
 }
 
-/* Mobile: hide sidebar footer (overlay drawer); show attribution once under content */
-@media (max-width: 31.24rem) {
+/* Mobile (< 50rem): let sidebar collapse naturally, compact header */
+@media (max-width: 49.99rem) {
+  header.side-bar {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .site-header {
+    padding: 0.5rem 0.75rem !important;
+    min-height: 0 !important;
+  }
+
+  .site-logo-img {
+    height: 24px !important;
+    max-width: 110px !important;
+  }
+
+  .site-header .site-button {
+    top: 0.5rem !important;
+    right: 0.5rem !important;
+  }
+
   header.side-bar > .site-footer {
     display: none !important;
   }
+}
 
+/* Small mobile: footer attribution under content */
+@media (max-width: 31.24rem) {
   .main .site-footer {
     display: flex !important;
     flex-direction: column !important;
@@ -156,8 +177,13 @@ header.side-bar > .site-footer {
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  padding: 0.85rem 1rem 0.75rem !important;
   width: 100% !important;
+}
+
+@media (min-width: 50rem) {
+  .site-header {
+    padding: 0.85rem 1rem 0.75rem !important;
+  }
 }
 
 .site-header .site-title {
