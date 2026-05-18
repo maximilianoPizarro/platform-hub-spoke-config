@@ -79,6 +79,9 @@ spec:
   template:
     metadata:
       name: '{{`{{.id}}-{{.name}}`}}'
+      annotations:
+        apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{.name}}`}}'
+        apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
       labels:
         app.kubernetes.io/part-of: platform-hub-spoke
         apps.open-cluster-management.io/cluster-set: global
