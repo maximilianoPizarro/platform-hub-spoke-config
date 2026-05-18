@@ -14,12 +14,22 @@ spec:
   generators:
     - matrix:
         generators:
-          - list:
-              elements:
-                - name: east
-                  clusterDomain: {{ .Values.clusters.east.domain | quote }}
-                - name: west
-                  clusterDomain: {{ .Values.clusters.west.domain | quote }}
+          - merge:
+              mergeKeys:
+                - name
+              generators:
+                - clusterDecisionResource:
+                    configMapRef: acm-hub-spoke-placement-decisions
+                    labelSelector:
+                      matchLabels:
+                        cluster.open-cluster-management.io/placement: hub-spoke-placement
+                    requeueAfterSeconds: 180
+                - list:
+                    elements:
+                      - name: east
+                        clusterDomain: {{ .Values.clusters.east.domain | quote }}
+                      - name: west
+                        clusterDomain: {{ .Values.clusters.west.domain | quote }}
           - list:
               elements:
                 - id: namespaces
