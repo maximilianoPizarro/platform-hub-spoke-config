@@ -218,11 +218,13 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        clusterRole: hub
     {{- else if eq .path "operators" }}
     helm:
       valuesObject:
         channel: {{ $.Values.connectivityLink.operators.channel | quote }}
         version: {{ $.Values.connectivityLink.operators.version | quote }}
+        clusterRole: hub
         subscriptions: {{ $.Values.connectivityLink.operators.subscriptions | toJson }}
     {{- else if eq .path "gitea" }}
     helm:

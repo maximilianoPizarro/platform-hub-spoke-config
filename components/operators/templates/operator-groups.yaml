@@ -17,6 +17,7 @@ metadata:
 spec:
   targetNamespaces:
     - openshift-cluster-observability-operator
+{{- if ne .Values.clusterRole "hub" }}
 ---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -28,3 +29,4 @@ metadata:
 spec:
   targetNamespaces:
     - industrial-edge-tst-all
+{{- end }}

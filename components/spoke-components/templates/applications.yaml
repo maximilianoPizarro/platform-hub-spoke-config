@@ -14,6 +14,7 @@ metadata:
   name: {{ .id }}-{{ $.Values.clusterName }}
   namespace: openshift-gitops
   annotations:
+    argocd.argoproj.io/sync-wave: {{ .syncWave | default "0" | quote }}
     apps.open-cluster-management.io/ocm-managed-cluster: {{ $.Values.clusterName | quote }}
     apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
   labels:
