@@ -8,6 +8,7 @@ metadata:
     argocd.argoproj.io/application-set-controller: openshift-gitops
   annotations:
     argocd.argoproj.io/sync-wave: "5"
+    apps.open-cluster-management.io/source-repository: {{ .Values.gitops.repoUrl | quote }}
 spec:
   generators:
     - clusterDecisionResource:
@@ -19,12 +20,12 @@ spec:
   template:
     metadata:
       name: '{{`{{name}}-spoke-components`}}'
-      annotations:
-        apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{name}}`}}'
-        apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
       labels:
         app.kubernetes.io/part-of: platform-hub-spoke
         apps.open-cluster-management.io/cluster-set: global
+        apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{name}}`}}'
+      annotations:
+        apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
     spec:
       project: default
       source:
