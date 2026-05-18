@@ -43,22 +43,28 @@ code, pre, .highlight {
   font-family: 'Red Hat Mono', monospace !important;
 }
 
-/* ── Sidebar layout: pin footer, scroll nav ── */
-.side-bar {
+/* ── Sidebar layout: pin footer visible at bottom, scroll nav only ── */
+header.side-bar {
   display: flex !important;
   flex-direction: column !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
   border-top: 3px solid var(--rh-color-brand-red-on-dark) !important;
 }
 
-.side-bar .site-nav {
-  flex: 1 1 auto !important;
+header.side-bar .site-nav {
+  flex: 1 1 0 !important;
+  overflow-x: hidden !important;
   overflow-y: auto !important;
   min-height: 0 !important;
 }
 
-.side-bar > .site-footer {
+header.side-bar > .site-footer {
+  flex: 0 0 auto !important;
   flex-shrink: 0 !important;
   margin-top: auto !important;
+  width: 100% !important;
 }
 
 /* ── Sidebar header: centered Red Hat logo ── */
@@ -86,9 +92,9 @@ code, pre, .highlight {
 
 .site-logo-img {
   display: block !important;
-  height: 48px !important;
+  height: 56px !important;
   width: auto !important;
-  max-width: 200px !important;
+  max-width: 220px !important;
   margin: 0 auto !important;
 }
 
