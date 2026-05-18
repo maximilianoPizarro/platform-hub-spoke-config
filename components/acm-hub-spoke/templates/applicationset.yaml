@@ -15,7 +15,7 @@ spec:
     - matrix:
         generators:
           - clusterDecisionResource:
-              configMapRef: acm-hub-spoke-placement-decisions
+              configMapRef: acm-placement
               labelSelector:
                 matchLabels:
                   cluster.open-cluster-management.io/placement: hub-spoke-placement
