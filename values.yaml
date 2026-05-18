@@ -84,7 +84,7 @@ connectivityLink:
       enabled: true
       path: namespaces
       destinationNamespace: openshift-gitops
-      syncWave: "1"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
@@ -92,7 +92,7 @@ connectivityLink:
       enabled: true
       path: operators
       destinationNamespace: openshift-operators
-      syncWave: "2"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -100,7 +100,7 @@ connectivityLink:
       enabled: true
       path: servicemeshoperator3
       destinationNamespace: openshift-operators
-      syncWave: "3"
+      syncWave: "0"
       prune: false
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -108,7 +108,7 @@ connectivityLink:
       enabled: true
       path: acm-operator
       destinationNamespace: open-cluster-management
-      syncWave: "3"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -116,7 +116,7 @@ connectivityLink:
       enabled: true
       path: acs-operator
       destinationNamespace: stackrox
-      syncWave: "3"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -124,7 +124,7 @@ connectivityLink:
       enabled: true
       path: acs-secured-cluster
       destinationNamespace: stackrox
-      syncWave: "6"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -132,7 +132,7 @@ connectivityLink:
       enabled: true
       path: developer-hub
       destinationNamespace: developer-hub
-      syncWave: "3"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -140,7 +140,7 @@ connectivityLink:
       enabled: true
       path: acm-hub-spoke
       destinationNamespace: openshift-gitops
-      syncWave: "4"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -149,7 +149,7 @@ connectivityLink:
       enabled: true
       path: observability
       destinationNamespace: openshift-cluster-observability-operator
-      syncWave: "5"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -157,7 +157,7 @@ connectivityLink:
       enabled: true
       path: kiali
       destinationNamespace: openshift-cluster-observability-operator
-      syncWave: "6"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -165,7 +165,7 @@ connectivityLink:
       enabled: true
       path: opentelemetry
       destinationNamespace: openshift-opentelemetry
-      syncWave: "6"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -174,7 +174,7 @@ connectivityLink:
       enabled: true
       path: rhcl-operator
       destinationNamespace: redhat-connectivity-link-operator
-      syncWave: "6"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -184,7 +184,7 @@ connectivityLink:
       enabled: true
       path: hub-gateway
       destinationNamespace: hub-gateway-system
-      syncWave: "7"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -196,7 +196,7 @@ connectivityLink:
       chart: gitea
       targetRevision: "12.5.0"
       destinationNamespace: gitea
-      syncWave: "3"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
@@ -204,7 +204,7 @@ connectivityLink:
       enabled: true
       path: gitea
       destinationNamespace: gitea
-      syncWave: "5"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -213,7 +213,7 @@ connectivityLink:
       enabled: true
       path: console-links
       destinationNamespace: openshift-gitops
-      syncWave: "9"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -222,7 +222,7 @@ connectivityLink:
       enabled: true
       path: grafana-dashboards
       destinationNamespace: openshift-cluster-observability-operator
-      syncWave: "8"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -230,7 +230,7 @@ connectivityLink:
       enabled: true
       path: istio-monitoring
       destinationNamespace: istio-system
-      syncWave: "8"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -238,7 +238,7 @@ connectivityLink:
       enabled: true
       path: service-interconnect
       destinationNamespace: service-interconnect
-      syncWave: "10"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -247,7 +247,7 @@ connectivityLink:
       enabled: true
       path: mailpit
       destinationNamespace: mailpit
-      syncWave: "5"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
@@ -256,7 +256,7 @@ connectivityLink:
       enabled: true
       path: kafka-console
       destinationNamespace: kafka-console
-      syncWave: "11"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
@@ -265,7 +265,7 @@ connectivityLink:
       enabled: true
       path: kubecost
       destinationNamespace: kubecost
-      syncWave: "12"
+      syncWave: "0"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
