@@ -35,10 +35,10 @@ Just the Docs does **not** use `site_header_custom.html`. Valid override include
 **Layout CSS variables** (`docs/assets/css/custom.css`):
 
 - `--rh-sidebar-width: 264px`
-- `--rh-content-max: 44rem` — default content column
-- `--rh-content-with-toc-max: 52rem` — content + right TOC grid (≥75rem viewport)
+- `--rh-main-padding-x: 2rem` — horizontal padding inside `.main`
+- `--rh-toc-width: 11rem` — right “On this page” column
 
-`.main` uses `width: calc(100vw - sidebar)` and `align-items: center` so the content column is centered without a black void on the right. `body` and `.main` share `--rh-color-surface-dark`.
+`.main` fills the area beside the sidebar (`margin-left: sidebar width`, no `max-width` on content). Content + TOC use CSS grid (`1fr` + TOC width) so there is **no** centered narrow column and no empty margin on the right. Do **not** use `align-items: center` on `.main`.
 
 **Do not** add `site_header_custom.html` — it is ignored by Just the Docs and confuses maintainers.
 
