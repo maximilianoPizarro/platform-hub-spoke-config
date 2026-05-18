@@ -12,9 +12,9 @@ nav_order: 5
 
 Red Hat **OpenShift Service Mesh 3** (OSSM3) provides **ambient mesh** on OpenShift: a per-node **ztunnel** for L4 mTLS and telemetry, plus optional **waypoint** proxies for L7 policy.
 
-![Grafana – East-West Traffic & Service Mesh]({{ site.baseurl }}/assets/images/product-grafana-observability.png)
+![Kiali – Service Mesh topology]({{ site.baseurl }}/assets/images/product-kiali-service-mesh.png)
 {: .mb-4 }
-*Service Mesh L4 metrics visualized in the East-West Traffic Grafana dashboard.*
+*Kiali traffic graph and mesh topology in the OpenShift Console (OSSM plugin).*
 {: .fs-2 .text-grey-dk-000 }
 
 ## Version and channel
@@ -90,6 +90,11 @@ spec:
 Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces`.
 
 ## Metrics and dashboards
+
+![Grafana – East-West Traffic & Service Mesh]({{ site.baseurl }}/assets/images/product-grafana-observability.png)
+{: .mb-4 }
+*Service Mesh L4 metrics in the East-West Traffic Grafana dashboard.*
+{: .fs-2 .text-grey-dk-000 }
 
 | Metric family | Source | When available |
 | ------------- | ------ | -------------- |
