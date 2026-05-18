@@ -66,36 +66,30 @@ spec:
       url: http://prometheus-west.service-interconnect.svc.cluster.local:9091
   kafkaClusters:
     - name: prod-cluster
-      namespace: industrial-edge-data-lake
       metricsSource: thanos
-      listener: plain
       properties:
         values:
           - name: bootstrap.servers
             value: prod-cluster-kafka-bootstrap.industrial-edge-data-lake.svc.cluster.local:9092
     - name: dev-cluster-east
-      namespace: industrial-edge-tst-all
       metricsSource: prometheus-east
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
-      namespace: industrial-edge-stormshift-messaging
       metricsSource: prometheus-east
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
-      namespace: industrial-edge-tst-all
       metricsSource: prometheus-west
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
-      namespace: industrial-edge-stormshift-messaging
       metricsSource: prometheus-west
       properties:
         values:
