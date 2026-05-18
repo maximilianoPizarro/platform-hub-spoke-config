@@ -16,29 +16,40 @@ metadata:
 spec:
   hostname: kafka-console.{{ .Values.clusterDomain }}
   metricsSources:
-    - name: openshift-monitoring
-      type: openshift-monitoring
+    - name: thanos
+      type: standalone
+      url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
+      authentication:
+        bearer:
+          tokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      trustStore:
+        type: PEM
+        content:
+          valueFrom:
+            configMapKeyRef:
+              name: kube-root-ca.crt
+              key: ca.crt
   kafkaClusters:
     - name: dev-cluster-east
-      metricsSource: openshift-monitoring
+      metricsSource: thanos
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-east
-      metricsSource: openshift-monitoring
+      metricsSource: thanos
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-east-stormshift.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-west
-      metricsSource: openshift-monitoring
+      metricsSource: thanos
       properties:
         values:
           - name: bootstrap.servers
             value: kafka-west-tst.service-interconnect.svc.cluster.local:9092
     - name: factory-cluster-west
-      metricsSource: openshift-monitoring
+      metricsSource: thanos
       properties:
         values:
           - name: bootstrap.servers
