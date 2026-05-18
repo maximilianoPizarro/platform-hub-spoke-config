@@ -3,6 +3,9 @@ kind: ApplicationSet
 metadata:
   name: industrial-edge-spoke
   namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+    argocd.argoproj.io/application-set-controller: openshift-gitops
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
