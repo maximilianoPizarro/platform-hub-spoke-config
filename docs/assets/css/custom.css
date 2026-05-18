@@ -41,15 +41,62 @@ code, pre, .highlight {
   font-family: 'Red Hat Mono', monospace !important;
 }
 
-/* ── Layout: sidebar + main + right TOC ── */
+/* ── Sidebar: Red Hat logo in header ── */
+.site-header {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+.site-logo-custom {
+  display: block !important;
+  padding: 0.5rem 1rem 0.75rem !important;
+}
+
+.site-logo-img {
+  display: block !important;
+  height: 28px !important;
+  width: auto !important;
+  max-width: 140px !important;
+}
+
+/* Hide duplicate default logo from theme config when custom header logo is used */
+.site-header img:not(.site-logo-img) {
+  display: none !important;
+}
+
+/* Hide default "This site uses Just the Docs" — replaced by nav_footer_custom */
+.side-bar .site-footer > p {
+  display: none !important;
+}
+
+/* ── Sidebar footer: author attribution ── */
+.site-footer-custom {
+  padding: 1rem 1rem 1.25rem !important;
+  border-top: 1px solid var(--rh-color-black-700) !important;
+  line-height: 1.5 !important;
+}
+
+.site-footer-custom a {
+  color: var(--rh-color-interactive-blue-lighter) !important;
+  font-weight: 500;
+}
+
+.site-footer-logo {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Layout: content + TOC without empty gap ── */
 .main-content-wrap {
-  max-width: 100% !important;
-  padding-left: 2rem;
-  padding-right: 2rem;
+  max-width: 72rem !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
 }
 
 .main-content {
-  max-width: 960px !important;
+  max-width: none !important;
 }
 
 @media (min-width: 66.5rem) {
@@ -63,17 +110,34 @@ code, pre, .highlight {
   }
 }
 
+@media (min-width: 90rem) {
+  .main-content-wrap.has-page-toc {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 200px;
+    column-gap: 2rem;
+    align-items: start;
+  }
+
+  .main-content-wrap.has-page-toc .main-content {
+    grid-column: 1;
+  }
+
+  .main-content-wrap.has-page-toc .site-nav-toc {
+    grid-column: 2;
+  }
+}
+
 /* ── Right-side Table of Contents ── */
 .site-nav-toc {
-  position: fixed;
-  right: 1rem;
+  position: sticky;
   top: 4rem;
-  width: 220px;
+  width: 200px;
   max-height: calc(100vh - 6rem);
   overflow-y: auto;
   font-size: 0.8rem;
   border-left: 2px solid var(--rh-color-brand-red-on-dark);
   padding-left: 1rem;
+  flex-shrink: 0;
 }
 
 .site-nav-toc a {
@@ -98,10 +162,18 @@ code, pre, .highlight {
   padding-left: 0;
 }
 
-@media (max-width: 90rem) {
+@media (max-width: 89.99rem) {
   .site-nav-toc {
     display: none;
   }
+}
+
+/* Product screenshots */
+.main-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid var(--rh-color-black-700);
 }
 
 /* ── Dark mode colors ── */

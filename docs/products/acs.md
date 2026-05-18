@@ -11,6 +11,11 @@ Red Hat **Advanced Cluster Security for Kubernetes (ACS)** centralizes Kubernete
 
 **Git path:** `components/acs-operator/` (hub), `components/acs-secured-cluster/` (hub + spokes)
 
+![ACS Central – Cluster registration]({{ site.baseurl }}/assets/images/ACS.png)
+{: .mb-4 }
+*ACS Central — hub and spoke clusters registered (hub, east, west).*
+{: .fs-2 .text-grey-dk-000 }
+
 ## Topology for hub-spoke
 
 | Component | Location | Role |

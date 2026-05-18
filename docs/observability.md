@@ -8,7 +8,7 @@ nav_order: 7
 
 Observability ties together **metrics**, **logs**, **traces**, and **mesh visualization** so operators can compare east and west Industrial Edge clusters from the hub.
 
-![Grafana – East-West Traffic Dashboard]({{ site.baseurl }}/assets/images/product-grafana-dashboard.png)
+![Grafana – East-West Traffic Dashboard]({{ site.baseurl }}/assets/images/product-grafana-observability.png)
 {: .mb-4 }
 *Grafana East-West Traffic & Service Mesh dashboard with multi-cluster datasources.*
 {: .fs-2 .text-grey-dk-000 }
