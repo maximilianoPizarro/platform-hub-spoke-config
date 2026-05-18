@@ -47,6 +47,8 @@ Most visibility comes from **CRDs**, but namespaces carry mesh/policy hints when
 
 Details and YAML snippets live on each product page under **Operator discovery**.
 
+For the complete list of every Kubernetes label and annotation that activates a feature — namespace enrollment, monitoring selectors, gateway hints, ConfigMap syncing — see **[Annotations & Labels Reference](../annotations-reference.md)**.
+
 ---
 
 **Next:** pick your deployment lane — mesh labels ([Service Mesh](service-mesh.md)), fleet placement ([ACM](acm.md)), or Kafka plumbing ([AMQ Streams](amq-streams.md)).

@@ -267,7 +267,7 @@ This platform extends that idea with **Industrial Edge** workloads, **Service Me
 
 ---
 
-**Next:** translate diagrams into installs via **[Getting Started](getting-started.md)** / **[Deploy with ACM and GitOps](deploy-acm-gitops.md)**, then follow **[Observability](observability.md)** once workloads expose Prometheus signals.
+**Next:** translate diagrams into installs via **[Getting Started](getting-started.md)** / **[Deploy with ACM and GitOps](deploy-acm-gitops.md)**, then follow **[Observability](observability.md)** once workloads expose Prometheus signals. For onboarding namespaces, see the **[Annotations & Labels Reference](annotations-reference.md)**.
 
 ## Official documentation
 

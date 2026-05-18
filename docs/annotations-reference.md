@@ -1,0 +1,217 @@
+---
+layout: default
+title: Annotations & Labels Reference
+nav_order: 10
+---
+
+# Annotations & Labels Reference
+
+This page documents every Kubernetes **label** and **annotation** that activates a feature in this platform — on **Namespaces**, **Pods**, **Deployments**, **Secrets**, or **CRs**. Use it as a quick-reference when onboarding namespaces, enabling monitoring, or enrolling workloads.
+
+---
+
+## Namespace-level labels
+
+These labels are applied via `components/namespaces` (sync-wave 0) and control which platform features are active per namespace.
+
+### Ambient mesh enrollment
+
+| Label | Value | Effect |
+| ----- | ----- | ------ |
+| `istio.io/dataplane-mode` | `ambient` | Enrolls all pods in the namespace into the **Istio ambient dataplane** (ztunnel L4 mTLS + telemetry). No sidecar injection required. |
+
+**Enrolled namespaces** (set in `components/namespaces/templates/all.yaml`):
+
+| Namespace | Purpose |
+| --------- | ------- |
+| `industrial-edge-tst-all` | Industrial Edge test workloads |
+| `industrial-edge-stormshift-messaging` | Kafka messaging (Stormshift) |
+| `industrial-edge-ml-workspace` | ML workspace |
+| `industrial-edge-ci` | CI/CD pipelines |
+| `ml-development` | ML development |
+| `hub-gateway-system` | Hub gateway (also in `components/hub-gateway/templates/namespace.yaml`) |
+| `spoke-gateway-system` | Spoke gateway (also in `components/spoke-gateway/templates/all.yaml`) |
+| `redhat-ods-operator` | OpenShift AI operator |
+| `openshift-cluster-observability-operator` | Observability stack |
+| `developer-hub` | Red Hat Developer Hub |
+| `devspaces` | Dev Spaces |
+| `redhat-connectivity-link-operator` | Connectivity Link |
+
+**Excluded from mesh** (no `istio.io/dataplane-mode` label):
+
+| Namespace | Reason |
+| --------- | ------ |
+| `stackrox` | ACS Central ↔ PostgreSQL TLS breaks under ambient interception |
+| `gitea` | Gitea init container → PostgreSQL via ClusterIP conflicts with ztunnel |
+| `industrial-edge-data-lake` | MinIO / data lake in-namespace patterns |
+
+### OpenShift AI / RHOAI dashboard
+
+| Label | Value | Effect |
+| ----- | ----- | ------ |
+| `opendatahub.io/dashboard` | `"true"` | Registers the namespace in the **RHOAI dashboard** project list. |
+
+Applied in `components/industrial-edge-data-science-project/templates/all.yaml` on the `ml-development` namespace.
+
+---
+
+## Pod-level labels (selector targets)
+
+These labels are **set by operators** on pods and are used by `PodMonitor`/`ServiceMonitor` selectors to activate scraping.
+
+### Kafka broker metrics
+
+| Label | Value | Selector in | Effect |
+| ----- | ----- | ----------- | ------ |
+| `strimzi.io/name` | `<cluster>-kafka` | `PodMonitor` `strimzi-kafka-metrics` | **User Workload Monitoring** scrapes Kafka broker JMX/exporter metrics on port `tcp-prometheus` (path `/metrics`). |
+
+Defined in `components/istio-monitoring/templates/all.yaml`. Strimzi automatically sets this label on broker pods.
+
+### Istio gateway metrics
+
+| Label | Value | Selector in | Effect |
+| ----- | ----- | ----------- | ------ |
+| `gateway.istio.io/managed` | *(any, operator `Exists`)* | `PodMonitor` `istio-mesh-metrics` | Scrapes **Envoy stats** from Istio-managed gateway/waypoint pods on port `metrics` (path `/stats/prometheus`). |
+
+### ztunnel metrics
+
+| Label | Value | Selector in | Effect |
+| ----- | ----- | ----------- | ------ |
+| `app` | `ztunnel` | `PodMonitor` `ztunnel-metrics` | Scrapes **ztunnel** L4 stats (port `ztunnel-stats`, path `/stats/prometheus`). |
+
+### istiod metrics
+
+| Label | Value | Selector in | Effect |
+| ----- | ----- | ----------- | ------ |
+| `app` | `istiod` | `ServiceMonitor` `istiod-monitor` | Scrapes **istiod** control plane metrics (port `http-monitoring`, path `/metrics`). |
+
+---
+
+## Gateway / Istio annotations
+
+| Annotation | Value | Resource | File | Effect |
+| ---------- | ----- | -------- | ---- | ------ |
+| `networking.istio.io/service-type` | `ClusterIP` | `Gateway` (gateway.networking.k8s.io) | `components/hub-gateway/templates/gateway.yaml`, `components/spoke-gateway/templates/all.yaml` | Forces the auto-generated Service for the Istio gateway to be **ClusterIP** instead of LoadBalancer. |
+
+## Gateway / Istio labels
+
+| Label | Value | Resource | File | Effect |
+| ----- | ----- | -------- | ---- | ------ |
+| `istio.io/waypoint-for` | `service` | `Gateway` (class `istio-waypoint`) | `components/servicemeshoperator3/templates/all.yaml` | Declares this waypoint Gateway provides **L7 proxying** for services in the namespace (ambient mesh). |
+
+---
+
+## ConfigMap labels (Developer Hub)
+
+| Label | Value | Resource | File | Effect |
+| ----- | ----- | -------- | ---- | ------ |
+| `rhdh.redhat.com/ext-config-sync` | `"true"` | `ConfigMap` | `components/developer-hub/templates/all.yaml`, `catalog-users.yaml` | RHDH operator **syncs** the ConfigMap content into the Backstage runtime as external configuration. |
+
+---
+
+## CR-level annotations (KServe)
+
+| Annotation | Value | Resource | File | Effect |
+| ---------- | ----- | -------- | ---- | ------ |
+| `serving.kserve.io/deploymentMode` | `ModelMesh` | `InferenceService` | `components/industrial-edge-tst/templates/anomaly-detection.yaml` | Routes inference through **ModelMesh** instead of default Knative Serverless mode. |
+
+---
+
+## Cluster secret labels (ACM / Argo CD)
+
+These labels are on Argo CD cluster secrets created by ACM's `GitOpsCluster` controller.
+
+| Label | Value | Resource | Effect |
+| ----- | ----- | -------- | ------ |
+| `argocd.argoproj.io/secret-type` | `cluster` | `Secret` | Marks the secret as an **Argo CD cluster registration**. |
+| `apps.open-cluster-management.io/acm-cluster` | `true` | `Secret` | Identifies ACM-managed cluster secrets. |
+| `apps.open-cluster-management.io/cluster-name` | `east` / `west` | `Secret` | Cluster name for ACM integration. |
+| `cluster.open-cluster-management.io/clusterset` | `global` | `Secret` | Binds the cluster to the **global** ManagedClusterSet. |
+| `name` | `east` / `west` | `Secret` | Cluster identifier used by ApplicationSet generators. |
+| `region` | `east` / `west` | `Secret` | Region label for Placement selectors. |
+| `clusterDomain` | `apps.<cluster>.<domain>` | `Secret` | **Custom label** added for ApplicationSet to derive the cluster's app domain. |
+
+---
+
+## ManagedCluster labels (ACM fleet)
+
+These labels are set on `ManagedCluster` resources for Placement-based cluster selection.
+
+| Label | Value | Effect |
+| ----- | ----- | ------ |
+| `cluster.open-cluster-management.io/clusterset` | `global` | Binds the cluster to a `ManagedClusterSet` for `ManagedClusterSetBinding` + `Placement`. |
+| `region` | `east` / `west` | Example label used by `Placement` label selectors. |
+| `environment` | `prod` / `dev` | Example label for environment-based placement. |
+| `vendor` | `OpenShift` | Auto-set by ACM during import. |
+
+---
+
+## ApplicationSet-generated app labels
+
+Apps created by the `industrial-edge-spoke` ApplicationSet carry:
+
+| Label | Value | Effect |
+| ----- | ----- | ------ |
+| `app.kubernetes.io/part-of` | `platform-hub-spoke` | Groups all platform apps for Argo CD filtering. |
+| `apps.open-cluster-management.io/cluster-set` | `global` | Enables ACM Fleet Management UI to discover spoke apps. |
+
+---
+
+## Monitor labels (Grafana Operator)
+
+| Label | Value | Resource | Effect |
+| ----- | ----- | -------- | ------ |
+| `dashboards` | `grafana` | `Grafana`, `GrafanaDatasource`, `GrafanaDashboard` | **Instance selector** — binds datasources and dashboards to the correct Grafana instance. |
+
+Defined in `components/observability/templates/all.yaml` and `components/spoke-dashboards/templates/local-metrics.yaml`.
+
+---
+
+## PodMonitor / ServiceMonitor common label
+
+| Label | Value | Resource | Effect |
+| ----- | ----- | -------- | ------ |
+| `release` | `openshift-user-workload-monitoring` | `PodMonitor`, `ServiceMonitor` | Required for **OpenShift User Workload Monitoring** to discover and activate the monitor. |
+
+---
+
+## Deployment labels (OpenShift console hints)
+
+| Label | Value | Resource | Effect |
+| ----- | ----- | -------- | ------ |
+| `app.kubernetes.io/part-of` | `industrial-edge` | `Deployment` | Groups workloads in the **OpenShift Topology** view. |
+| `app.openshift.io/runtime` | `python` / `email` / etc. | `Deployment` | Shows runtime **icon** in OpenShift console Topology. |
+
+---
+
+## What is NOT annotation-driven
+
+Several products in this platform do **not** use namespace or deployment annotations for enrollment:
+
+| Product | Enrollment mechanism |
+| ------- | -------------------- |
+| **ACS** | `SecuredCluster` CR + TLS Secrets from init bundles |
+| **ACM** | `ManagedCluster` import (not workload annotations) |
+| **Skupper** | `Site`, `Listener`, `Connector` CRs |
+| **Camel K** | `IntegrationPlatform` CR scope |
+| **Tekton** | `TektonConfig` cluster-wide operator |
+| **Connectivity Link** | `Gateway`, `HTTPRoute`, Kuadrant policy CRs |
+| **Developer Hub** | `Backstage` CR + `app-config-*` ConfigMaps |
+| **Kafka Console** | `Console` CR with `kafkaClusters[]` references |
+
+---
+
+## Quick checklist — onboarding a new namespace
+
+1. Add the namespace to `components/namespaces/templates/all.yaml`
+2. Decide mesh enrollment:
+   - **Yes** → add label `istio.io/dataplane-mode: ambient`
+   - **No** → omit the label (document reason in the template)
+3. If the namespace has Kafka brokers, ensure `PodMonitor` selectors match (`strimzi.io/name: <cluster>-kafka`)
+4. If you need RHOAI dashboard visibility, add `opendatahub.io/dashboard: "true"`
+5. Add the component to the ApplicationSet component list in `components/acm-hub-spoke/templates/applicationset.yaml`
+6. Add a waypoint `Gateway` (class `istio-waypoint`) if L7 policy or HTTP metrics are needed
+
+---
+
+**See also:** [Red Hat Products — Operator Discovery](products/) for per-product CRD details.
