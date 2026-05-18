@@ -8,12 +8,13 @@
   "redhat-ods-operator"
   "openshift-cluster-observability-operator"
   "developer-hub"
-  "gitea"
   "devspaces"
   "redhat-connectivity-link-operator"
 }}
 {{- $noMeshNamespaces := list
   "industrial-edge-data-lake"
+  "gitea"
+  "stackrox"
 }}
 {{- range $ambientNamespaces }}
 ---
