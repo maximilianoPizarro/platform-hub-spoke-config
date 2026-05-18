@@ -128,6 +128,19 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: spoke
+    {{- else if eq .id "kubecost" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterName: {{ $.Values.clusterName }}
+        role: agent
+        clusterRole: spoke
+        federatedStore:
+          bucket: kubecost
+          endpoint: minio.industrial-edge-ml-workspace.svc.cluster.local:9000
+          region: us-east-1
+          accessKey: minio
+          secretKey: minio123
     {{- else }}
     helm:
       valuesObject:
