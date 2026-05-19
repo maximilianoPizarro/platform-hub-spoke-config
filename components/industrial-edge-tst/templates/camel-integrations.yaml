@@ -1,0 +1,40 @@
+apiVersion: camel.apache.org/v1
+kind: IntegrationPlatform
+metadata:
+  name: camel-k
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  build:
+    registry:
+      address: image-registry.openshift-image-registry.svc:5000
+      organization: industrial-edge-tst-all
+  profile: Kubernetes
+---
+apiVersion: camel.apache.org/v1
+kind: Integration
+metadata:
+  name: mqtt-to-kafka
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  dependencies:
+    - camel:mqtt
+    - camel:kafka
+  flows:
+    - route:
+        id: mqtt-temperature
+        from:
+          uri: "paho:iot-sensor/sw/temperature?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
+        steps:
+          - to:
+              uri: "kafka:temperature?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
+    - route:
+        id: mqtt-vibration
+        from:
+          uri: "paho:iot-sensor/sw/vibration?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
+        steps:
+          - to:
+              uri: "kafka:vibration?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"

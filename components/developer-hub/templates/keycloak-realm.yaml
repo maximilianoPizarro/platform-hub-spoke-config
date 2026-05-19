@@ -1,0 +1,92 @@
+{{- /*
+  Backstage realm on the cluster Keycloak instance (namespace keycloak).
+  Client secret must match Secret developer-hub-oidc-auth key OIDC_CLIENT_SECRET.
+  Set via: helm --set keycloakOidcClientSecret='<value>' (do not commit real secrets).
+*/ -}}
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: backstage-realm
+  namespace: keycloak
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  keycloakCRName: keycloak
+  realm:
+    realm: backstage
+    enabled: true
+    displayName: Developer Hub
+    loginWithEmailAllowed: true
+    registrationAllowed: false
+    sslRequired: external
+    roles:
+      realm:
+        - name: platform-engineer
+          description: Platform engineering — full catalog, scaffolder, RBAC
+        - name: developer
+          description: Developer — create from templates, view topology
+    groups:
+      - name: platform-engineering
+        path: /platform-engineering
+      - name: developers
+        path: /developers
+    clients:
+      - clientId: developer-hub
+        name: Developer Hub
+        enabled: true
+        clientAuthenticatorType: client-secret
+        secret: {{ .Values.keycloakOidcClientSecret | default "CHANGEME-set-via-helm-or-sync-secret" | quote }}
+        redirectUris:
+          - "https://developer-hub.{{ .Values.clusterDomain }}/api/auth/oidc/handler/frame"
+        webOrigins:
+          - "https://developer-hub.{{ .Values.clusterDomain }}"
+        standardFlowEnabled: true
+        directAccessGrantsEnabled: true
+        publicClient: false
+        protocol: openid-connect
+        fullScopeAllowed: true
+        defaultClientScopes:
+          - profile
+          - email
+          - roles
+          - basic
+      - clientId: developer-hub-catalog
+        name: Developer Hub Catalog Sync
+        enabled: true
+        clientAuthenticatorType: client-secret
+        secret: {{ .Values.keycloakOidcClientSecret | default "CHANGEME-set-via-helm-or-sync-secret" | quote }}
+        serviceAccountsEnabled: true
+        standardFlowEnabled: false
+        directAccessGrantsEnabled: true
+        publicClient: false
+        protocol: openid-connect
+        fullScopeAllowed: true
+    users:
+      - username: platformadmin
+        enabled: true
+        emailVerified: true
+        firstName: Platform
+        lastName: Admin
+        email: platformadmin@redhat.local
+        credentials:
+          - type: password
+            value: Welcome123!
+            temporary: false
+        realmRoles:
+          - platform-engineer
+        groups:
+          - platform-engineering
+      - username: developer1
+        enabled: true
+        emailVerified: true
+        firstName: Developer
+        lastName: One
+        email: developer1@redhat.local
+        credentials:
+          - type: password
+            value: Welcome123!
+            temporary: false
+        realmRoles:
+          - developer
+        groups:
+          - developers

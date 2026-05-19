@@ -13,9 +13,7 @@ spec:
     - alias: factory
       bootstrapServers: factory-cluster-kafka-bootstrap.industrial-edge-stormshift-messaging.svc:9092
     - alias: central
-      bootstrapServers: prod-cluster-kafka-bootstrap.industrial-edge-data-lake.{{ .Values.global.hubClusterDomain }}:443
-      tls:
-        trustedCertificates: []
+      bootstrapServers: prod-cluster-kafka-bootstrap.industrial-edge-data-lake.svc:9092
   mirrors:
     - sourceCluster: factory
       targetCluster: central

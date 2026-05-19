@@ -203,7 +203,8 @@ header.side-bar {
   height: 32px !important;
   width: auto !important;
   max-width: 140px !important;
-  margin: 0 auto !important;
+  margin-left: 0.5rem !important;
+  margin-right: auto !important;
 }
 
 .site-header .site-button {

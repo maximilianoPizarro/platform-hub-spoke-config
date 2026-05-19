@@ -1,1 +1,3 @@
 clusterDomain: ""
+# OIDC client secret for developer-hub + Keycloak backstage realm (set via --set, never commit real values)
+keycloakOidcClientSecret: ""

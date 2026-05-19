@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.uniqueName }}
+  title: IE Camel Kaoto (${{ values.targetCluster }})
+  description: ${{ values.description }}
+  tags:
+    - camel
+    - kaoto
+    - industrial-edge
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner }}

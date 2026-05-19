@@ -162,6 +162,43 @@ With `auth.strategy: openshift`, users must use **Log in** in the Kiali UI for e
 
 Topology and configuration are visible across clusters. Request-rate metrics on the hub use the hub Thanos endpoint; full cross-cluster metrics require Prometheus federation (see [Observability]({% link observability.md %})).
 
+## Step 8: Developer Hub (Keycloak OIDC)
+
+Developer Hub uses the cluster **Keycloak** instance (`sso.<hub-domain>`) with realm `backstage`. GitHub OAuth is not used.
+
+1. Set the same client secret on the realm and the hub Secret (do not commit real values to Git):
+
+```bash
+SECRET=$(openssl rand -base64 24)
+helm upgrade field-content . \
+  --set keycloakOidcClientSecret="$SECRET" \
+  --reuse-values
+```
+
+Or patch after deploy:
+
+```bash
+oc create secret generic developer-hub-oidc-auth \
+  --from-literal=OIDC_CLIENT_SECRET="$SECRET" \
+  -n developer-hub --dry-run=client -o yaml | oc apply -f -
+```
+
+2. Log in at `https://developer-hub.<hub-domain>` with `platformadmin` / `Welcome123!` (platform-engineer) or `developer1` / `Welcome123!` (developer).
+
+## Step 9: Continue AI (DevSpaces + Kaoto templates)
+
+MaaS credentials are **not** stored in Git. After deploy, create the DevSpaces secret:
+
+```bash
+oc create secret generic continue-ai-config -n devspaces \
+  --from-literal=CONTINUE_API_KEY='<your-maas-api-key>' \
+  --from-literal=CONTINUE_API_BASE='https://litellm-prod.apps.maas.redhatworkshops.io/v1' \
+  --from-literal=CONTINUE_MODEL='deepseek-r1-distill-qwen-14b' \
+  --dry-run=client -o yaml | oc apply -f -
+```
+
+Software templates **Industrial Edge** and **Industrial Edge — Camel Kaoto** appear under **Create** in Developer Hub after catalog sync.
+
 ---
 
 Next: [Deploy with ACM and GitOps]({% link deploy-acm-gitops.md %}) · [Architecture]({% link architecture.md %})

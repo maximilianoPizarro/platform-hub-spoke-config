@@ -1,0 +1,85 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: industrial-edge
+  title: "Industrial Edge: IoT Manufacturing (Multi-Cluster)"
+  description: >
+    Deploy an Industrial Edge IoT stack on a selected spoke (east/west).
+    Uses Istio sidecar injection (not ambient) so Prometheus captures istio_* metrics.
+  tags:
+    - iot
+    - kafka
+    - edge
+    - industrial-edge
+    - multi-cluster
+spec:
+  owner: platform-engineering
+  type: service
+  parameters:
+    - title: Edge Instance Configuration
+      required:
+        - name
+        - owner
+        - targetCluster
+        - clusterDomain
+      properties:
+        name:
+          title: Instance Name
+          type: string
+          default: edge-factory-1
+          pattern: "^[a-z0-9-]+$"
+          ui:autofocus: true
+        owner:
+          title: Owner
+          type: string
+          default: ${{ user.entity.metadata.name }}
+        targetCluster:
+          title: Target Cluster
+          type: string
+          enum: [east, west]
+          enumNames: [East spoke, West spoke]
+          default: east
+        sensorCount:
+          title: Machine Sensors
+          type: integer
+          default: 2
+          enum: [1, 2]
+        clusterDomain:
+          title: Hub cluster apps domain
+          type: string
+          description: "e.g. apps.cluster-xxxxx.redhatworkshops.io"
+  steps:
+    - id: fetch-skeleton
+      name: Generate Skeleton
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}"
+          owner: ${{ parameters.owner }}
+          namespace: "ie-${{ parameters.name }}-${{ parameters.targetCluster }}"
+          targetCluster: ${{ parameters.targetCluster }}
+          sensorCount: ${{ parameters.sensorCount }}
+          clusterDomain: ${{ parameters.clusterDomain }}
+    - id: publish
+      name: Publish to Gitea
+      action: publish:gitea
+      input:
+        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}"
+        description: "Industrial Edge ${{ parameters.name }} on ${{ parameters.targetCluster }}"
+        defaultBranch: main
+        repoVisibility: public
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: /main/catalog-info.yaml
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: View in Catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}

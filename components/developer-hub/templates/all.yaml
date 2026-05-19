@@ -93,13 +93,26 @@ data:
           target: /opt/app-root/src/catalog-users.yaml
           rules:
             - allow: [User, Group]
+        - type: url
+          target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/main/software-templates/templates-catalog.yaml
+          rules:
+            - allow: [Template, Location]
       providers:
         ocm:
           default:
             name: hub
             url: https://kubernetes.default.svc.cluster.local:443
             skipTLSVerify: true
-    signInPage: github
+        keycloakOrg:
+          default:
+            baseUrl: https://sso.{{ .Values.clusterDomain }}
+            loginRealm: backstage
+            clientId: developer-hub-catalog
+            clientSecret: ${OIDC_CLIENT_SECRET}
+            schedule:
+              frequency: { minutes: 30 }
+              timeout: { minutes: 3 }
+    signInPage: oidc
     proxy:
       endpoints:
         '/rhacs':
@@ -132,17 +145,15 @@ data:
     auth:
       environment: production
       providers:
-        github:
+        oidc:
           production:
-            clientId: ${GITHUB_CLIENT_ID}
-            clientSecret: ${GITHUB_CLIENT_SECRET}
-            additionalScopes:
-              - user:email
+            clientId: developer-hub
+            clientSecret: ${OIDC_CLIENT_SECRET}
+            metadataUrl: https://sso.{{ .Values.clusterDomain }}/realms/backstage/.well-known/openid-configuration
+            prompt: auto
             signIn:
               resolvers:
-                - resolver: usernameMatchingUserEntityName
-                  dangerouslyAllowSignInWithoutUserInCatalog: true
-                - resolver: emailMatchingUserEntityProfileEmail
+                - resolver: preferredUsernameMatchingUserEntityName
                   dangerouslyAllowSignInWithoutUserInCatalog: true
 ---
 apiVersion: v1
@@ -214,6 +225,10 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-module-http-request-dynamic
         disabled: false
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitea
+        disabled: false
       # --- Azure DevOps (disabled - requires AZURE_TOKEN and AZURE_ORG env vars) ---
       # PAT scopes: Code (Read), Build (Read & Execute), Release (Read), Work Items (Read), Pull Request Threads (Read & Write)
       - package: ./dynamic-plugins/dist/backstage-community-plugin-azure-devops-backend-dynamic
@@ -264,4 +279,5 @@ spec:
               - name: backstage-backend
                 envFrom:
                   - secretRef:
-                      name: developer-hub-github-auth
+                      name: developer-hub-oidc-auth
+                      optional: true

@@ -8,7 +8,6 @@ metadata:
 spec:
   deploymentPlan:
     size: 1
-    image: placeholder
   acceptors:
     - name: mqtt
       protocols: mqtt
