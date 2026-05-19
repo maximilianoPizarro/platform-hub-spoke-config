@@ -124,6 +124,8 @@ data:
         runIn: local
       publisher:
         type: local
+    permission:
+      enabled: false
     signInPage: oidc
     proxy:
       endpoints:
