@@ -150,6 +150,8 @@ data:
   app-config-auth.yaml: |
     auth:
       environment: production
+      session:
+        secret: ${SESSION_SECRET}
       providers:
         oidc:
           production:
