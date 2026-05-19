@@ -100,6 +100,12 @@ spec:
       kind: ConsoleLink
       jsonPointers:
         - /metadata/annotations
+    - group: ""
+      kind: ConfigMap
+      name: kiali-hub-export
+      jsonPointers:
+        - /data/token
+        - /data/updatedAt
     - group: datasciencecluster.opendatahub.io
       kind: "*"
       jsonPointers:
@@ -133,6 +139,11 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: spoke
+    {{- else if eq .id "kiali" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        exportTokenForHub: true
     {{- else if eq .id "devspaces" }}
     helm:
       valuesObject:

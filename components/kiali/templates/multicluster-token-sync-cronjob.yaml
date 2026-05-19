@@ -17,6 +17,9 @@ rules:
   - apiGroups: ["cluster.open-cluster-management.io"]
     resources: ["managedclusters"]
     verbs: ["get", "list"]
+  - apiGroups: ["view.open-cluster-management.io"]
+    resources: ["managedclusterviews"]
+    verbs: ["get", "list", "create", "delete", "watch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -62,37 +65,6 @@ subjects:
     name: kiali-multicluster-token-sync
     namespace: openshift-cluster-observability-operator
 ---
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: kiali-multicluster-token-sync-argocd
-  namespace: {{ .Values.multiCluster.tokenSync.argocdNamespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-rules:
-  - apiGroups: [""]
-    resources: ["secrets"]
-    resourceNames:
-      - {{ .Values.multiCluster.clusters.east.name }}-application-manager-cluster-secret
-      - {{ .Values.multiCluster.clusters.west.name }}-application-manager-cluster-secret
-    verbs: ["get"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: kiali-multicluster-token-sync-argocd
-  namespace: {{ .Values.multiCluster.tokenSync.argocdNamespace }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kiali-multicluster-token-sync-argocd
-subjects:
-  - kind: ServiceAccount
-    name: kiali-multicluster-token-sync
-    namespace: openshift-cluster-observability-operator
----
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -103,24 +75,22 @@ metadata:
 data:
   sync.py: |
     #!/usr/bin/env python3
-    """Build kiali-multi-cluster-secret from ManagedCluster CA/URL and spoke SA tokens via cluster-proxy."""
-    import base64
+    """Build kiali-multi-cluster-secret from ManagedCluster CA/URL and spoke-exported tokens."""
     import json
     import os
     import ssl
     import sys
+    import time
     import urllib.error
     import urllib.request
     from pathlib import Path
 
     HUB_NS = os.environ.get("KIALI_NAMESPACE", "openshift-cluster-observability-operator")
     SECRET_NAME = os.environ.get("SECRET_NAME", "kiali-multi-cluster-secret")
-    ARGOCD_NS = os.environ.get("ARGOCD_NAMESPACE", "openshift-gitops")
     KIALI_SA_NS = os.environ.get("KIALI_SA_NAMESPACE", "openshift-cluster-observability-operator")
-    KIALI_SA = os.environ.get("KIALI_SA_NAME", "kiali-service-account")
-    TOKEN_SECONDS = int(os.environ.get("TOKEN_EXPIRATION_SECONDS", "86400"))
+    EXPORT_CM = os.environ.get("EXPORT_CONFIGMAP", "kiali-hub-export")
+    VIEW_NAME = os.environ.get("VIEW_NAME", "kiali-hub-export-token")
     CLUSTERS = [c.strip() for c in os.environ.get("CLUSTERS", "east,west").split(",") if c.strip()]
-    ARGOCD_SECRET_PREFIX = os.environ.get("ARGOCD_SECRET_PREFIX", "")
 
     SA_TOKEN_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/token")
     SA_CA_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
@@ -146,53 +116,45 @@ data:
         return api_request("GET", f"/apis/cluster.open-cluster-management.io/v1/managedclusters/{name}")
 
 
-    def get_argocd_cluster_config(cluster_name):
-        secret_name = f"{ARGOCD_SECRET_PREFIX}{cluster_name}-application-manager-cluster-secret" if ARGOCD_SECRET_PREFIX else f"{cluster_name}-application-manager-cluster-secret"
-        sec = api_request("GET", f"/api/v1/namespaces/{ARGOCD_NS}/secrets/{secret_name}")
-        raw = base64.b64decode(sec["data"]["config"]).decode()
-        return json.loads(raw)
-
-
-    def request_spoke_sa_token(proxy_base, proxy_token, ca_pem):
-        ns, sa = KIALI_SA_NS, KIALI_SA
+    def fetch_spoke_token(cluster_name):
+        view_path = f"/apis/view.open-cluster-management.io/v1beta1/namespaces/{cluster_name}/managedclusterviews/{VIEW_NAME}"
+        try:
+            api_request("DELETE", view_path)
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
         body = {
-            "apiVersion": "authentication.k8s.io/v1",
-            "kind": "TokenRequest",
-            "spec": {"expirationSeconds": TOKEN_SECONDS},
+            "apiVersion": "view.open-cluster-management.io/v1beta1",
+            "kind": "ManagedClusterView",
+            "metadata": {"name": VIEW_NAME},
+            "spec": {
+                "scope": {
+                    "apiGroup": "",
+                    "kind": "ConfigMap",
+                    "version": "v1",
+                    "resource": "configmaps",
+                    "name": EXPORT_CM,
+                    "namespace": KIALI_SA_NS,
+                }
+            },
         }
-        ctx = ssl.create_default_context()
-        with open("/tmp/proxy-ca.pem", "wb") as f:
-            f.write(ca_pem)
-        ctx.load_verify_locations("/tmp/proxy-ca.pem")
-        # cluster-proxy expects /api/v1/... (Argo CD style), not /apis/authentication.k8s.io/...
-        suffixes = [
-            f"/api/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
-            f"/api/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
-            f"/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
-        ]
-        last_err = None
-        for suffix in suffixes:
-            url = f"{proxy_base.rstrip('/')}{suffix}"
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(body).encode(),
-                method="POST",
-                headers={
-                    "Authorization": f"Bearer {proxy_token}",
-                    "Content-Type": "application/json",
-                },
-            )
-            try:
-                with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
-                    result = json.loads(resp.read().decode())
-                    if "status" in result and "token" in result["status"]:
-                        return result["status"]["token"]
-                    if "token" in result:
-                        return result["token"]
-                    raise KeyError(f"unexpected token response keys: {list(result.keys())}")
-            except Exception as e:
-                last_err = e
-        raise RuntimeError(f"TokenRequest failed for {proxy_base}: {last_err}")
+        api_request("POST", f"/apis/view.open-cluster-management.io/v1beta1/namespaces/{cluster_name}/managedclusterviews", body)
+        for _ in range(90):
+            view = api_request("GET", view_path)
+            conds = view.get("status", {}).get("conditions", [])
+            done = any(c.get("type") == "Processing" and c.get("status") == "False" for c in conds)
+            if done:
+                for c in conds:
+                    if c.get("status") == "True" and "fail" in c.get("type", "").lower():
+                        raise RuntimeError(f"ManagedClusterView failed for {cluster_name}: {c.get('message')}")
+                result = view.get("status", {}).get("result") or {}
+                data = result.get("data") or {}
+                token = data.get("token", "").strip()
+                if token:
+                    return token
+                raise RuntimeError(f"empty token in {EXPORT_CM} on {cluster_name}; run spoke kiali-hub-token-export CronJob first")
+            time.sleep(2)
+        raise RuntimeError(f"timeout waiting for ManagedClusterView on {cluster_name}")
 
 
     def build_kubeconfig(cluster_name, server, ca_data_b64, token):
@@ -277,11 +239,7 @@ data:
             cfg = mc["spec"]["managedClusterClientConfigs"][0]
             api_url = cfg["url"]
             ca_data = cfg["caBundle"]
-            argo_cfg = get_argocd_cluster_config(cluster)
-            proxy_token = argo_cfg["bearerToken"]
-            proxy_ca = base64.b64decode(argo_cfg["tlsClientConfig"]["caData"])
-            proxy_server = f"https://cluster-proxy-addon-user.multicluster-engine.svc.cluster.local:9092/{cluster}"
-            kiali_token = request_spoke_sa_token(proxy_server, proxy_token, proxy_ca)
+            kiali_token = fetch_spoke_token(cluster)
             string_data[cluster] = build_kubeconfig(cluster, api_url, ca_data, kiali_token)
             print(f"OK: built kubeconfig for {cluster}", file=sys.stderr)
         if not string_data:
@@ -320,10 +278,6 @@ spec:
               env:
                 - name: CLUSTERS
                   value: {{ printf "%s,%s" .Values.multiCluster.clusters.east.name .Values.multiCluster.clusters.west.name | quote }}
-                - name: ARGOCD_NAMESPACE
-                  value: {{ .Values.multiCluster.tokenSync.argocdNamespace | quote }}
-                - name: TOKEN_EXPIRATION_SECONDS
-                  value: {{ .Values.multiCluster.tokenSync.tokenExpirationSeconds | quote }}
               volumeMounts:
                 - name: script
                   mountPath: /scripts

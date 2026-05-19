@@ -1,5 +1,10 @@
 clusterDomain: ""
 
+# Spoke-only: export SA token to ConfigMap for hub Kiali multi-cluster sync.
+exportTokenForHub: false
+exportTokenSchedule: "0 */6 * * *"
+exportTokenDuration: "86400s"
+
 # Hub-only: multi-cluster access to east/west spokes (independent Istio per cluster).
 multiCluster:
   enabled: false
@@ -22,5 +27,3 @@ multiCluster:
   tokenSync:
     schedule: "0 */6 * * *"
     image: registry.redhat.io/ubi9/python-311:latest
-    argocdNamespace: openshift-gitops
-    tokenExpirationSeconds: "86400"

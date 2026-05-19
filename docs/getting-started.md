@@ -125,18 +125,21 @@ Hub Kiali can show mesh topology from east and west without Istio trust federati
 
 ### 7a. Automated token sync (default)
 
-With `multiCluster.automateTokens: true` (enabled in the hub `field-content-kiali` Application), a **CronJob** on the hub (`kiali-multicluster-token-sync`) runs every 6 hours and:
+With `multiCluster.automateTokens: true` (hub) and `exportTokenForHub: true` (spokes), two CronJobs cooperate:
 
-1. Reads **apiUrl** and **caBundle** from each ACM `ManagedCluster` (east/west)
-2. Uses the Argo CD cluster secret (`*-application-manager-cluster-secret`) to reach the spoke API via **cluster-proxy**
-3. Requests a **TokenRequest** for `kiali-service-account` on each spoke
-4. Creates or updates **`kiali-multi-cluster-secret`** for Kiali
+1. **Spoke** (`kiali-hub-token-export` on east/west): creates a token for `kiali-service-account` and stores it in ConfigMap `kiali-hub-export`
+2. **Hub** (`kiali-multicluster-token-sync`): reads **apiUrl** and **caBundle** from each ACM `ManagedCluster`, fetches the spoke token via **ManagedClusterView**, and updates **`kiali-multi-cluster-secret`**
 
-**Prerequisites:** `kiali-east` / `kiali-west` synced (so `kiali-service-account` exists on spokes) and Argo CD cluster secrets present in `openshift-gitops`.
+**Prerequisites:** `kiali-east` / `kiali-west` synced (Kiali operator + `kiali-service-account` on spokes).
 
-Trigger an immediate sync after deploy:
+Trigger an immediate sync after deploy (spokes first, then hub):
 
 ```bash
+# On each spoke namespace via hub (or login to each spoke):
+oc create job -n openshift-cluster-observability-operator --from=cronjob/kiali-hub-token-export kiali-hub-token-export-manual --context east
+oc create job -n openshift-cluster-observability-operator --from=cronjob/kiali-hub-token-export kiali-hub-token-export-manual --context west
+
+# On hub:
 oc create job -n openshift-cluster-observability-operator \
   --from=cronjob/kiali-multicluster-token-sync kiali-multicluster-token-sync-manual
 oc logs -n openshift-cluster-observability-operator -l job-name=kiali-multicluster-token-sync-manual -f
