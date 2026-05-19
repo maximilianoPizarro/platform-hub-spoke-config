@@ -1,7 +1,7 @@
 {{- /*
-  Headless Services + EndpointSlices (Argo CD excludes legacy Endpoints).
-  Maps broker advertised hostnames to Skupper listener ClusterIPs on the hub.
-  Creates the IE namespaces needed for Kafka broker DNS on the hub.
+  Headless Services + EndpointSlices for Kafka broker DNS on the hub.
+  Maps broker advertised hostnames to Skupper listener ClusterIPs.
+  IPs are passed as values from the parent chart (no lookup required).
 */ -}}
 apiVersion: v1
 kind: Namespace
@@ -23,44 +23,6 @@ metadata:
   name: industrial-edge-data-lake
   annotations:
     argocd.argoproj.io/sync-wave: "0"
----
-{{- $skupperNs := "service-interconnect" }}
-{{- $eastTst := lookup "v1" "Service" $skupperNs "kafka-east-tst" }}
-{{- $westTst := lookup "v1" "Service" $skupperNs "kafka-west-tst" }}
-{{- $eastStorm := lookup "v1" "Service" $skupperNs "kafka-east-stormshift" }}
-{{- $westStorm := lookup "v1" "Service" $skupperNs "kafka-west-stormshift" }}
-{{- $eastTstIP := "" }}
-{{- $westTstIP := "" }}
-{{- $eastStormIP := "" }}
-{{- $westStormIP := "" }}
-{{- if $eastTst }}
-{{- if $eastTst.spec.clusterIP }}
-{{- $eastTstIP = $eastTst.spec.clusterIP }}
-{{- else if $eastTst.spec.clusterIPs }}
-{{- $eastTstIP = index $eastTst.spec.clusterIPs 0 }}
-{{- end }}
-{{- end }}
-{{- if $westTst }}
-{{- if $westTst.spec.clusterIP }}
-{{- $westTstIP = $westTst.spec.clusterIP }}
-{{- else if $westTst.spec.clusterIPs }}
-{{- $westTstIP = index $westTst.spec.clusterIPs 0 }}
-{{- end }}
-{{- end }}
-{{- if $eastStorm }}
-{{- if $eastStorm.spec.clusterIP }}
-{{- $eastStormIP = $eastStorm.spec.clusterIP }}
-{{- else if $eastStorm.spec.clusterIPs }}
-{{- $eastStormIP = index $eastStorm.spec.clusterIPs 0 }}
-{{- end }}
-{{- end }}
-{{- if $westStorm }}
-{{- if $westStorm.spec.clusterIP }}
-{{- $westStormIP = $westStorm.spec.clusterIP }}
-{{- else if $westStorm.spec.clusterIPs }}
-{{- $westStormIP = index $westStorm.spec.clusterIPs 0 }}
-{{- end }}
-{{- end }}
 ---
 apiVersion: v1
 kind: Service
@@ -92,16 +54,16 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if $eastTstIP }}
+{{- if .Values.brokerDns.eastTstIP }}
   - addresses:
-      - {{ $eastTstIP | quote }}
+      - {{ .Values.brokerDns.eastTstIP | quote }}
     hostname: dev-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- if $westTstIP }}
+{{- if .Values.brokerDns.westTstIP }}
   - addresses:
-      - {{ $westTstIP | quote }}
+      - {{ .Values.brokerDns.westTstIP | quote }}
     hostname: dev-cluster-broker-0-west
     conditions:
       ready: true
@@ -137,16 +99,16 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if $eastStormIP }}
+{{- if .Values.brokerDns.eastStormshiftIP }}
   - addresses:
-      - {{ $eastStormIP | quote }}
+      - {{ .Values.brokerDns.eastStormshiftIP | quote }}
     hostname: factory-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- if $westStormIP }}
+{{- if .Values.brokerDns.westStormshiftIP }}
   - addresses:
-      - {{ $westStormIP | quote }}
+      - {{ .Values.brokerDns.westStormshiftIP | quote }}
     hostname: factory-cluster-broker-0-west
     conditions:
       ready: true

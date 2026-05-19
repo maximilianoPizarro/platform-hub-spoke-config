@@ -39,7 +39,6 @@ spec:
       kind: Namespace
       jsonPointers:
         - /metadata/annotations
-        - /metadata/labels
     - group: kafka.strimzi.io
       kind: "*"
       jsonPointers:

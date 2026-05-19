@@ -1,1 +1,7 @@
 clusterDomain: ""
+
+brokerDns:
+  eastTstIP: ""
+  westTstIP: ""
+  eastStormshiftIP: ""
+  westStormshiftIP: ""

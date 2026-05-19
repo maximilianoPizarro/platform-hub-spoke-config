@@ -41,7 +41,6 @@ spec:
       kind: Namespace
       jsonPointers:
         - /metadata/annotations
-        - /metadata/labels
     - group: networking.istio.io
       kind: "*"
       jsonPointers:
@@ -300,6 +299,11 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        brokerDns:
+          eastTstIP: {{ $.Values.kafkaConsoleBrokerDns.eastTstIP | quote }}
+          westTstIP: {{ $.Values.kafkaConsoleBrokerDns.westTstIP | quote }}
+          eastStormshiftIP: {{ $.Values.kafkaConsoleBrokerDns.eastStormshiftIP | quote }}
+          westStormshiftIP: {{ $.Values.kafkaConsoleBrokerDns.westStormshiftIP | quote }}
     {{- else if eq .path "kubecost" }}
     helm:
       valuesObject:
