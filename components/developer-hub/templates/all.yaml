@@ -147,7 +147,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 data:
-  app-config.yaml: |
+  app-config-auth.yaml: |
     auth:
       environment: production
       providers:
