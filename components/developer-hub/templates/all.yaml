@@ -121,10 +121,11 @@ data:
           headers:
             Authorization: Bearer ${RHACS_API_TOKEN}
     integrations:
-      gitea:
+      github:
         - host: gitea-gitea.{{ .Values.clusterDomain }}
-          username: gitea_admin
-          password: openshift
+          apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
+          rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
+          token: ${GITEA_TOKEN}
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:
@@ -232,7 +233,7 @@ data:
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
         disabled: false
-      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-gitea
+      - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic
         disabled: false
       # --- Azure DevOps (disabled - requires AZURE_TOKEN and AZURE_ORG env vars) ---
       # PAT scopes: Code (Read), Build (Read & Execute), Release (Read), Work Items (Read), Pull Request Threads (Read & Write)

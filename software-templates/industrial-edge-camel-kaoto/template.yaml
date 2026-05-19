@@ -81,7 +81,7 @@ spec:
           mailpitApiUrl: ${{ parameters.mailpitApiUrl }}
     - id: publish
       name: Publish to Gitea
-      action: publish:gitea
+      action: publish:github
       input:
         repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}"
         description: ${{ parameters.name }}

@@ -1,3 +1,5 @@
 clusterDomain: ""
 # OIDC client secret for developer-hub + Keycloak backstage realm (set via --set, never commit real values)
 keycloakOidcClientSecret: ""
+# Gitea personal access token for gitea_admin (create via Gitea UI or API, never commit real values)
+giteaToken: ""
