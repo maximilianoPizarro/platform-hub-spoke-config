@@ -287,8 +287,8 @@ kafkaConsoleBrokerDns:
   westTstIP: "172.231.75.221"
   eastStormshiftIP: "172.231.83.139"
   westStormshiftIP: "172.231.145.82"
-  eastDatalakeIP: ""
-  westDatalakeIP: ""
+  eastDatalakeIP: "172.231.176.254"
+  westDatalakeIP: "172.231.109.146"
 
 fieldContent:
   deploymentType: "helm"
