@@ -26,71 +26,37 @@ spec:
         namespaces:
           from: Same
 ---
-apiVersion: v1
-kind: Service
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
 metadata:
-  name: line-dashboard
-  namespace: spoke-gateway-system
+  name: allow-spoke-gateway
+  namespace: industrial-edge-tst-all
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  type: ExternalName
-  externalName: line-dashboard.industrial-edge-tst-all.svc.cluster.local
-  ports:
-    - name: frontend
-      port: 8080
-      protocol: TCP
-    - name: api
-      port: 3000
-      protocol: TCP
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: spoke-gateway-system
+  to:
+    - group: ""
+      kind: Service
 ---
-apiVersion: v1
-kind: Service
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
 metadata:
-  name: messaging
-  namespace: spoke-gateway-system
+  name: allow-spoke-gateway-messaging
+  namespace: industrial-edge-stormshift-messaging
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
-  type: ExternalName
-  externalName: messaging.industrial-edge-tst-all.svc.cluster.local
-  ports:
-    - name: mqtt
-      port: 1883
-      protocol: TCP
-    - name: amqp
-      port: 5672
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: modelmesh-serving
-  namespace: spoke-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  type: ExternalName
-  externalName: modelmesh-serving.industrial-edge-tst-all.svc.cluster.local
-  ports:
-    - name: grpc
-      port: 8008
-      protocol: TCP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka-bootstrap
-  namespace: spoke-gateway-system
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
-spec:
-  type: ExternalName
-  externalName: factory-cluster-kafka-bootstrap.industrial-edge-stormshift-messaging.svc.cluster.local
-  ports:
-    - name: kafka
-      port: 9092
-      protocol: TCP
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: spoke-gateway-system
+  to:
+    - group: ""
+      kind: Service
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -110,9 +76,11 @@ spec:
             value: /api
       backendRefs:
         - name: line-dashboard
+          namespace: industrial-edge-tst-all
           port: 3000
     - backendRefs:
         - name: line-dashboard
+          namespace: industrial-edge-tst-all
           port: 8080
 ---
 apiVersion: gateway.networking.k8s.io/v1
@@ -133,4 +101,5 @@ spec:
             value: /inference
       backendRefs:
         - name: modelmesh-serving
+          namespace: industrial-edge-tst-all
           port: 8008
