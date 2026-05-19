@@ -58,10 +58,6 @@ components:
     path: components/industrial-edge-pipelines
     namespace: industrial-edge-ci
     syncWave: "5"
-  - id: industrial-edge-minio
-    path: components/industrial-edge-minio
-    namespace: industrial-edge-ml-workspace
-    syncWave: "5"
   - id: industrial-edge-data-science-cluster
     path: components/industrial-edge-data-science-cluster
     namespace: redhat-ods-applications

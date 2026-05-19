@@ -14,7 +14,7 @@ stringData:
   AWS_SECRET_ACCESS_KEY: minio123
   AWS_DEFAULT_REGION: us-east-1
   AWS_S3_BUCKET: models
-  AWS_S3_ENDPOINT: http://minio.industrial-edge-ml-workspace.svc:9000
+  AWS_S3_ENDPOINT: http://minio-hub.service-interconnect.svc:9000
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService

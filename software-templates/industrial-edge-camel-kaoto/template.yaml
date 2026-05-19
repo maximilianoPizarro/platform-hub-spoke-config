@@ -50,9 +50,9 @@ spec:
           type: string
           default: "dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
         s3Endpoint:
-          title: MinIO S3 endpoint
+          title: MinIO S3 endpoint (hub via Skupper)
           type: string
-          default: "http://minio.industrial-edge-ml-workspace.svc:9000"
+          default: "http://minio-hub.service-interconnect.svc:9000"
         s3Bucket:
           title: S3 bucket
           type: string

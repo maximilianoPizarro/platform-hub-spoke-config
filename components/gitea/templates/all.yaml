@@ -81,6 +81,20 @@ spec:
                 -u "$AUTH" -H "Content-Type: application/json" -d "$ORG_JSON" || true)
               echo "  developer-hub org: HTTP $CODE"
 
+              echo "Creating platformadmin user and org..."
+              PA_JSON='{"username":"platformadmin","password":"Welcome123!","email":"platformadmin@developer-hub.local","must_change_password":false,"send_notify":false}'
+              curl -sS -o /dev/null -w "  platformadmin user: HTTP %{http_code}\n" -X POST "$BASE/api/v1/admin/users" \
+                -u "$AUTH" -H "Content-Type: application/json" -d "$PA_JSON" || true
+              PA_ORG='{"username":"ws-platformadmin","visibility":"public","description":"Workshop repos for platformadmin"}'
+              curl -sS -o /dev/null -w "  ws-platformadmin org: HTTP %{http_code}\n" -X POST "$BASE/api/v1/orgs" \
+                -u "$AUTH" -H "Content-Type: application/json" -d "$PA_ORG" || true
+              PA_TID=$(curl -sS -u "$AUTH" "$BASE/api/v1/orgs/ws-platformadmin/teams" 2>/dev/null \
+                | sed -n 's/.*"id":\([0-9]*\).*"name":"Owners".*/\1/p')
+              if [ -n "$PA_TID" ]; then
+                curl -sS -o /dev/null -X PUT "$BASE/api/v1/teams/${PA_TID}/members/platformadmin" \
+                  -u "$AUTH" || true
+              fi
+
               USER_COUNT={{ .Values.userCount | default 200 }}
               echo "Creating $USER_COUNT users and orgs..."
               for i in $(seq 1 $USER_COUNT); do

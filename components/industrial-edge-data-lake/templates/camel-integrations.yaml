@@ -55,7 +55,7 @@ spec:
         camel.component.aws2-s3.access-key=minio
         camel.component.aws2-s3.secret-key=minio123
         camel.component.aws2-s3.override-endpoint=true
-        camel.component.aws2-s3.uri-endpoint-override=http://minio.industrial-edge-ml-workspace.svc:9000
+        camel.component.aws2-s3.uri-endpoint-override=http://minio-hub.service-interconnect.svc:9000
   flows:
     - route:
         id: kafka-temperature-to-s3

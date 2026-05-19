@@ -6,7 +6,7 @@ role: primary
 clusterName: hub
 clusterRole: hub
 
-# Federated ETL object storage (MinIO deployed in industrial-edge-ml-workspace)
+# Federated ETL object storage (MinIO centralized on hub)
 federatedStore:
   bucket: kubecost
   endpoint: minio.industrial-edge-ml-workspace.svc.cluster.local:9000

@@ -120,6 +120,11 @@ data:
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE']
           headers:
             Authorization: Bearer ${RHACS_API_TOKEN}
+    integrations:
+      gitea:
+        - host: gitea-gitea.{{ .Values.clusterDomain }}
+          username: gitea_admin
+          password: openshift
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:

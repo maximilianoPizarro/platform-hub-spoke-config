@@ -253,6 +253,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
+    # MinIO (centralized on hub — shared by Kubecost ETL, IE data-lake, ML models)
+    - id: industrial-edge-minio
+      enabled: true
+      path: industrial-edge-minio
+      destinationNamespace: industrial-edge-ml-workspace
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     # Kafka Console (StreamsHub UI for all spoke Kafka clusters)
     - id: kafka-console
       enabled: true

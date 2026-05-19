@@ -104,10 +104,6 @@ apps:
     path: components/industrial-edge-pipelines
     destinationNamespace: industrial-edge-ci
     syncWave: "5"
-  - id: industrial-edge-minio
-    path: components/industrial-edge-minio
-    destinationNamespace: industrial-edge-ml-workspace
-    syncWave: "5"
   - id: industrial-edge-data-science-cluster
     path: components/industrial-edge-data-science-cluster
     destinationNamespace: redhat-ods-applications

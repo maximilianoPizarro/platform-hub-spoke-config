@@ -165,7 +165,7 @@ spec:
         clusterRole: spoke
         federatedStore:
           bucket: kubecost
-          endpoint: minio.industrial-edge-ml-workspace.svc.cluster.local:9000
+          endpoint: minio-hub.service-interconnect.svc.cluster.local:9000
           region: us-east-1
           accessKey: minio
           secretKey: minio123
