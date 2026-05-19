@@ -141,19 +141,20 @@ data:
             },
         }
         api_request("POST", f"/apis/view.open-cluster-management.io/v1beta1/namespaces/{cluster_name}/managedclusterviews", body)
-        for _ in range(90):
+        for _ in range(60):
             view = api_request("GET", view_path)
             conds = view.get("status", {}).get("conditions", [])
-            done = any(c.get("type") == "Processing" and c.get("status") == "False" for c in conds)
-            if done:
-                for c in conds:
-                    if c.get("status") == "True" and "fail" in c.get("type", "").lower():
-                        raise RuntimeError(f"ManagedClusterView failed for {cluster_name}: {c.get('message')}")
-                result = view.get("status", {}).get("result") or {}
-                data = result.get("data") or {}
-                token = data.get("token", "").strip()
-                if token:
-                    return token
+            for c in conds:
+                if c.get("type") == "Processing" and c.get("status") == "False":
+                    msg = c.get("message", "")
+                    if "not found" in msg.lower() or "fail" in c.get("reason", "").lower():
+                        raise RuntimeError(f"ManagedClusterView failed for {cluster_name}: {msg}")
+            result = view.get("status", {}).get("result") or {}
+            data = result.get("data") or {}
+            token = data.get("token", "").strip()
+            if token:
+                return token
+            if result and not token:
                 return None
             time.sleep(2)
         raise RuntimeError(f"timeout waiting for ManagedClusterView on {cluster_name}")
