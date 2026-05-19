@@ -14,3 +14,10 @@ spokeTokenSync:
   clusters: "east,west"
   schedule: "0 */6 * * *"
   image: registry.redhat.io/ubi9/python-311:latest
+# Enable after developer-hub-spoke-tokens Secret exists (PostSync job). URLs required; tokens from env.
+kubernetesSpokes:
+  enabled: false
+  east:
+    apiUrl: ""
+  west:
+    apiUrl: ""

@@ -159,16 +159,18 @@ data:
               authProvider: serviceAccount
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+{{- if .Values.kubernetesSpokes.enabled }}
             - name: east
-              url: ${EAST_API_URL}
+              url: {{ .Values.kubernetesSpokes.east.apiUrl | quote }}
               authProvider: serviceAccount
               serviceAccountToken: ${EAST_SA_TOKEN}
               skipTLSVerify: true
             - name: west
-              url: ${WEST_API_URL}
+              url: {{ .Values.kubernetesSpokes.west.apiUrl | quote }}
               authProvider: serviceAccount
               serviceAccountToken: ${WEST_SA_TOKEN}
               skipTLSVerify: true
+{{- end }}
     catalog:
       import:
         entityFilename: catalog-info.yaml
@@ -232,6 +234,7 @@ data:
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
         - host: maximilianopizarro.github.io
+          rawBaseUrl: {{ .Values.githubPagesBaseUrl }}
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:

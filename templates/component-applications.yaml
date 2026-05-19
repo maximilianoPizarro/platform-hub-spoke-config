@@ -247,6 +247,11 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        kubernetesSpokes:
+          east:
+            apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
+          west:
+            apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
     {{- else if eq .path "acm-hub-spoke" }}
     helm:
       valuesObject:

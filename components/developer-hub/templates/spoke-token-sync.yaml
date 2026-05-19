@@ -90,21 +90,16 @@ data:
 
 
     def find_msa_token(cluster_ns):
-        """Find ManagedServiceAccount token secret in the managed cluster namespace on hub."""
-        path = f"/api/v1/namespaces/{cluster_ns}/secrets"
-        secrets = api_request("GET", path).get("items", [])
-        for sec in secrets:
-            name = sec["metadata"]["name"]
-            ann = sec.get("metadata", {}).get("annotations", {})
-            if name.startswith(f"{MSA_NAME}-token") or ann.get(
-                "authentication.open-cluster-management.io/is-token-secret"
-            ) == "true":
-                data = sec.get("data", {})
-                for key in ("token", "ca.crt"):
-                    pass
-                token_b64 = data.get("token")
-                if token_b64:
-                    return base64.b64decode(token_b64).decode().strip()
+        """Read token from MSA secret (name matches MSA_NAME) in the managed cluster namespace on hub."""
+        path = f"/api/v1/namespaces/{cluster_ns}/secrets/{MSA_NAME}"
+        try:
+            sec = api_request("GET", path)
+            token_b64 = sec.get("data", {}).get("token")
+            if token_b64:
+                return base64.b64decode(token_b64).decode().strip()
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
         return None
 
 
