@@ -88,9 +88,8 @@ data:
       import:
         entityFilename: catalog-info.yaml
       locations:
-        # Same CM as OCM providers — avoids losing locations if operator drops an extra ConfigMap ref.
         - type: file
-          target: /opt/app-root/src/catalog-users.yaml
+          target: /opt/app-root/src/users.yaml
           rules:
             - allow: [User, Group]
         - type: file
@@ -287,12 +286,12 @@ spec:
       configMaps:
         - name: developer-hub-catalog-users
           key: users.yaml
-          mountPath: /opt/app-root/src/catalog-users.yaml
+          mountPath: /opt/app-root/src
           containers:
             - "*"
         - name: developer-hub-catalog-ie
           key: industrial-edge-system.yaml
-          mountPath: /opt/app-root/src/catalog-ie/industrial-edge-system.yaml
+          mountPath: /opt/app-root/src/catalog-ie
           containers:
             - "*"
     route:
