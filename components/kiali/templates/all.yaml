@@ -22,7 +22,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   auth:
-    strategy: openshift
+    strategy: anonymous
   deployment:
     cluster_wide_access: true
     namespace: openshift-cluster-observability-operator
@@ -60,6 +60,7 @@ spec:
       url: https://grafana.{{ .Values.clusterDomain }}
     prometheus:
       auth:
+        insecure_skip_verify: true
         type: bearer
         use_kiali_token: true
       thanos_proxy:
