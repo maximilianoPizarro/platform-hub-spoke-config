@@ -377,6 +377,9 @@ spec:
             serviceAccountName: developer-hub
             containers:
               - name: backstage-backend
+                env:
+                  - name: NODE_TLS_REJECT_UNAUTHORIZED
+                    value: "0"
                 envFrom:
                   - secretRef:
                       name: developer-hub-oidc-auth
