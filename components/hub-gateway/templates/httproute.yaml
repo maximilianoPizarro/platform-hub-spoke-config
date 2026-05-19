@@ -20,7 +20,7 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-east-api
-          port: 80
+          port: 443
           weight: {{- if hasKey $apiW "east" }} {{ $apiW.east }}{{- else }} 100{{- end }}
           filters:
             - type: RequestHeaderModifier
@@ -29,7 +29,7 @@ spec:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         - name: industrial-edge-west-api
-          port: 80
+          port: 443
           weight: {{- if hasKey $apiW "west" }} {{ $apiW.west }}{{- else }} 0{{- end }}
           filters:
             - type: RequestHeaderModifier
@@ -39,7 +39,7 @@ spec:
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
         - name: industrial-edge-east-front
-          port: 80
+          port: 443
           weight: {{ .Values.gateway.weights.east }}
           filters:
             - type: RequestHeaderModifier
@@ -48,7 +48,7 @@ spec:
                   - name: Host
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         - name: industrial-edge-west-front
-          port: 80
+          port: 443
           weight: {{ .Values.gateway.weights.west }}
           filters:
             - type: RequestHeaderModifier
@@ -63,7 +63,7 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-east-api
-          port: 80
+          port: 443
           weight: 100
           filters:
             - type: RequestHeaderModifier
@@ -73,7 +73,7 @@ spec:
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
     - backendRefs:
         - name: industrial-edge-east-front
-          port: 80
+          port: 443
           weight: 100
           filters:
             - type: RequestHeaderModifier
@@ -88,7 +88,7 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-west-api
-          port: 80
+          port: 443
           weight: 100
           filters:
             - type: RequestHeaderModifier
@@ -98,7 +98,7 @@ spec:
                     value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
         - name: industrial-edge-west-front
-          port: 80
+          port: 443
           weight: 100
           filters:
             - type: RequestHeaderModifier

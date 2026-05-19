@@ -5,6 +5,8 @@ metadata:
   namespace: hub-gateway-system
   annotations:
     argocd.argoproj.io/sync-wave: "4"
+    haproxy.router.openshift.io/timeout: 3600s
+    haproxy.router.openshift.io/hsts_header: max-age=0
 spec:
   host: industrial-edge.{{ .Values.clusterDomain }}
   port:

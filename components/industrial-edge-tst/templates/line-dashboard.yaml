@@ -98,6 +98,7 @@ metadata:
   namespace: industrial-edge-tst-all
   annotations:
     argocd.argoproj.io/sync-wave: "6"
+    haproxy.router.openshift.io/timeout: 3600s
 spec:
   host: line-dashboard-industrial-edge-tst-all.{{ include "industrial-edge.domain" . }}
   to:
@@ -116,6 +117,7 @@ metadata:
   namespace: industrial-edge-tst-all
   annotations:
     argocd.argoproj.io/sync-wave: "6"
+    haproxy.router.openshift.io/timeout: 3600s
 spec:
   host: line-dashboard-industrial-edge-tst-all.{{ include "industrial-edge.domain" . }}
   path: /api
