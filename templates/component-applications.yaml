@@ -38,6 +38,13 @@ spec:
       jsonPointers:
         - /data
     - group: ""
+      kind: Secret
+      name: kiali-multi-cluster-secret
+      namespace: openshift-cluster-observability-operator
+      jsonPointers:
+        - /data
+        - /stringData
+    - group: ""
       kind: Namespace
       jsonPointers:
         - /metadata/annotations
@@ -322,6 +329,7 @@ spec:
         clusterDomain: {{ $domain }}
         multiCluster:
           enabled: true
+          automateTokens: true
           clusters:
             east:
               name: east

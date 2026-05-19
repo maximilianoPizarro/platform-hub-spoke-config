@@ -1,0 +1,337 @@
+{{- if and .Values.multiCluster.enabled .Values.multiCluster.automateTokens }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kiali-multicluster-token-sync
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kiali-multicluster-token-sync
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - apiGroups: ["cluster.open-cluster-management.io"]
+    resources: ["managedclusters"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kiali-multicluster-token-sync
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kiali-multicluster-token-sync
+subjects:
+  - kind: ServiceAccount
+    name: kiali-multicluster-token-sync
+    namespace: openshift-cluster-observability-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kiali-multicluster-token-sync
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["kiali-multi-cluster-secret"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kiali-multicluster-token-sync
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kiali-multicluster-token-sync
+subjects:
+  - kind: ServiceAccount
+    name: kiali-multicluster-token-sync
+    namespace: openshift-cluster-observability-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kiali-multicluster-token-sync-argocd
+  namespace: {{ .Values.multiCluster.tokenSync.argocdNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames:
+      - {{ .Values.multiCluster.clusters.east.name }}-application-manager-cluster-secret
+      - {{ .Values.multiCluster.clusters.west.name }}-application-manager-cluster-secret
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: kiali-multicluster-token-sync-argocd
+  namespace: {{ .Values.multiCluster.tokenSync.argocdNamespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kiali-multicluster-token-sync-argocd
+subjects:
+  - kind: ServiceAccount
+    name: kiali-multicluster-token-sync
+    namespace: openshift-cluster-observability-operator
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiali-multicluster-token-sync-script
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+data:
+  sync.py: |
+    #!/usr/bin/env python3
+    """Build kiali-multi-cluster-secret from ManagedCluster CA/URL and spoke SA tokens via cluster-proxy."""
+    import base64
+    import json
+    import os
+    import ssl
+    import sys
+    import urllib.error
+    import urllib.request
+    from pathlib import Path
+
+    HUB_NS = os.environ.get("KIALI_NAMESPACE", "openshift-cluster-observability-operator")
+    SECRET_NAME = os.environ.get("SECRET_NAME", "kiali-multi-cluster-secret")
+    ARGOCD_NS = os.environ.get("ARGOCD_NAMESPACE", "openshift-gitops")
+    KIALI_SA_NS = os.environ.get("KIALI_SA_NAMESPACE", "openshift-cluster-observability-operator")
+    KIALI_SA = os.environ.get("KIALI_SA_NAME", "kiali-service-account")
+    TOKEN_SECONDS = int(os.environ.get("TOKEN_EXPIRATION_SECONDS", "86400"))
+    CLUSTERS = [c.strip() for c in os.environ.get("CLUSTERS", "east,west").split(",") if c.strip()]
+    ARGOCD_SECRET_PREFIX = os.environ.get("ARGOCD_SECRET_PREFIX", "")
+
+    SA_TOKEN_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/token")
+    SA_CA_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+    API_HOST = os.environ.get("KUBERNETES_SERVICE_HOST", "kubernetes.default.svc")
+    API_PORT = os.environ.get("KUBERNETES_SERVICE_PORT", "443")
+    API_BASE = f"https://{API_HOST}:{API_PORT}"
+
+
+    def api_request(method, path, body=None, content_type="application/json"):
+        token = SA_TOKEN_PATH.read_text().strip()
+        ctx = ssl.create_default_context(cafile=str(SA_CA_PATH))
+        headers = {"Authorization": f"Bearer {token}"}
+        data = None
+        if body is not None:
+            data = json.dumps(body).encode() if isinstance(body, dict) else body
+            headers["Content-Type"] = content_type
+        req = urllib.request.Request(f"{API_BASE}{path}", data=data, method=method, headers=headers)
+        with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+            return json.loads(resp.read().decode())
+
+
+    def get_managed_cluster(name):
+        return api_request("GET", f"/apis/cluster.open-cluster-management.io/v1/managedclusters/{name}")
+
+
+    def get_argocd_cluster_config(cluster_name):
+        secret_name = f"{ARGOCD_SECRET_PREFIX}{cluster_name}-application-manager-cluster-secret" if ARGOCD_SECRET_PREFIX else f"{cluster_name}-application-manager-cluster-secret"
+        sec = api_request("GET", f"/api/v1/namespaces/{ARGOCD_NS}/secrets/{secret_name}")
+        raw = base64.b64decode(sec["data"]["config"]).decode()
+        return json.loads(raw)
+
+
+    def request_spoke_sa_token(proxy_base, proxy_token, ca_pem):
+        ns, sa = KIALI_SA_NS, KIALI_SA
+        body = {
+            "apiVersion": "authentication.k8s.io/v1",
+            "kind": "TokenRequest",
+            "spec": {"expirationSeconds": TOKEN_SECONDS},
+        }
+        ctx = ssl.create_default_context()
+        with open("/tmp/proxy-ca.pem", "wb") as f:
+            f.write(ca_pem)
+        ctx.load_verify_locations("/tmp/proxy-ca.pem")
+        suffixes = [
+            f"/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
+            f"/api/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
+        ]
+        last_err = None
+        for suffix in suffixes:
+            url = f"{proxy_base.rstrip('/')}{suffix}"
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(body).encode(),
+                method="POST",
+                headers={
+                    "Authorization": f"Bearer {proxy_token}",
+                    "Content-Type": "application/json",
+                },
+            )
+            try:
+                with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+                    result = json.loads(resp.read().decode())
+                    return result["status"]["token"]
+            except Exception as e:
+                last_err = e
+        raise RuntimeError(f"TokenRequest failed for {proxy_base}: {last_err}")
+
+
+    def build_kubeconfig(cluster_name, server, ca_data_b64, token):
+        return (
+            "apiVersion: v1\n"
+            "kind: Config\n"
+            "preferences: {}\n"
+            f"current-context: {cluster_name}\n"
+            "contexts:\n"
+            f"- name: {cluster_name}\n"
+            "  context:\n"
+            f"    cluster: {cluster_name}\n"
+            f"    user: {cluster_name}\n"
+            "users:\n"
+            f"- name: {cluster_name}\n"
+            "  user:\n"
+            f"    token: {token}\n"
+            "clusters:\n"
+            f"- name: {cluster_name}\n"
+            "  cluster:\n"
+            f"    server: {server}\n"
+            f"    certificate-authority-data: {ca_data_b64}\n"
+        )
+
+
+    def upsert_secret(string_data):
+        labels = {
+            "kiali.io/multiCluster": "true",
+            "kiali.io/kiali-multi-cluster-secret": "true",
+        }
+        metadata = {
+            "name": SECRET_NAME,
+            "namespace": HUB_NS,
+            "labels": labels,
+        }
+        secret = {
+            "apiVersion": "v1",
+            "kind": "Secret",
+            "metadata": metadata,
+            "type": "Opaque",
+            "stringData": string_data,
+        }
+        try:
+            api_request("GET", f"/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}")
+            path = f"/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}"
+            token = SA_TOKEN_PATH.read_text().strip()
+            ctx = ssl.create_default_context(cafile=str(SA_CA_PATH))
+            body = json.dumps({"stringData": string_data}).encode()
+            req = urllib.request.Request(
+                f"{API_BASE}{path}",
+                data=body,
+                method="PATCH",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/strategic-merge-patch+json",
+                },
+            )
+            with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+                resp.read()
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                raise
+            token = SA_TOKEN_PATH.read_text().strip()
+            ctx = ssl.create_default_context(cafile=str(SA_CA_PATH))
+            req = urllib.request.Request(
+                f"{API_BASE}/api/v1/namespaces/{HUB_NS}/secrets",
+                data=json.dumps(secret).encode(),
+                method="POST",
+                headers={
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                },
+            )
+            with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+                resp.read()
+
+
+    def main():
+        string_data = {}
+        for cluster in CLUSTERS:
+            mc = get_managed_cluster(cluster)
+            cfg = mc["spec"]["managedClusterClientConfigs"][0]
+            api_url = cfg["url"]
+            ca_data = cfg["caBundle"]
+            argo_cfg = get_argocd_cluster_config(cluster)
+            proxy_token = argo_cfg["bearerToken"]
+            proxy_ca = base64.b64decode(argo_cfg["tlsClientConfig"]["caData"])
+            proxy_server = f"https://cluster-proxy-addon-user.multicluster-engine.svc.cluster.local:9092/{cluster}"
+            kiali_token = request_spoke_sa_token(proxy_server, proxy_token, proxy_ca)
+            string_data[cluster] = build_kubeconfig(cluster, api_url, ca_data, kiali_token)
+            print(f"OK: built kubeconfig for {cluster}", file=sys.stderr)
+        if not string_data:
+            print("No clusters configured", file=sys.stderr)
+            sys.exit(1)
+        upsert_secret(string_data)
+        print(f"Updated secret {SECRET_NAME} with {len(string_data)} cluster(s)", file=sys.stderr)
+
+
+    if __name__ == "__main__":
+        main()
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kiali-multicluster-token-sync
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  schedule: {{ .Values.multiCluster.tokenSync.schedule | quote }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        spec:
+          serviceAccountName: kiali-multicluster-token-sync
+          restartPolicy: OnFailure
+          containers:
+            - name: sync
+              image: {{ .Values.multiCluster.tokenSync.image | quote }}
+              command: ["python3", "/scripts/sync.py"]
+              env:
+                - name: CLUSTERS
+                  value: {{ printf "%s,%s" .Values.multiCluster.clusters.east.name .Values.multiCluster.clusters.west.name | quote }}
+                - name: ARGOCD_NAMESPACE
+                  value: {{ .Values.multiCluster.tokenSync.argocdNamespace | quote }}
+                - name: TOKEN_EXPIRATION_SECONDS
+                  value: {{ .Values.multiCluster.tokenSync.tokenExpirationSeconds | quote }}
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 200m
+                  memory: 256Mi
+          volumes:
+            - name: script
+              configMap:
+                name: kiali-multicluster-token-sync-script
+                defaultMode: 0755
+{{- end }}

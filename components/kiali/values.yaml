@@ -1,9 +1,11 @@
 clusterDomain: ""
 
 # Hub-only: multi-cluster access to east/west spokes (independent Istio per cluster).
-# Tokens and CA must be supplied at deploy time — never commit secrets.
 multiCluster:
   enabled: false
+  # When true, CronJob syncs kiali-multi-cluster-secret (CA/URL from ManagedCluster,
+  # tokens via cluster-proxy + Argo CD cluster secrets). No manual helm --set tokens.
+  automateTokens: false
   clusters:
     east:
       name: east
@@ -17,3 +19,8 @@ multiCluster:
       caData: ""
       kialiToken: ""
       kialiUrl: ""
+  tokenSync:
+    schedule: "0 */6 * * *"
+    image: registry.redhat.io/ubi9/python-311:latest
+    argocdNamespace: openshift-gitops
+    tokenExpirationSeconds: "86400"

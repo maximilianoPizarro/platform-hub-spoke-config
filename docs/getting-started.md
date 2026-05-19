@@ -121,41 +121,41 @@ Healthy sync waves progress: namespaces → operators → platform → observabi
 
 ## Step 7: Kiali multi-cluster (hub)
 
-Hub Kiali can show mesh topology from east and west without Istio trust federation. Each spoke keeps its own Istio; the hub Kiali uses remote cluster secrets plus optional links to spoke Kiali UIs.
+Hub Kiali can show mesh topology from east and west without Istio trust federation. Each spoke keeps its own Istio; the hub Kiali uses remote cluster secrets plus links to spoke Kiali UIs.
 
-### 7a. Service account on spokes
+### 7a. Automated token sync (default)
 
-On **each spoke**, confirm the Kiali operator created `kiali-service-account` in `openshift-cluster-observability-operator` (deployed by `kiali-east` / `kiali-west` Applications). Create a long-lived token:
+With `multiCluster.automateTokens: true` (enabled in the hub `field-content-kiali` Application), a **CronJob** on the hub (`kiali-multicluster-token-sync`) runs every 6 hours and:
 
-```bash
-# Run on east (repeat on west with west kubeconfig)
-oc create token kiali-service-account \
-  -n openshift-cluster-observability-operator \
-  --duration=8760h
-```
+1. Reads **apiUrl** and **caBundle** from each ACM `ManagedCluster` (east/west)
+2. Uses the Argo CD cluster secret (`*-application-manager-cluster-secret`) to reach the spoke API via **cluster-proxy**
+3. Requests a **TokenRequest** for `kiali-service-account` on each spoke
+4. Creates or updates **`kiali-multi-cluster-secret`** for Kiali
 
-### 7b. Cluster CA data
+**Prerequisites:** `kiali-east` / `kiali-west` synced (so `kiali-service-account` exists on spokes) and Argo CD cluster secrets present in `openshift-gitops`.
 
-Extract the spoke API CA (base64, single line) for each cluster. Example from the hub using the Argo CD cluster secret:
+Trigger an immediate sync after deploy:
 
 ```bash
-oc get secret east-application-manager-cluster-secret -n openshift-gitops \
-  -o jsonpath='{.data.config}' | base64 -d | python3 -c \
-  "import sys,json; print(json.load(sys.stdin)['tlsClientConfig']['caData'])"
+oc create job -n openshift-cluster-observability-operator \
+  --from=cronjob/kiali-multicluster-token-sync kiali-multicluster-token-sync-manual
+oc logs -n openshift-cluster-observability-operator -l job-name=kiali-multicluster-token-sync-manual -f
+oc get secret kiali-multi-cluster-secret -n openshift-cluster-observability-operator
 ```
 
-Or from the spoke:
+To disable automation and use manual tokens instead, set `multiCluster.automateTokens: false` on the kiali chart.
+
+### 7b. Manual tokens (optional)
+
+If you disable `automateTokens`, create tokens on each spoke and pass them via Helm (never commit to Git):
 
 ```bash
-oc config view --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}'
+oc create token kiali-service-account -n openshift-cluster-observability-operator --duration=8760h
 ```
-
-### 7c. Apply tokens to the hub Application
-
-Pass values to the root chart (never commit tokens to Git):
 
 ```bash
 helm upgrade field-content . \
+  --set multiCluster.automateTokens=false \
   --set clusters.east.kialiToken=sha256~... \
   --set clusters.east.kialiCaData=LS0tLS1... \
   --set clusters.west.kialiToken=sha256~... \
@@ -163,13 +163,11 @@ helm upgrade field-content . \
   --reuse-values
 ```
 
-Then sync `field-content-kiali` in Argo CD. The chart creates `kiali-multi-cluster-secret` when all three fields (token, apiUrl, caData) are set for a cluster.
-
-### 7d. OpenShift login per cluster
+### 7c. OpenShift login per cluster
 
 With `auth.strategy: openshift`, users must use **Log in** in the Kiali UI for each remote cluster the first time they access it.
 
-### 7e. Metrics note
+### 7d. Metrics note
 
 Topology and configuration are visible across clusters. Request-rate metrics on the hub use the hub Thanos endpoint; full cross-cluster metrics require Prometheus federation (see [Observability]({% link observability.md %})).
 
