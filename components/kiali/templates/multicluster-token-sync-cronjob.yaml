@@ -164,9 +164,11 @@ data:
         with open("/tmp/proxy-ca.pem", "wb") as f:
             f.write(ca_pem)
         ctx.load_verify_locations("/tmp/proxy-ca.pem")
+        # cluster-proxy expects /api/v1/... (Argo CD style), not /apis/authentication.k8s.io/...
         suffixes = [
-            f"/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
+            f"/api/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
             f"/api/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
+            f"/apis/authentication.k8s.io/v1/namespaces/{ns}/serviceaccounts/{sa}/token",
         ]
         last_err = None
         for suffix in suffixes:
@@ -183,7 +185,11 @@ data:
             try:
                 with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
                     result = json.loads(resp.read().decode())
-                    return result["status"]["token"]
+                    if "status" in result and "token" in result["status"]:
+                        return result["status"]["token"]
+                    if "token" in result:
+                        return result["token"]
+                    raise KeyError(f"unexpected token response keys: {list(result.keys())}")
             except Exception as e:
                 last_err = e
         raise RuntimeError(f"TokenRequest failed for {proxy_base}: {last_err}")
