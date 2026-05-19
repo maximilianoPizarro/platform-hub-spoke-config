@@ -1,9 +1,0 @@
-apiVersion: backstage.io/v1alpha1
-kind: Location
-metadata:
-  name: software-templates
-  description: Software Templates for Developer Hub
-spec:
-  targets:
-    - ./industrial-edge/template.yaml
-    - ./industrial-edge-camel-kaoto/template.yaml
