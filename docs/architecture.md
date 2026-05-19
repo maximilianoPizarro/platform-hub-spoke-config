@@ -26,14 +26,17 @@ Spokes remain the execution venues for application namespaces, data-plane compon
 ```mermaid
 flowchart TB
   subgraph Git["Git Repository (main branch)"]
-    REPO["platform-hub-spoke-config"]
+    ROOT["path: .  (hub)"]
+    EAST_DIR["path: east/"]
+    WEST_DIR["path: west/"]
+    COMP["components/"]
   end
 
   subgraph Hub["Hub Cluster"]
     direction TB
-    ARGO["OpenShift GitOps<br/>(ArgoCD)"]
+    ARGO_H["Argo CD (hub)"]
     ACM["Advanced Cluster<br/>Management"]
-    APPSET["ApplicationSet<br/>(matrix generator)"]
+    APPSET["ApplicationSet<br/>(clusterDecisionResource)"]
     GW["Hub Gateway<br/>(Gateway API + Istio)"]
     GRAFANA["Grafana<br/>(multi-cluster dashboards)"]
     KAFKA_C["Kafka Console"]
@@ -46,6 +49,7 @@ flowchart TB
 
   subgraph East["East Spoke"]
     direction TB
+    ARGO_E["Argo CD (east)"]
     IE_E["Industrial Edge<br/>(sensors, MQTT, Kafka, ML)"]
     SGW_E["Spoke Gateway"]
     SKUPPER_E["Skupper Spoke Site<br/>(Connectors)"]
@@ -56,6 +60,7 @@ flowchart TB
 
   subgraph West["West Spoke"]
     direction TB
+    ARGO_W["Argo CD (west)"]
     IE_W["Industrial Edge<br/>(sensors, MQTT, Kafka, ML)"]
     SGW_W["Spoke Gateway"]
     SKUPPER_W["Skupper Spoke Site<br/>(Connectors)"]
@@ -64,11 +69,17 @@ flowchart TB
     MESH_W["OSSM3 Ambient<br/>(ztunnel)"]
   end
 
-  REPO --> ARGO
-  ARGO --> ACM
-  ARGO --> APPSET
-  APPSET -->|"spoke apps"| East
-  APPSET -->|"spoke apps"| West
+  ROOT --> ARGO_H
+  ARGO_H --> ACM
+  ARGO_H --> APPSET
+  APPSET -->|"push east/ chart"| ARGO_E
+  APPSET -->|"push west/ chart"| ARGO_W
+  EAST_DIR -.->|"source"| ARGO_E
+  WEST_DIR -.->|"source"| ARGO_W
+  COMP -.->|"referenced by"| ARGO_E
+  COMP -.->|"referenced by"| ARGO_W
+  ARGO_E -->|"local sync"| IE_E
+  ARGO_W -->|"local sync"| IE_W
   ACM ---|"fleet mgmt"| East
   ACM ---|"fleet mgmt"| West
   GW -->|"front/api traffic"| East
@@ -82,48 +93,50 @@ flowchart TB
 
 ## Components on the hub vs spokes
 
-| Area | Hub | Spokes |
-| -----|-----|--------|
-| ACM hub operator & APIs | yes | |
-| ArgoCD / App-of-Apps root | yes | |
-| ApplicationSet (spoke apps) | yes | |
-| ACS Central | yes | |
-| ACS Secured Cluster | | yes |
-| Developer Hub | yes | |
-| Hub Gateway (Gateway API) | yes | |
-| Spoke Gateway (Gateway API) | | yes |
-| Industrial Edge workloads | | yes |
-| Kafka brokers (regional) | optional | yes |
-| Service Mesh ambient / ztunnel | yes | yes |
-| Istio CNI (`profile: ambient`) | yes | yes |
-| Skupper Site (hub listeners) | yes | |
-| Skupper Site (spoke connectors) | | yes |
-| Grafana (multi-cluster dashboards) | yes | |
-| Grafana (local metrics) | | yes |
-| Kiali + OSSM Console plugin | yes | yes |
-| Connectivity Link (RHCL) | yes | yes |
-| Kubecost (primary aggregator) | yes | |
-| Kubecost (agent) | | yes |
-| Kafka Console (all clusters) | yes | |
+| Area | Hub | Spokes | Config path |
+| -----|-----|--------|-------------|
+| ACM hub operator & APIs | yes | | `values.yaml` |
+| ArgoCD / App-of-Apps root | yes | yes | `.` / `east/` / `west/` |
+| ApplicationSet (spoke apps) | yes | | `values.yaml` |
+| ACS Central | yes | | `values.yaml` |
+| ACS Secured Cluster | | yes | `east/` `west/` |
+| Developer Hub | yes | | `values.yaml` |
+| Hub Gateway (Gateway API) | yes | | `values.yaml` |
+| Spoke Gateway (Gateway API) | | yes | `east/` `west/` |
+| Industrial Edge workloads | | yes | `east/` `west/` |
+| Kafka brokers (regional) | | yes | `east/` `west/` |
+| Service Mesh ambient / ztunnel | yes | yes | both |
+| Istio CNI (`profile: ambient`) | yes | yes | both |
+| Skupper Site (hub listeners) | yes | | `values.yaml` |
+| Skupper Site (spoke connectors) | | yes | `east/` `west/` |
+| Grafana (multi-cluster dashboards) | yes | | `values.yaml` |
+| Grafana (local metrics) | | yes | `east/` `west/` |
+| Kiali + OSSM Console plugin | yes | yes | both |
+| Connectivity Link (RHCL) | yes | yes | both |
+| Kubecost (primary aggregator) | yes | | `values.yaml` |
+| Kubecost (agent) | | yes | `east/` `west/` |
+| Kafka Console (all clusters) | yes | | `values.yaml` |
 
 ## GitOps application delivery flow
 
 ```mermaid
 sequenceDiagram
   participant Git as Git Repository
-  participant Argo as ArgoCD (Hub)
+  participant HubArgo as ArgoCD (Hub)
   participant Hub as Hub Cluster
   participant AppSet as ApplicationSet
-  participant East as East Spoke
-  participant West as West Spoke
+  participant EastArgo as ArgoCD (East)
+  participant WestArgo as ArgoCD (West)
 
-  Git->>Argo: Webhook / poll (main branch)
-  Argo->>Hub: Sync hub components<br/>(operators, gateway, observability)
-  Argo->>AppSet: Render matrix (cluster x component)
-  AppSet->>East: Create spoke Applications<br/>(namespaces, operators, IE, kiali...)
-  AppSet->>West: Create spoke Applications<br/>(namespaces, operators, IE, kiali...)
-  East-->>Argo: Health + sync status
-  West-->>Argo: Health + sync status
+  Git->>HubArgo: Webhook / poll (main branch)
+  HubArgo->>Hub: Sync hub components<br/>(path: . — operators, gateway, observability)
+  HubArgo->>AppSet: Evaluate clusterDecisionResource
+  AppSet->>EastArgo: Push east/ chart<br/>(remote deploy via cluster secret)
+  AppSet->>WestArgo: Push west/ chart<br/>(remote deploy via cluster secret)
+  EastArgo->>EastArgo: Sync child Apps locally<br/>(namespaces, operators, IE, mesh...)
+  WestArgo->>WestArgo: Sync child Apps locally<br/>(namespaces, operators, IE, mesh...)
+  EastArgo-->>HubArgo: Health + sync status
+  WestArgo-->>HubArgo: Health + sync status
 ```
 
 ## Sync wave ordering

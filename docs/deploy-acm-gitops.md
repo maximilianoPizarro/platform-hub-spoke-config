@@ -36,23 +36,38 @@ A **GitOpsCluster** resource associates Argo CD (`spec.argocd`) with clusters ch
 
 Together, `Placement` → `PlacementDecision` → `GitOpsCluster` avoids brittle per-cluster Application YAML checked into Git.
 
-## ApplicationSet matrix generator
+## ApplicationSet with clusterDecisionResource
 
-An **ApplicationSet** **matrix** generator combines two lists (for example **cluster** × **component**) to emit many `Application` objects from one definition.
+The **ApplicationSet** uses a **`clusterDecisionResource`** generator that reads ACM **PlacementDecision** objects. For each cluster selected by the Placement, the ApplicationSet creates an Application that deploys the cluster's dedicated Helm chart folder to the remote spoke.
 
-Common axes:
+The ApplicationSet template uses two dynamic variables from the PlacementDecision:
+- **`{{name}}`** — cluster name (e.g. `east`, `west`), used as both the repository `path` and the `destination.name`
+- **`{{server}}`** — cluster API server URL (available but not used directly; `destination.name` resolves via cluster secrets)
 
-- Git directories or Helm charts per component.
-- Cluster list from a generator that reads `PlacementDecision` or cluster labels.
+This means adding a new spoke with correct labels and a matching folder in the repository automatically generates a new Application.
 
-This matches hub-spoke scaling: adding a spoke with correct labels yields new `Application` instances automatically.
+## Remote deployment model
+
+Each cluster has its own Argo CD instance. The hub's ApplicationSet pushes the per-cluster chart to each spoke's `openshift-gitops` namespace. The spoke's Argo CD then manages the child Applications locally.
+
+```
+Hub ArgoCD → ApplicationSet
+  → east-spoke-components (source: east/, destination: east cluster)
+       → east/templates/ generates child Application CRs
+            → East ArgoCD syncs child apps locally
+  → west-spoke-components (source: west/, destination: west cluster)
+       → west/templates/ generates child Application CRs
+            → West ArgoCD syncs child apps locally
+```
+
+Industrial Edge components exist ONLY in spoke charts. The hub chart never includes them.
 
 ## Troubleshooting: `industrial-edge-spoke` shows no Applications
 
 The OpenShift / ACM UI may report *no Argo applications* when any link in this chain is missing:
 
 1. **Managed clusters** are **Imported / Available** (`oc get managedcluster`).
-2. Each spoke used by this repo should be named **`east`** and **`west`** (Argo cluster secret name = `ManagedCluster` name), **or** add matching entries to the **merge list** in `components/acm-hub-spoke/templates/applicationset.yaml` (`name` + `clusterDomain`) for your real cluster names.
+2. Each spoke must be named **`east`** and **`west`** (matching the folder names in the repository), and registered as Argo CD cluster secrets.
 3. **`ManagedClusterSetBinding` `global`** exists in **`openshift-gitops`** and clusters carry **`cluster.open-cluster-management.io/clusterset: global`** (see chart templates).
 4. **`Placement` `hub-spoke-placement`** selects your spokes (`region` in `east` | `west` by default).
 5. **`PlacementDecision`** objects exist in **`openshift-gitops`** with decisions listing those cluster names:
@@ -63,9 +78,8 @@ The OpenShift / ACM UI may report *no Argo applications* when any link in this c
    ```
 
 6. **`GitOpsCluster` `hub-spoke-gitops`** is reconciled so Argo registers the same clusters (**Settings → Clusters** in Argo CD).
-7. **RBAC**: Role **`applicationset-placementdecisions`** binds **`openshift-gitops-applicationset-controller`** so the **clusterDecisionResource** generator can **list** `placementdecisions`. If your GitOps version uses a different ServiceAccount name, run `oc get sa -n openshift-gitops` and update the RoleBinding subject.
-
-The ApplicationSet uses **`clusterDecisionResource`** (PlacementDecision) **merged** with the static **`east` / `west`** list so Apps are only generated when a cluster is **both** placed **and** registered in Argo CD.
+7. **RBAC**: Role **`applicationset-placementdecisions`** binds **`openshift-gitops-applicationset-controller`** so the **clusterDecisionResource** generator can **list** `placementdecisions`.
+8. **Spoke folders exist**: `east/` and `west/` directories must exist in the repository with valid Helm charts (`Chart.yaml`, `values.yaml`, `templates/`).
 
 ## Step-by-step deployment
 

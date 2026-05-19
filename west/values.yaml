@@ -19,7 +19,7 @@ deployer:
 operators:
   subscriptions:
     - name: amq-broker-rhel8
-      namespace: industrial-edge-tst-all
+      namespace: openshift-operators
       channel: 7.12.x
       source: redhat-operators
     - name: camel-k
@@ -38,6 +38,22 @@ operators:
       namespace: openshift-operators
       channel: stable
       source: redhat-operators
+    - name: skupper-operator
+      namespace: openshift-operators
+      channel: stable-2
+      source: redhat-operators
+    - name: grafana-operator
+      namespace: openshift-operators
+      channel: v5
+      source: community-operators
+    - name: kiali-ossm
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
+    - name: rhods-operator
+      namespace: redhat-ods-operator
+      channel: stable-2.25
+      source: redhat-operators
 
 apps:
   - id: namespaces
@@ -52,6 +68,30 @@ apps:
     path: components/servicemeshoperator3
     destinationNamespace: openshift-operators
     syncWave: "3"
+  - id: observability
+    path: components/observability
+    destinationNamespace: openshift-cluster-observability-operator
+    syncWave: "4"
+  - id: acs-secured-cluster
+    path: components/acs-secured-cluster
+    destinationNamespace: stackrox
+    syncWave: "4"
+  - id: spoke-dashboards
+    path: components/spoke-dashboards
+    destinationNamespace: openshift-cluster-observability-operator
+    syncWave: "4"
+  - id: istio-monitoring
+    path: components/istio-monitoring
+    destinationNamespace: istio-system
+    syncWave: "4"
+  - id: rhcl-operator
+    path: components/rhcl-operator
+    destinationNamespace: redhat-connectivity-link-operator
+    syncWave: "4"
+  - id: kiali
+    path: components/kiali
+    destinationNamespace: openshift-cluster-observability-operator
+    syncWave: "4"
   - id: industrial-edge-tst
     path: components/industrial-edge-tst
     destinationNamespace: industrial-edge-tst-all
@@ -59,15 +99,39 @@ apps:
   - id: industrial-edge-stormshift
     path: components/industrial-edge-stormshift
     destinationNamespace: industrial-edge-stormshift-messaging
-    syncWave: "6"
+    syncWave: "5"
   - id: industrial-edge-pipelines
     path: components/industrial-edge-pipelines
     destinationNamespace: industrial-edge-ci
     syncWave: "5"
-  - id: acs-secured-cluster
-    path: components/acs-secured-cluster
-    destinationNamespace: stackrox
-    syncWave: "4"
+  - id: industrial-edge-minio
+    path: components/industrial-edge-minio
+    destinationNamespace: industrial-edge-ml-workspace
+    syncWave: "5"
+  - id: industrial-edge-data-science-cluster
+    path: components/industrial-edge-data-science-cluster
+    destinationNamespace: redhat-ods-applications
+    syncWave: "5"
+  - id: industrial-edge-data-lake
+    path: components/industrial-edge-data-lake
+    destinationNamespace: industrial-edge-data-lake
+    syncWave: "5"
+  - id: industrial-edge-data-science-project
+    path: components/industrial-edge-data-science-project
+    destinationNamespace: ml-development
+    syncWave: "5"
+  - id: ie-anomaly-alerter
+    path: components/ie-anomaly-alerter
+    destinationNamespace: industrial-edge-tst-all
+    syncWave: "6"
+  - id: spoke-gateway
+    path: components/spoke-gateway
+    destinationNamespace: spoke-gateway-system
+    syncWave: "6"
+  - id: spoke-interconnect
+    path: components/spoke-interconnect
+    destinationNamespace: service-interconnect
+    syncWave: "6"
   - id: devspaces
     path: components/devspaces
     destinationNamespace: devspaces

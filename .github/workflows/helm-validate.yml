@@ -2,9 +2,9 @@ name: Helm Validate & ArgoCD Preflight
 
 on:
   push:
-    branches: [main, east, west]
+    branches: [main]
   pull_request:
-    branches: [main, east, west]
+    branches: [main]
 
 jobs:
   helm-lint:
@@ -14,8 +14,12 @@ jobs:
       - uses: azure/setup-helm@v4
         with:
           version: 'v3.15.0'
-      - name: Lint parent chart
+      - name: Lint hub chart (root)
         run: helm lint .
+      - name: Lint east spoke chart
+        run: helm lint east/
+      - name: Lint west spoke chart
+        run: helm lint west/
       - name: Lint all component charts
         run: |
           for chart in components/*/; do
@@ -32,13 +36,16 @@ jobs:
       matrix:
         profile:
           - name: hub
+            path: "."
             values: values.yaml
             domain: apps.hub.example.com
           - name: east
-            values: values-east.yaml
+            path: east
+            values: east/values.yaml
             domain: apps.east.example.com
           - name: west
-            values: values-west.yaml
+            path: west
+            values: west/values.yaml
             domain: apps.west.example.com
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +54,7 @@ jobs:
           version: 'v3.15.0'
       - name: Template ${{ matrix.profile.name }}
         run: |
-          helm template test-release . \
+          helm template test-release ${{ matrix.profile.path }} \
             -f ${{ matrix.profile.values }} \
             --set deployer.domain=${{ matrix.profile.domain }} \
             > /dev/null
@@ -65,8 +72,8 @@ jobs:
       - name: Validate YAML
         run: |
           yamllint -d relaxed values.yaml
-          yamllint -d relaxed values-east.yaml
-          yamllint -d relaxed values-west.yaml
+          yamllint -d relaxed east/values.yaml
+          yamllint -d relaxed west/values.yaml
 
   argocd-preflight:
     runs-on: ubuntu-latest

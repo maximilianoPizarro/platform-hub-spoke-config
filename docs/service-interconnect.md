@@ -127,6 +127,19 @@ sequenceDiagram
 
 The `AccessToken` is created manually via `ManagedClusterAction` since it contains sensitive claim data that should not be stored in Git.
 
+### AccessToken CA certificate
+
+The Skupper grant server uses **passthrough TLS termination** on its OpenShift Route, presenting a self-signed certificate from `SkupperGrantServerCA` -- **not** the OpenShift Ingress CA.
+
+Extract the correct CA from the hub:
+
+```bash
+oc get secret skupper-grant-server-ca -n openshift-operators \
+  -o jsonpath='{.data.ca\.crt}' | base64 -d
+```
+
+Using the wrong CA (e.g. OpenShift Ingress CA) causes `x509: certificate signed by unknown authority` when the spoke tries to redeem the token.
+
 ## Kafka bootstrap over Skupper
 
 Skupper forwards **TCP** to Kafka bootstrap (`:9092`). Clients then receive broker metadata with spoke-internal DNS names that **do not resolve on the hub** until you add hub-side DNS mappings (`EndpointSlice`) and matching Strimzi **advertisedHost** values on the spokes.

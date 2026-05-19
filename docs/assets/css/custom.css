@@ -518,3 +518,88 @@ pre code {
   border-radius: 6px;
   padding: 1rem;
 }
+
+.mermaid text,
+.mermaid .messageText,
+.mermaid .loopText,
+.mermaid .noteText,
+.mermaid .labelText,
+.mermaid .actor-man text,
+.mermaid tspan {
+  fill: var(--rh-color-white) !important;
+  color: var(--rh-color-white) !important;
+}
+
+.mermaid .actor {
+  fill: var(--rh-color-black-600) !important;
+  stroke: var(--rh-color-black-400) !important;
+}
+
+.mermaid .messageLine0,
+.mermaid .messageLine1 {
+  stroke: var(--rh-color-black-300) !important;
+}
+
+.mermaid .note {
+  fill: var(--rh-color-black-700) !important;
+  stroke: var(--rh-color-black-500) !important;
+}
+
+.mermaid .loopLine {
+  stroke: var(--rh-color-black-500) !important;
+}
+
+.mermaid .activation0,
+.mermaid .activation1,
+.mermaid .activation2 {
+  fill: var(--rh-color-black-600) !important;
+  stroke: var(--rh-color-black-400) !important;
+}
+
+.mermaid .sequenceNumber {
+  fill: var(--rh-color-white) !important;
+}
+
+.mermaid line[class^="messageLine"] {
+  stroke: var(--rh-color-black-300) !important;
+}
+
+.mermaid .edgeLabel,
+.mermaid .edgeLabel p,
+.mermaid .label,
+.mermaid .label text,
+.mermaid .nodeLabel {
+  color: var(--rh-color-white) !important;
+  fill: var(--rh-color-white) !important;
+}
+
+.mermaid .node rect,
+.mermaid .node circle,
+.mermaid .node polygon {
+  fill: var(--rh-color-black-600) !important;
+  stroke: var(--rh-color-black-400) !important;
+}
+
+.mermaid .cluster rect {
+  fill: var(--rh-color-black-800) !important;
+  stroke: var(--rh-color-black-500) !important;
+}
+
+.mermaid .cluster text,
+.mermaid .cluster span {
+  fill: var(--rh-color-white) !important;
+  color: var(--rh-color-white) !important;
+}
+
+.mermaid .edgeLabel rect {
+  fill: var(--rh-color-black-900) !important;
+  opacity: 0.85;
+}
+
+.mermaid marker path {
+  fill: var(--rh-color-black-300) !important;
+}
+
+.mermaid .flowchart-link {
+  stroke: var(--rh-color-black-400) !important;
+}

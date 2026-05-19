@@ -120,7 +120,7 @@ ignoreDifferences:
 
 Prefer label-driven placement over embedding kube-apiserver URLs in Git.
 
-## Single-branch multi-cluster strategy
+## Single-branch multi-cluster strategy (remote GitOps model)
 
 Instead of separate git branches per cluster, use **subdirectories** on `main`:
 
@@ -131,7 +131,31 @@ west/          → west cluster (path: west)
 components/    → shared components referenced by all
 ```
 
-Each subdirectory is an independent Helm chart with its own `Chart.yaml`, `values.yaml`, and `templates/`. The hub ArgoCD Application uses `path: .` and east/west use `path: east` and `path: west`. This avoids branch divergence, makes PRs simpler, and allows shared components.
+Each subdirectory is an independent Helm chart with its own `Chart.yaml`, `values.yaml`, and `templates/`. This avoids branch divergence, makes PRs simpler, and allows shared components.
+
+### Remote deployment model
+
+Each cluster has its own Argo CD instance. The hub's ApplicationSet pushes the per-cluster chart to each spoke's `openshift-gitops` namespace via remote cluster secrets. The spoke's own Argo CD then manages the child Applications locally.
+
+**Flow:**
+
+1. Hub Argo CD root Application: `path: .` deploys hub-only components (ACM, ACS Central, Kafka Console, Hub Gateway, etc.)
+2. Hub ApplicationSet (`industrial-edge-spoke`) uses `clusterDecisionResource` generator from ACM `PlacementDecision`
+3. For each spoke, the ApplicationSet creates an Application with `source.path: {{name}}` and `destination.name: {{name}}`
+4. This deploys the spoke chart (`east/` or `west/`) to the remote cluster
+5. The spoke chart generates child Application CRs in `openshift-gitops`
+6. The spoke's own Argo CD syncs each child Application locally (`server: https://kubernetes.default.svc`)
+
+**Key principle:** Industrial Edge components exist ONLY in spoke charts (`east/`, `west/`). The hub chart (root `.`) never includes Industrial Edge applications. Hub-only components (kafka-console, grafana-dashboards, hub-gateway, service-interconnect, acm-operator, developer-hub) are NOT in spoke charts.
+
+### Self-contained spoke charts
+
+Each spoke chart (`east/values.yaml`, `west/values.yaml`) carries all configuration:
+- `clusterName`, `deployer.domain`, `clusters.hub.domain`
+- `operators.subscriptions[]` — full list of OLM subscriptions for this spoke
+- `apps[]` — full list of components to deploy
+
+No values are passed from the ApplicationSet to the spoke charts. This makes each spoke independently deployable — a spoke's Argo CD can bootstrap directly from its folder without the hub.
 
 ## Cluster domain externalization
 
@@ -376,8 +400,8 @@ The `AccessToken` on spokes is created manually (via `ManagedClusterAction`) bec
 apiVersion: skupper.io/v2alpha1
 kind: AccessToken
 metadata:
-  name: hub-token
-  namespace: service-interconnect
+  name: hub-link
+  namespace: openshift-operators
 spec:
   ca: "<hub-grant-ca>"
   code: "<hub-grant-code>"
@@ -385,6 +409,33 @@ spec:
 ```
 
 The AccessToken automatically creates a `Link` with correct TLS credentials and router endpoints. Do NOT manually create `Link` resources — the endpoints in the hub's `RouterAccess` change and the AccessToken handles this correctly.
+
+**CRITICAL — CA certificate for AccessToken**: The Skupper grant server uses **passthrough TLS termination** on its OpenShift Route. This means it presents a self-signed certificate from its own CA (`SkupperGrantServerCA`), **NOT** the OpenShift Ingress CA.
+
+The correct CA is found in the `skupper-grant-server-ca` secret in the Skupper namespace (typically `openshift-operators`) on the **hub** cluster:
+
+```bash
+oc get secret skupper-grant-server-ca -n openshift-operators -o jsonpath='{.data.ca\.crt}' | base64 -d
+```
+
+Using the wrong CA (e.g. OpenShift Ingress CA from `router-ca` secret) causes:
+
+```
+x509: certificate signed by unknown authority
+```
+
+The AccessToken `spec.ca` must contain the **SkupperGrantServerCA** PEM certificate, `spec.code` comes from the hub's `AccessGrant` status, and `spec.url` is the grant server Route URL.
+
+**Verification after AccessToken creation:**
+
+```bash
+# On hub: check site count (should be 3 for hub+east+west)
+oc get site -n openshift-operators -o jsonpath='{.items[0].status.sitesInNetwork}{"\n"}'
+# On hub: check listeners are Ready
+oc get listener -n service-interconnect
+# On spoke: check link status
+oc get link -n openshift-operators
+```
 
 ### Prometheus metrics export via Skupper (auth proxy pattern)
 
@@ -435,38 +486,37 @@ Expose spoke Kafka bootstrap services to the hub with Skupper **Connector** (spo
 
 Console CR (`components/kafka-console`) registers four clusters via bootstrap Skupper DNS; `amq-streams-console` operator subscription on hub.
 
-### Kafka Console metrics configuration
+### Kafka Console simplified model (no SA/Secret in Git)
 
-The `Console` CR `metricsSources` type `openshift-monitoring` may NOT work in all operator versions (logs: `Prometheus URL is not configured`). Use **`type: standalone`** with explicit Thanos Querier URL instead:
+The Console operator manages its own `ServiceAccount` (`kafka-console-console-serviceaccount`). Do NOT define SA, Secret (`console-metrics-token`), or ClusterRoleBinding in Git — this causes ServerSideApply 409 Conflicts between Argo CD and the operator/OpenShift SA token controller.
+
+**Console CR `kafkaClusters`** for spoke clusters via Skupper:
+- Do NOT include `namespace` or `listener` fields — these cause the operator to look up Kafka CRs locally on the hub, which don't exist
+- Use only `properties.values[].bootstrap.servers` pointing to Skupper listener DNS
+
+```yaml
+kafkaClusters:
+  - name: dev-cluster-east
+    metricsSource: prometheus-east
+    properties:
+      values:
+        - name: bootstrap.servers
+          value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
+```
+
+**Hub IE namespaces for broker DNS**: `broker-dns.yaml` creates `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-data-lake` namespaces on the hub at sync-wave "0" — these are DNS shim namespaces for headless Service resolution of Kafka broker advertised hostnames, NOT workload namespaces.
+
+**Spoke Prometheus metrics via Skupper**: Configure `metricsSources` entries for each spoke pointing to Skupper listeners:
 
 ```yaml
 metricsSources:
-  - name: thanos
+  - name: prometheus-east
     type: standalone
-    url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
-    authentication:
-      bearer:
-        token:
-          valueFrom:
-            secretKeyRef:
-              name: console-metrics-token
-              key: token
-    trustStore:
-      type: PEM
-      content:
-        valueFrom:
-          configMapKeyRef:
-            name: openshift-service-ca.crt
-            key: service-ca.crt
+    url: http://prometheus-east.service-interconnect.svc.cluster.local:9091
+  - name: prometheus-west
+    type: standalone
+    url: http://prometheus-west.service-interconnect.svc.cluster.local:9091
 ```
-
-Required supporting resources:
-1. **Secret** `console-metrics-token` (type `kubernetes.io/service-account-token`) for the SA `kafka-console-console-serviceaccount`
-2. **ClusterRoleBinding** `kafka-console-monitoring-view` → `cluster-monitoring-view` for that SA
-3. **Each `kafkaCluster` entry MUST include `namespace`** — without it logs show `namespace is required for metrics retrieval but none was provided`
-4. Metrics only appear for clusters whose Kafka pods run **in the same cluster** as the Console (hub metrics visible, spoke metrics require remote-write or federation)
-5. The `openshift-service-ca.crt` ConfigMap (auto-injected by OpenShift in every namespace) provides the CA for Thanos TLS
-6. The hub `prod-cluster` (namespace `industrial-edge-data-lake`) has full metrics; spoke clusters connected via Skupper only show topics/nodes without metrics unless Prometheus federation is configured
 
 ## Kiali + OSSM Console plugin
 
@@ -780,20 +830,53 @@ These plugins fail with `npm pack ENOENT` and must be `disabled: true`:
 - `roadiehq-backstage-plugin-argo-cd-backend-dynamic`
 - `backstage-community-plugin-redhat-argocd`
 
+## ArgoCD resourceCustomizations → resourceHealthChecks migration
+
+ArgoCD 2.13+ deprecated `resourceCustomizations` in the ArgoCD CR. Use `resourceHealthChecks` instead:
+
+```yaml
+# OLD (causes CRD schema errors)
+spec:
+  resourceCustomizations: |
+    sailoperator.io/Istio:
+      health.lua: |
+        ...
+
+# NEW
+spec:
+  resourceHealthChecks:
+    - group: sailoperator.io
+      kind: Istio
+      check: |
+        hs = {}
+        hs.status = "Healthy"
+        return hs
+```
+
+If the ArgoCD CR sync fails with schema validation errors on `resourceCustomizations`, migrate all custom health checks to `resourceHealthChecks` format.
+
 ## Quick verification commands
 
 ```bash
+# ACM
 oc get managedcluster
 oc get placement -A
 oc get placementdecision -A
+# ArgoCD (hub)
 oc get applications -n openshift-gitops
+# ArgoCD (spoke — check child apps)
+# oc get applications -n openshift-gitops  (run on spoke cluster)
 oc get consolelink | grep platform-
 oc get consoleplugin
 # Kiali/Prometheus
 oc logs deploy/kiali -n openshift-cluster-observability-operator --tail=10 | grep 401
 oc get servicemonitor,podmonitor -n istio-system
-# Skupper
-oc get site,accessgrant,listener -n service-interconnect
+# Skupper (hub)
+oc get site -n openshift-operators -o jsonpath='{.items[0].status.sitesInNetwork}{"\n"}'
+oc get accessgrant -n openshift-operators
+oc get listener -n service-interconnect
+# Skupper (spoke)
+# oc get link -n openshift-operators  (run on spoke cluster)
 # Grafana
 oc get grafana,grafanadatasource -n openshift-cluster-observability-operator
 # OLM health on spokes (via MCV)

@@ -92,6 +92,20 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+    - group: kiali.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
+    - group: console.openshift.io
+      kind: ConsoleLink
+      jsonPointers:
+        - /metadata/annotations
+    - group: datasciencecluster.opendatahub.io
+      kind: "*"
+      jsonPointers:
+        - /metadata/annotations
+        - /status
   source:
     repoURL: {{ $.Values.gitops.repoUrl }}
     targetRevision: {{ $.Values.gitops.revision }}
@@ -101,21 +115,25 @@ spec:
     {{- if eq .id "operators" }}
     helm:
       valuesObject:
+        clusterRole: spoke
         subscriptions: {{ $.Values.operators.subscriptions | toJson }}
     {{- else if eq .id "namespaces" }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        clusterRole: spoke
     {{- else if eq .id "servicemeshoperator3" }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        clusterRole: spoke
     {{- else if eq .id "acs-secured-cluster" }}
     helm:
       valuesObject:
         clusterName: {{ $.Values.clusterName }}
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
+        clusterRole: spoke
     {{- else if eq .id "devspaces" }}
     helm:
       valuesObject:
@@ -146,6 +164,7 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         clusterName: {{ $.Values.clusterName }}
+        clusterRole: spoke
         global:
           localClusterDomain: {{ $domain }}
           hubClusterDomain: {{ $hubDomain }}

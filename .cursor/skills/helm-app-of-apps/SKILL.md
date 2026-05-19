@@ -76,50 +76,64 @@ Use waves consistently across the fleet:
 
 Keep dependent workloads **strictly greater** than their prerequisites.
 
-## Spoke components via ApplicationSet
+## Spoke components via ApplicationSet (remote model)
 
-The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that deploys components to spoke clusters using a **matrix** generator: **static `east`/`west` list** × **component list**. Values use **`{{.name}}`** (Argo cluster name) and **`{{.clusterDomain}}`** from the list in `applicationset.yaml`.
+Each spoke cluster has its own Helm chart in a dedicated folder (`east/`, `west/`) at the repository root. The `acm-hub-spoke` chart generates an **ApplicationSet** (`industrial-edge-spoke`) that uses a **`clusterDecisionResource`** generator from ACM `PlacementDecision` to deploy each spoke's chart **remotely** to the spoke cluster.
 
-```yaml
-valuesObject:
-  clusterDomain: '{{.clusterDomain}}'
-  clusterName: '{{.name}}'
-  clusterRole: spoke
-  hubClusterDomain: <hub-domain>
-  subscriptions:
-    - name: skupper-operator
-      namespace: openshift-operators
-      channel: stable-2
-      source: redhat-operators
-    - name: grafana-operator
-      namespace: openshift-operators
-      channel: v5
-      source: community-operators
-    - name: kiali-ossm
-      namespace: openshift-operators
-      channel: stable
-      source: redhat-operators
-    - name: rhacs-operator
-      namespace: openshift-operators
-      channel: stable
-      source: redhat-operators
-    - name: amq-streams
-      namespace: openshift-operators
-      channel: stable
-      source: redhat-operators
-    - name: amq-broker-rhel8
-      namespace: openshift-operators
-      channel: 7.12.x
-      source: redhat-operators
+### Deployment flow
+
+1. Hub Argo CD evaluates the ApplicationSet.
+2. For each cluster in the PlacementDecision (e.g. `east`, `west`), it creates an Application:
+   - **source.path**: `{{name}}` (resolves to `east/` or `west/`)
+   - **destination.name**: `{{name}}` (deploys to the remote spoke via cluster secret)
+3. The spoke chart (`east/` or `west/`) generates child Application CRs in the spoke's `openshift-gitops` namespace.
+4. The spoke's own Argo CD picks up those Application CRs and syncs them locally (`server: https://kubernetes.default.svc`).
+
+```
+Hub Argo CD
+  └── ApplicationSet (industrial-edge-spoke)
+        ├── east-spoke-components (deployed to east cluster)
+        │     └── east/ chart generates child Apps
+        │           └── east's Argo CD syncs locally
+        └── west-spoke-components (deployed to west cluster)
+              └── west/ chart generates child Apps
+                    └── west's Argo CD syncs locally
 ```
 
-Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `acs-secured-cluster`, `observability`, `spoke-dashboards`, `istio-monitoring`, `console-links`, `spoke-gateway`, `spoke-interconnect`, `rhcl-operator`, `kiali`, `ie-anomaly-alerter`, `kubecost`.
+### Per-cluster chart structure
 
-Hub-only components include `kafka-console` (Streams for Apache Kafka Console — all spoke Kafka clusters via Skupper), `grafana-dashboards`, `hub-gateway`, `service-interconnect`.
+```
+east/                          west/
+├── Chart.yaml                 ├── Chart.yaml
+├── values.yaml                ├── values.yaml
+└── templates/                 └── templates/
+    └── component-applications.yaml
+```
+
+Each chart is **self-contained**: its `values.yaml` defines `clusterName`, `deployer.domain`, `clusters.hub.domain`, `operators.subscriptions[]`, and the full `apps[]` list. No values are passed from the ApplicationSet — the charts carry all configuration.
+
+### Adding a component to spokes
+
+1. Create the component chart in `components/<id>/`.
+2. Add the entry to **both** `east/values.yaml` and `west/values.yaml` under `apps[]`:
+
+```yaml
+apps:
+  - id: <component-id>
+    path: components/<component-id>
+    destinationNamespace: <target-ns>
+    syncWave: "<wave>"
+```
+
+3. If the component needs an operator, add the subscription to `operators.subscriptions[]` in **both** `east/values.yaml` and `west/values.yaml`.
 
 ### Adding operator subscriptions to spokes
 
-Add new operator subscriptions to the `subscriptions` list in the ApplicationSet `valuesObject` (NOT in the individual component templates). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. This ensures operators install before their CRDs are needed by other components. **Critical**: `amq-streams` and `amq-broker-rhel8` must be in this list or `industrial-edge-tst` and `industrial-edge-stormshift` will fail on spokes (missing Kafka/ActiveMQArtemis CRDs).
+Add new operator subscriptions to `operators.subscriptions[]` in **each spoke's `values.yaml`** (`east/values.yaml`, `west/values.yaml`). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. **Critical**: `amq-streams` and `amq-broker-rhel8` must be in this list or Industrial Edge components will fail (missing Kafka/ActiveMQArtemis CRDs).
+
+Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `observability`, `acs-secured-cluster`, `spoke-dashboards`, `istio-monitoring`, `rhcl-operator`, `kiali`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `industrial-edge-minio`, `industrial-edge-data-science-cluster`, `industrial-edge-data-lake`, `industrial-edge-data-science-project`, `ie-anomaly-alerter`, `spoke-gateway`, `spoke-interconnect`, `devspaces`, `console-links`, `kubecost`.
+
+Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`.
 
 ### Spoke cluster registration in Argo CD
 
@@ -415,18 +429,30 @@ Include `ClusterRoleBinding` `kiali-monitoring-rbac` → `cluster-monitoring-vie
 
 Component `components/kafka-console`:
 - `Console` CR with five clusters (hub prod-cluster + east/west × tst/stormshift) via Skupper bootstrap URLs
-- `broker-dns.yaml` — headless Services + **`EndpointSlice`** (not `Endpoints`) mapping `advertisedHost` names to Skupper listener IPs via Helm `lookup`
+- `broker-dns.yaml` — creates IE namespaces on hub as DNS shims (`industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-data-lake`) + headless Services + **`EndpointSlice`** (not `Endpoints`) mapping `advertisedHost` names to Skupper listener IPs via Helm `lookup`
 - **Argo CD excludes `Endpoints`** from sync — plain Endpoints in Git are never applied; use `discovery.k8s.io/v1` EndpointSlice instead
 - Store Skupper ClusterIPs in separate template variables per broker (avoid nested `lookup` in `addresses[]` — renders empty endpoints)
 - Requires spoke Kafka `advertisedHost` per `clusterName` suffix in `industrial-edge-tst` / `industrial-edge-stormshift` (`dev-cluster-broker-0-east`, etc.)
 - Hub subscription: `amq-streams-console` in `values.yaml` `connectivityLink.operators.subscriptions`
 - Verify: Console UI `listNodes` / `listTopics` return 200 (not 504)
 
-**Metrics configuration** (critical — `openshift-monitoring` type is broken):
-- Use `metricsSources.type: standalone` with explicit Thanos URL + bearer token from SA secret
-- Each `kafkaCluster` entry MUST have a `namespace` field or metrics won't be fetched
-- Trust store: `openshift-service-ca.crt` ConfigMap (auto-injected in all namespaces)
-- Only clusters running locally (hub `prod-cluster`) have metrics; spoke clusters via Skupper show topics/nodes only
+**Console CR simplified model** — let the operator manage its own ServiceAccount:
+- Do NOT define `ServiceAccount`, `Secret`, or `ClusterRoleBinding` in Git for the Console — the operator creates `kafka-console-console-serviceaccount` automatically
+- Including these in Argo CD's `ServerSideApply` causes 409 Conflicts with the operator and OpenShift SA token controller
+- `kafkaClusters` entries should NOT include `namespace` or `listener` fields when connecting via Skupper bootstrap — those fields cause the operator to look up Kafka CRs locally which don't exist on the hub
+- Use only `properties.values[].bootstrap.servers` for connection via Skupper listener DNS
+
+**Hub IE namespaces are DNS shims, not workloads** — the namespaces `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-data-lake` created by `broker-dns.yaml` on the hub exist ONLY for headless Service DNS resolution of Kafka broker advertised hostnames. They contain no Industrial Edge workloads.
+
+### KafkaTopic finalizer cleanup (stuck Terminating namespaces)
+
+When IE namespaces are stuck in `Terminating` state on spokes (blocking Argo CD sync), the root cause is `KafkaTopic` resources with `strimzi.io/topic-operator` finalizers. The topic operator pod is already gone so the finalizer never clears.
+
+Fix via ManagedClusterAction Job:
+
+```bash
+oc get kafkatopic -n industrial-edge-tst-all -o name | xargs -I{} oc patch {} -n industrial-edge-tst-all --type merge -p '{"metadata":{"finalizers":[]}}'
+```
 
 ### Spoke Prometheus auth — Nginx reverse proxy
 
@@ -510,3 +536,34 @@ Always use `ServerSideApply=true` and `SkipDryRunOnMissingResource=true` — CRD
 ### ConfigMap volume mounts require pod restart
 
 When updating a ConfigMap that is mounted as a `subPath` volume (e.g. `config.json`), Kubernetes does **not** hot-reload the file. You must delete the pod (`oc delete pod -l app=<label>`) to pick up the new content. Plan for this in deployment workflows.
+
+### clusterDecisionResource generator does NOT resolve metadata.labels
+
+The `clusterDecisionResource` generator provides `{{name}}` and `{{server}}` from `PlacementDecision`. It does **NOT** resolve `{{metadata.labels.*}}` — those render as literal strings (e.g. `{{metadata.labels.domain}}` in Route hosts causes invalid hostnames).
+
+To pass cluster-specific data like domains, either:
+1. Use self-contained spoke charts (`east/`, `west/`) with hardcoded values (current model)
+2. Use a merge generator combining `clusterDecisionResource` with a static `list` generator
+
+### ServerSideApply conflicts with operator-managed resources
+
+When Argo CD uses `ServerSideApply=true`, it becomes the field manager for all fields it defines. If an operator also manages the same resource (e.g. `ServiceAccount`, `Secret`), the two field managers conflict and produce 409 errors.
+
+**Pattern**: Do NOT define resources in Git that an operator creates and manages. Let the operator be the sole owner. Examples:
+- Kafka Console `ServiceAccount` → operator creates it
+- `kubernetes.io/service-account-token` Secrets → OpenShift token controller manages them
+- Operator-generated `ConfigMap`s and `Secret`s
+
+If you previously defined these in Git and need to remove them, delete the live resources first (Argo CD's SSA won't remove fields it no longer defines), then let the operator recreate them.
+
+### Hub waypoint Gateways conditional on clusterRole
+
+The `servicemeshoperator3` component creates Istio waypoint `Gateway` resources for Industrial Edge namespaces. On the hub, these namespaces don't have workloads, so waypoints must be skipped:
+
+```yaml
+{{- if ne .Values.clusterRole "hub" }}
+{{- $waypointNamespaces = append $waypointNamespaces "industrial-edge-tst-all" }}
+{{- end }}
+```
+
+Pass `clusterRole: hub` from the hub's `component-applications.yaml` to `servicemeshoperator3`. Spoke charts pass `clusterRole: spoke` via their catch-all valuesObject.
