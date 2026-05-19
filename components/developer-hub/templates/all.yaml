@@ -70,6 +70,9 @@ data:
       baseUrl: https://developer-hub.{{ .Values.clusterDomain }}
       cors:
         origin: https://developer-hub.{{ .Values.clusterDomain }}
+      reading:
+        allow:
+          - host: "*.github.io"
     enabled:
       kubernetes: true
       argocd: true
