@@ -39,7 +39,14 @@ spec:
         - /data
     - group: ""
       kind: Secret
-      name: kiali-multi-cluster-secret
+      name: kiali-remote-east
+      namespace: openshift-cluster-observability-operator
+      jsonPointers:
+        - /data
+        - /stringData
+    - group: ""
+      kind: Secret
+      name: kiali-remote-west
       namespace: openshift-cluster-observability-operator
       jsonPointers:
         - /data
