@@ -537,6 +537,86 @@ spec:
 
 The `kiali-ossm` operator subscription must be deployed before the CR. Add it to the `subscriptions` list in the ApplicationSet `valuesObject` for the `operators` component.
 
+### Kiali multi-cluster (hub observes east/west)
+
+**Architecture**: Hub Kiali connects to spoke clusters using SA tokens stored in a Kubernetes Secret labeled `kiali.io/multiCluster=true`. The token sync is automated via PostSync hooks and CronJobs.
+
+**Auth strategy — CRITICAL for multi-cluster**:
+
+- `auth.strategy: openshift` (default) requires each user to authenticate INDIVIDUALLY to every remote cluster via the Kiali UI profile dropdown. Until a user logs into east/west, graph requests panic with `K8s Client [east/west] is not found or is not accessible for Kiali`.
+- `auth.strategy: anonymous` uses Kiali's own SA tokens from secrets for ALL cluster access. No per-user auth required. **Use this for dev/demo environments.**
+- For production with `openshift` strategy: deploy Kiali Operator on spokes with `remote_cluster_resources_only: true`, configure OAuthClients with redirect URIs, and users must log into each cluster from Kiali's profile dropdown.
+
+**Prometheus TLS with anonymous strategy**: When switching to `anonymous`, Kiali loses the OpenShift service CA trust. Add `insecure_skip_verify: true` to Prometheus auth config:
+
+```yaml
+spec:
+  auth:
+    strategy: anonymous
+  external_services:
+    prometheus:
+      auth:
+        insecure_skip_verify: true
+        type: bearer
+        use_kiali_token: true
+```
+
+**Secret format (Kiali 2.22.3)**: Use a SINGLE multi-key secret where each key is the cluster name and the value is a kubeconfig YAML. Do NOT use separate secrets per cluster — Kiali 2.22.3 does not reliably detect them.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: kiali-multi-cluster-secret
+  namespace: openshift-cluster-observability-operator
+  labels:
+    kiali.io/multiCluster: "true"
+type: Opaque
+stringData:
+  east: |
+    apiVersion: v1
+    kind: Config
+    contexts: [{name: east, context: {cluster: east, user: east}}]
+    current-context: east
+    clusters: [{name: east, cluster: {server: https://api.east:6443, certificate-authority-data: <base64-ca>}}]
+    users: [{name: east, user: {token: <sa-token>}}]
+  west: |
+    # same structure for west
+```
+
+**Kiali CR multi-cluster config (hub)**:
+
+```yaml
+spec:
+  kubernetes_config:
+    cluster_name: Kubernetes    # must match Istio's multiCluster.clusterName on hub
+  clustering:
+    autodetect_secrets:
+      enabled: true
+      label: "kiali.io/multiCluster=true"
+```
+
+**Istio cluster name alignment**: Each Istio CR must report its correct cluster ID. Configure `values.global.multiCluster.clusterName` in the Sail operator Istio CR:
+- Hub: `Kubernetes`
+- East: `east`
+- West: `west`
+
+Without this, Kiali logs: `The controlplane cluster name ['Kubernetes'] does not match the cluster ['east']`
+
+**Automated token sync (PostSync hooks + CronJobs)**:
+
+1. **Spoke side** (`spoke-token-export.yaml`): PostSync Job creates a token for `kiali-service-account` and writes it to ConfigMap `kiali-hub-export`. CronJob refreshes daily.
+2. **Hub side** (`multicluster-token-sync-cronjob.yaml`): PostSync Job reads spoke ConfigMaps via ACM `ManagedClusterView`, builds kubeconfig YAMLs, and upserts the multi-cluster secret. CronJob refreshes daily.
+
+**ignoreDifferences required** (Argo CD would otherwise overwrite job-managed data):
+- Spoke apps: `/data` on ConfigMap `kiali-hub-export`
+- Hub app: `/data` and `/stringData` on `kiali-multi-cluster-secret`
+
+**Traffic Graph shows "No inbound traffic"**: This means namespaces are NOT in the mesh or there's no actual traffic. Verify:
+1. Namespaces labeled: `oc label ns <ns> istio.io/dataplane-mode=ambient`
+2. Prometheus has `istio_requests_total` metrics: traffic flows through gateways/waypoints (L7) or ztunnel (L4 = `istio_tcp_*`)
+3. Time range is wide enough in Kiali UI (try "Last 1h" or "Last 6h")
+
 ## Grafana configuration (aligned with field-sourced-content-template)
 
 ### Grafana CR — let the operator manage the image
