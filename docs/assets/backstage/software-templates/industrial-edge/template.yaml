@@ -48,6 +48,7 @@ spec:
           title: Hub cluster apps domain
           type: string
           description: "e.g. apps.cluster-xxxxx.redhatworkshops.io"
+          default: apps.cluster-xqg4c.dynamic2.redhatworkshops.io
   steps:
     - id: fetch-skeleton
       name: Generate Skeleton
@@ -76,6 +77,52 @@ spec:
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
         catalogInfoPath: /main/catalog-info.yaml
+    - id: create-argocd-app
+      name: Create ArgoCD Application
+      action: http:backstage:request
+      input:
+        method: POST
+        path: /api/proxy/k8s-api/apis/argoproj.io/v1alpha1/namespaces/openshift-gitops/applications
+        headers:
+          Content-Type: application/json
+        body:
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: "gen-${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.targetCluster }}"
+            namespace: openshift-gitops
+          spec:
+            project: default
+            source:
+              repoURL: "https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+              targetRevision: main
+              path: manifests
+            destination:
+              name: ${{ parameters.targetCluster }}
+              namespace: "ie-${{ parameters.name }}-${{ parameters.targetCluster }}"
+            syncPolicy:
+              automated:
+                selfHeal: true
+                prune: true
+              syncOptions:
+                - CreateNamespace=true
+    - id: notify
+      name: Notify Owner
+      action: http:backstage:request
+      input:
+        method: POST
+        path: /api/notifications
+        headers:
+          Content-Type: application/json
+        body:
+          recipients:
+            type: entity
+            entityRef: "user:default/${{ parameters.owner }}"
+          payload:
+            title: "Industrial Edge '${{ parameters.name }}' deployed on ${{ parameters.targetCluster }}"
+            description: "Your IoT edge instance is deploying via ArgoCD."
+            link: ${{ steps['register'].output.entityRef }}
+            severity: normal
   output:
     links:
       - title: Repository
@@ -83,3 +130,6 @@ spec:
       - title: View in Catalog
         icon: catalog
         entityRef: ${{ steps['register'].output.entityRef }}
+      - title: Open in DevSpaces
+        icon: chat
+        url: "https://devspaces.${{ parameters.clusterDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"

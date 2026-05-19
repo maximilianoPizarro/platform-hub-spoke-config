@@ -88,6 +88,10 @@ rules:
     resources:
       - events
     verbs: [get, list, watch]
+  - apiGroups: ["argoproj.io"]
+    resources:
+      - applications
+    verbs: [get, list, watch, create, update, patch, delete]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -155,6 +159,16 @@ data:
               authProvider: serviceAccount
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+            - name: east
+              url: ${EAST_API_URL}
+              authProvider: serviceAccount
+              serviceAccountToken: ${EAST_SA_TOKEN}
+              skipTLSVerify: true
+            - name: west
+              url: ${WEST_API_URL}
+              authProvider: serviceAccount
+              serviceAccountToken: ${WEST_SA_TOKEN}
+              skipTLSVerify: true
     catalog:
       import:
         entityFilename: catalog-info.yaml
@@ -200,12 +214,24 @@ data:
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE']
           headers:
             Authorization: Bearer ${RHACS_API_TOKEN}
+        '/gitea':
+          target: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
+          allowedMethods: ['GET', 'POST', 'PUT', 'DELETE']
+          headers:
+            Authorization: token ${GITEA_TOKEN}
+        '/k8s-api':
+          target: https://kubernetes.default.svc
+          allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+          headers:
+            Authorization: Bearer ${K8S_SA_TOKEN}
+          changeOrigin: true
     integrations:
       github:
         - host: gitea-gitea.{{ .Values.clusterDomain }}
           apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
+        - host: maximilianopizarro.github.io
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:
@@ -323,6 +349,10 @@ data:
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic
         disabled: false
+      - package: ./dynamic-plugins/dist/backstage-plugin-notifications
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-plugin-notifications-backend-dynamic
+        disabled: false
       # --- Azure DevOps (disabled - requires AZURE_TOKEN and AZURE_ORG env vars) ---
       # PAT scopes: Code (Read), Build (Read & Execute), Release (Read), Work Items (Read), Pull Request Threads (Read & Write)
       - package: ./dynamic-plugins/dist/backstage-community-plugin-azure-devops-backend-dynamic
@@ -380,7 +410,16 @@ spec:
                 env:
                   - name: NODE_TLS_REJECT_UNAUTHORIZED
                     value: "0"
+                  - name: K8S_SA_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: developer-hub-sa-token
+                        key: token
+                        optional: true
                 envFrom:
                   - secretRef:
                       name: developer-hub-oidc-auth
+                      optional: true
+                  - secretRef:
+                      name: developer-hub-spoke-tokens
                       optional: true

@@ -5,3 +5,12 @@ githubPagesBaseUrl: "https://maximilianopizarro.github.io/platform-hub-spoke-con
 keycloakOidcClientSecret: ""
 # Gitea personal access token for gitea_admin (create via Gitea UI or API, never commit real values)
 giteaToken: ""
+sessionSecret: ""
+# Quay.io dockerconfigjson for pipeline push (set via --set, never commit credentials)
+quayDockerConfigJson: ""
+# Sync ManagedServiceAccount tokens from east/west into developer-hub-spoke-tokens Secret
+spokeTokenSync:
+  enabled: true
+  clusters: "east,west"
+  schedule: "0 */6 * * *"
+  image: registry.redhat.io/ubi9/python-311:latest
