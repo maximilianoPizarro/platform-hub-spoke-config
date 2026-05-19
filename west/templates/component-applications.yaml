@@ -131,6 +131,7 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         clusterRole: spoke
+        clusterName: {{ $.Values.clusterName }}
     {{- else if eq .id "acs-secured-cluster" }}
     helm:
       valuesObject:

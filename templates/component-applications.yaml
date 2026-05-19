@@ -323,6 +323,7 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         clusterRole: hub
+        clusterName: Kubernetes
     {{- else if eq .path "kiali" }}
     helm:
       valuesObject:

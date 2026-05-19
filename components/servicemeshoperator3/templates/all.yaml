@@ -15,6 +15,10 @@ spec:
       trustedZtunnelNamespace: ztunnel
     global:
       platform: openshift
+      {{- if .Values.clusterName }}
+      multiCluster:
+        clusterName: {{ .Values.clusterName }}
+      {{- end }}
 ---
 apiVersion: v1
 kind: Namespace
