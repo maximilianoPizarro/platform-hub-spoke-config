@@ -3,7 +3,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: {{ $.Values.clusterName }}-{{ .id }}
+  name: {{ .id }}-{{ $.Values.clusterName }}
   namespace: {{ $.Values.argocd.namespace }}
   labels:
     app.kubernetes.io/part-of: platform-hub-spoke
