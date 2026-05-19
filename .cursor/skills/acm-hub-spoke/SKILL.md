@@ -234,7 +234,9 @@ GitOps maintains two lists in `components/namespaces/templates/all.yaml`:
 | `industrial-edge-data-lake` | Data lake / MinIO patterns | `$noMeshNamespaces` |
 | `redhat-connectivity-link-operator` | `dns-operator-controller-manager` CrashLoopBackOff under ambient | `$noMeshNamespaces` |
 
-**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
+**Currently ambient:** `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
+
+**Explicitly NOT ambient (verified):** `industrial-edge-tst-all`, `spoke-gateway-system` — ztunnel/istiod auth failures break hub→spoke HTTPRoute/WebSocket (line-dashboard). Use Gateway API cross-namespace `backendRefs` + `ReferenceGrant` without HBONE.
 
 Kiali may show Gitea/ACS as outside the mesh — expected. Gitea remains reachable via Route and cluster DNS for Developer Hub / DevSpaces.
 
@@ -865,50 +867,28 @@ subjects:
 - `forbidden: unable to validate against any security context constraint` → missing privileged SCC binding
 - `kubecost-forecasting` deployment does NOT set `serviceAccountName` → uses `default` SA
 
-## Developer Hub (RHDH) GitHub OAuth
+## Developer Hub (RHDH) — multi-cluster + scaffolder
 
-Catalog users are provisioned via `components/developer-hub/templates/catalog-users.yaml` and mounted as a single file at `/opt/app-root/src/catalog-users.yaml` (extraFiles with `containers: ["*"]`). The `catalog.locations` entry lives in **`app-config-rhdh`** (same ConfigMap as OCM providers) to avoid losing locations if the operator drops extra ConfigMap refs.
+**Full skill:** `.cursor/skills/developer-hub-scaffolder/SKILL.md`
 
-Auth lives in a **separate** ConfigMap `app-config-auth-rhdh` to prevent YAML merge flattening `signIn.resolvers` options. The resolver chain is:
+### Auth & catalog
 
-1. `usernameMatchingUserEntityName` (matches GitHub username to `User.metadata.name`)
-2. `emailMatchingUserEntityProfileEmail` (fallback by email)
+- **Keycloak OIDC** (`signInPage: oidc`), Secret `developer-hub-oidc-auth` — not GitHub OAuth
+- Users: `catalog-users.yaml` → mountPath `/opt/app-root/src` (directory, not file — avoids `EISDIR`)
+- IE catalog: `catalog-ie/industrial-edge-system.yaml` with `backstage.io/kubernetes-cluster: east|west|hub` per component
+- Templates: GitHub Pages + `integrations.github` host `maximilianopizarro.github.io`
 
-Both have `dangerouslyAllowSignInWithoutUserInCatalog: true`. OAuth scope `user:email` is requested via `additionalScopes`.
+### Multi-cluster Topology
 
-```yaml
-auth:
-  environment: production
-  providers:
-    github:
-      production:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
-        additionalScopes:
-          - user:email
-        signIn:
-          resolvers:
-            - resolver: usernameMatchingUserEntityName
-              dangerouslyAllowSignInWithoutUserInCatalog: true
-            - resolver: emailMatchingUserEntityProfileEmail
-              dangerouslyAllowSignInWithoutUserInCatalog: true
-signInPage: github
-```
+`ManagedServiceAccount` + `ClusterPermission` (east/west) → `developer-hub-spoke-token-sync` → Secret `developer-hub-spoke-tokens`. Kubernetes plugin lists hub/east/west. **Required annotation:** `backstage.io/kubernetes-cluster`.
 
-The Backstage CR references **two** ConfigMaps: `app-config-rhdh`, `app-config-auth-rhdh`. Argo `ignoreDifferences` on `/spec/application/appConfig/configMaps` and `/spec/application/extraFiles` prevents flip-flop when the operator reconciles.
+### Scaffolder flow (test-drive-pe-oscg)
 
-- Mount credentials via `envFrom.secretRef` in the Backstage CR deployment patch
-- Secret `developer-hub-github-auth` created **manually** (never in Git)
-- GitHub OAuth App callback URL: `https://developer-hub.<domain>/api/auth/github/handler/frame`
-- **NOT** `/api/oauth/callback` — that path is incorrect for Backstage
+`fetch:template` → `publish:github` (Gitea) → `catalog:register` → ArgoCD app (`/api/proxy/k8s-api`) → `/api/notifications`. Proxies: gitea, k8s-api. Pipelines push to **internal registry**; Quay slug for catalog only.
 
-### RHDH dynamic plugins known issues (RHDH 1.9)
-These plugins fail with `npm pack ENOENT` and must be `disabled: true`:
-- `backstage-community-plugin-argocd`
-- `backstage-community-plugin-kafka-backend-dynamic` / `backstage-community-plugin-kafka`
-- `kuadrant-backstage-plugin-backend-dynamic` / `kuadrant-backstage-plugin-frontend`
-- `roadiehq-backstage-plugin-argo-cd-backend-dynamic`
-- `backstage-community-plugin-redhat-argocd`
+### Plugins (RHDH 1.9)
+
+Enabled: OCM, Kubernetes, Topology, Tekton, notifications. Disabled (ENOENT): argocd, kafka, kuadrant, techdocs.
 
 ## ArgoCD resourceCustomizations → resourceHealthChecks migration
 

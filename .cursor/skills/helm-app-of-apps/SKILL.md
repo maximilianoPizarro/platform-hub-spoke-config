@@ -507,11 +507,24 @@ helm:
       secretKey: minio123
 ```
 
-### Developer Hub GitHub OAuth (non-secret in Git)
+### Developer Hub (hub component)
 
-The `app-config.yaml` ConfigMap references env vars `${GITHUB_CLIENT_ID}` and `${GITHUB_CLIENT_SECRET}`. The actual credentials are in a manually-created Secret `developer-hub-github-auth` mounted via `envFrom.secretRef` in the Backstage CR deployment patch. Never commit OAuth secrets to Git.
+Chart: `components/developer-hub/`. Sync-wave **0** on hub `connectivityLink.apps[]`.
 
-GitHub OAuth callback URL for RHDH: `https://developer-hub.<domain>/api/auth/github/handler/frame`
+Key sub-templates (not separate Argo apps — same chart):
+
+| Template | Purpose |
+| -------- | ------- |
+| `managed-service-accounts.yaml` | ACM MSA + ClusterPermission for east/west K8s read |
+| `spoke-token-sync.yaml` | PostSync Job + CronJob → `developer-hub-spoke-tokens` |
+| `hub-sa-token-secret.yaml` | SA token for scaffolder k8s-api proxy |
+| `quay-push-secret.yaml` | Optional — only if `quayDockerConfigJson` set via Helm |
+
+Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, `quayDockerConfigJson`.
+
+Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component.
+
+See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for Topology, scaffolder, and troubleshooting.
 
 ### ArgoCD sync stuck or not applying changes
 

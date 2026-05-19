@@ -34,7 +34,7 @@ Most visibility comes from **CRDs**, but namespaces carry mesh/policy hints when
 | Product | Where workloads surface | Typical annotation / label / CR binding |
 | ------- | ------------------------- | ------------------------------------------ |
 | [ACM](acm.md) | Fleet hub inventory | **`ManagedCluster`**, **`Placement`** — spokes inherit ACM labels during import (no Git annotation magic). |
-| [Developer Hub](developer-hub.md) | Catalog / plugins | **`Backstage`** CR + `app-config-*` ConfigMaps; OCM reads **`ManagedCluster`** cluster-scope CRs (needs RBAC on SA). |
+| [Developer Hub](developer-hub.md) | Catalog / plugins / Topology | **`Backstage`** CR + `app-config-*`; OCM + **Kubernetes** (hub/east/west via MSA tokens); catalog annotation **`backstage.io/kubernetes-cluster`**. |
 | [ACS](acs.md) | Central clusters UI | **`SecuredCluster`** in each cluster's **`stackrox`** namespace + TLS Secrets from **init bundles**. |
 | [GitOps](openshift-gitops.md) | Argo CD Applications | **`Application`** / **`ApplicationSet`** — paths/branches define drift detection targets. |
 | [Service Mesh](service-mesh.md) | Ambient dataplane | Namespace **`istio.io/dataplane-mode: ambient`** (see **`components/namespaces`**); exceptions **`stackrox`**, **`gitea`**, **`industrial-edge-data-lake`**, … stay **off mesh**. |

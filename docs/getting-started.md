@@ -203,6 +203,31 @@ The **Industrial Edge** system and components are loaded from an in-cluster cata
 
 After Argo CD syncs `developer-hub`, open **Catalog → Systems → industrial-edge** and **Create** for the templates. Ensure GitHub Pages is enabled for this repo (`docs/` on `main`).
 
+### Developer Hub multi-cluster Topology
+
+Spoke workloads appear in **Topology** / **Kubernetes** only when:
+
+1. `ManagedServiceAccount` + token sync Job completed (`developer-hub-spoke-tokens` Secret exists)
+2. Catalog entities have `backstage.io/kubernetes-cluster: east` or `west`
+
+```bash
+oc get secret developer-hub-spoke-tokens -n developer-hub
+oc get job -n developer-hub -l job-name=developer-hub-spoke-token-sync-hook
+```
+
+Open a spoke component (e.g. **line-dashboard-east**) → Topology should list deployments in `industrial-edge-tst-all` on cluster **east**.
+
+### Optional: Quay credentials (hub)
+
+Never commit passwords to Git. To enable the optional `quay-push-credentials` Secret:
+
+```bash
+./scripts/generate-quay-dockerconfig.sh <quay-user> '<password>'   # output only — do not commit
+helm upgrade field-content . --set quayDockerConfigJson='<json-one-line>' --reuse-values
+```
+
+Scaffolded pipelines push to the **internal OpenShift registry**; Quay is referenced in catalog via `quay.io/repository-slug`.
+
 ---
 
 Next: [Deploy with ACM and GitOps]({% link deploy-acm-gitops.md %}) · [Architecture]({% link architecture.md %})

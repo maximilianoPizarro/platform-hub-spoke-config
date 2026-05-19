@@ -10,82 +10,146 @@ nav_order: 2
 **Git path:** `components/developer-hub/`
 {: .fs-3 .text-grey-dk-000 }
 
-Red Hat **Developer Hub** is the enterprise distribution of [Backstage](https://backstage.io/), providing a software catalog, templates, and plugins for OpenShift-centric workflows.
+Red Hat **Developer Hub** (RHDH) is the enterprise distribution of [Backstage](https://backstage.io/). On this platform it is the **single pane of glass** for Industrial Edge: catalog, scaffolding, multi-cluster topology, Tekton CI, and OCM fleet overview.
 
-![Developer Hub – GitHub sign-in]({{ site.baseurl }}/assets/images/product-developer-hub.png)
-{: .mb-4 }
-*Developer Hub sign-in page with GitHub OAuth integration.*
-{: .fs-2 .text-grey-dk-000 }
+## Plugins enabled on this platform
 
-## Plugins relevant to this platform
+| Plugin | Tab / area | Purpose |
+| ------ | ---------- | ------- |
+| **OCM** | Overview cards | Managed cluster health (east/west) |
+| **Kubernetes** | Kubernetes | Pods, deployments, events per cluster |
+| **Topology** | Topology | Workload graph (requires `kubernetes-cluster` annotation) |
+| **Tekton** | CI | PipelineRuns (`janus-idp.io/tekton` annotation) |
+| **Scaffolder** | Create | Software templates from GitHub Pages |
+| **Notifications** | Bell icon | In-app alerts after scaffold/delete |
+| **Keycloak catalog** | Users/Groups | Sync from Keycloak `backstage` realm |
 
-| Plugin area | Status | Purpose |
-| ----------- | ------ | ------- |
-| **OpenShift Cluster Manager (OCM)** | Enabled | Surface cluster metadata and links from the fleet perspective. |
-| **Kubernetes** | Enabled | Inspect workloads and resources within connected clusters. |
-| **Tekton** | Enabled | View pipeline runs from entity CI tab. |
-| **Topology** | Enabled | Visual topology of workloads. |
-| **Azure DevOps** | Disabled (requires config) | Pull requests and pipelines from Azure DevOps. |
-| **ArgoCD** | Disabled (ENOENT in RHDH 1.9) | ArgoCD integration. |
-| **Kafka** | Disabled (ENOENT in RHDH 1.9) | Kafka topic browser. |
+Disabled in RHDH 1.9 (ENOENT in image): ArgoCD, Kafka, Kuadrant, TechDocs (no pre-built docs).
 
-## Authentication
+## Authentication (Keycloak OIDC)
 
-GitHub OAuth is configured as the sign-in provider:
+Sign-in uses **Keycloak**, not GitHub:
+
+- Realm: `backstage` at `https://sso.<hub-apps-domain>`
+- Client: `developer-hub`
+- Secret: `developer-hub-oidc-auth` (`OIDC_CLIENT_SECRET`, `GITEA_TOKEN`, `SESSION_SECRET`)
+- Config split: `app-config-rhdh` + `app-config-auth-rhdh` (avoids YAML merge bugs on resolvers)
+
+Platform users are defined in `components/developer-hub/templates/catalog-users.yaml` (mounted as `/opt/app-root/src/users.yaml`).
+
+## Industrial Edge catalog
+
+The **Industrial Edge** system is registered from ConfigMap `developer-hub-catalog-ie`:
+
+- **System**, **Domains** (hub, spoke-east, spoke-west)
+- **Components** per spoke (sensors, Kafka, Camel, line-dashboard, etc.)
+- **APIs** (MQTT, Kafka topics, S3 data lake)
+
+Each spoke component includes:
 
 ```yaml
-auth:
-  environment: production
-  providers:
-    github:
-      production:
-        clientId: ${GITHUB_CLIENT_ID}
-        clientSecret: ${GITHUB_CLIENT_SECRET}
-signInPage: github
+annotations:
+  backstage.io/kubernetes-namespace: industrial-edge-tst-all
+  backstage.io/kubernetes-id: line-dashboard          # when applicable
+  backstage.io/kubernetes-cluster: east               # or west — required for Topology
+  janus-idp.io/tekton: industrial-edge-ci             # CI tab for pipeline components
 ```
 
-- Credentials stored in Secret `developer-hub-github-auth` (manually created, never in Git)
-- OAuth callback URL: `https://developer-hub.<domain>/api/auth/github/handler/frame`
-- Anonymous access is disabled when GitHub auth is active
+## Multi-cluster workload visibility
 
-## Known issues (RHDH 1.9)
+The Kubernetes plugin is configured for **hub**, **east**, and **west**:
 
-Several dynamic plugins fail `npm pack` with ENOENT errors and must be `disabled: true`:
-- `backstage-community-plugin-argocd`
-- `backstage-community-plugin-kafka-backend-dynamic` / `backstage-community-plugin-kafka`
-- `kuadrant-backstage-plugin-backend-dynamic` / `kuadrant-backstage-plugin-frontend`
-- `roadiehq-backstage-plugin-argo-cd-backend-dynamic`
-- `backstage-community-plugin-redhat-argocd`
+1. **ManagedServiceAccount** `developer-hub` on each spoke (ACM)
+2. **ClusterPermission** read-only on spoke APIs
+3. **CronJob** syncs tokens → Secret `developer-hub-spoke-tokens`
+4. Backstage reads `EAST_API_URL`, `EAST_SA_TOKEN`, `WEST_*` from that Secret
 
-## Deployment notes
+Without `backstage.io/kubernetes-cluster` on a catalog entity, Topology only queries the hub and shows no spoke deployments.
 
-The `developer-hub` component chart provisions:
-- `Backstage` CR (`rhdh.redhat.com/v1alpha5`) on the **hub**
-- **`app-config-rhdh`** (includes **`catalog.locations`** for static users + OCM providers), **`app-config-auth-rhdh`** (GitHub auth only — avoids YAML merge flattening `signIn.resolvers`)
-- **`developer-hub-catalog-users`** ConfigMap → mounted as **`/opt/app-root/src/catalog-users.yaml`** for static `User` / `Group` entities
-- `dynamic-plugins-rhdh` ConfigMap for plugin configuration
-- ServiceAccount with OCM ClusterRole
-- Route: `developer-hub.<clusterDomain>`
+Verify:
 
-### GitHub login: “unable to resolve user identity”
+```bash
+oc get secret developer-hub-spoke-tokens -n developer-hub
+oc get job -n developer-hub | grep spoke-token
+```
 
-| Check | Command / expectation |
-| ----- | --------------------- |
-| **`User` matches GitHub login** | Catalog `User.metadata.name` must equal GitHub **username** (case-sensitive), e.g. `maximilianoPizarro`. Edit `components/developer-hub/templates/catalog-users.yaml` or `catalog/users.yaml` and sync. |
-| **Catalog file on the pod** | `oc exec -n developer-hub deploy/backstage-developer-hub -c backstage-backend -- cat /opt/app-root/src/catalog-users.yaml` |
-| **Merged locations + auth** | `oc exec ... -- grep -A20 'catalog:' /opt/app-root/src/app-config.yaml` should list `locations:` with `target: .../catalog-users.yaml`. `grep -A12 'signIn:' .../app-config.yaml` must show `dangerouslyAllowSignInWithoutUserInCatalog` **indented under** the resolver (not as a sibling of `signIn`). |
-| **Backstage CR lists all ConfigMaps** | `oc get backstage developer-hub -n developer-hub -o jsonpath='{range .spec.application.appConfig.configMaps[*]}{.name}{"\n"}{end}'` → expect `app-config-rhdh`, `app-config-auth-rhdh`. Catalog user locations live in **`app-config-rhdh`** so a dropped extra ConfigMap ref does not remove file-based `User` entities. If the operator drops entries, the hub Application uses **ignoreDifferences** on those paths so Argo does not fight the operator — run **Refresh/Sync** after upgrading this chart. |
+## Software templates
 
-OAuth callback: `https://developer-hub.<hub-domain>/api/auth/github/handler/frame`. Secret: `developer-hub-github-auth` (`GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`).
+Templates are published as **GitHub Pages** static assets under `docs/assets/backstage/software-templates/`:
 
-## Operator discovery
+| Template | Description |
+| -------- | ----------- |
+| Industrial Edge | IoT instance on east/west → Gitea + ArgoCD + catalog |
+| Camel Kaoto | Camel routes, DevSpaces, Continue AI |
+| Industrial Edge Delete | Remove ArgoCD app + Gitea repo + notification |
 
-The RHDH operator watches **`Backstage`** CRs (`rhdh.redhat.com/v1alpha5`) and referenced **`ConfigMaps`** (`spec.application.appConfig.configMaps`). **Workload Pods do not register plugins automatically.** Dynamic plugins ship inside the operator-managed Deployment template — Catalog **`locations`** come solely from merged **`app-config.yaml`** snippets (`catalog.providers.ocm`, `catalog.import.locations`, etc.).
+Catalog location (in `app-config-rhdh`):
 
-The **OCM plugin** reads cluster-scope **`ManagedCluster`** APIs via ServiceAccount RBAC (`backstage-ocm-plugin` ClusterRole). Successful reconciliation correlates with `ManagedCluster` CRDs imported via ACM — nothing analogous exists per-namespace annotations beyond **`catalog`** ConfigMaps.
+```text
+https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/software-templates/templates-catalog.yaml
+```
+
+Scaffolding flow (after template run):
+
+1. `fetch:template` — skeleton from GitHub Pages
+2. `publish:github` — push to Gitea org `ws-<owner>`
+3. `catalog:register` — entity in Developer Hub
+4. `http:backstage:request` — create ArgoCD Application on spoke
+5. `http:backstage:request` — notify owner
+
+Entity links include **Source Code**, **Documentation** (Gitea README), and **Open in DevSpaces**.
+
+### clusterDomain in templates
+
+Use the **hub apps domain** including the `apps.` prefix, e.g. `apps.cluster-xqg4c.dynamic2.redhatworkshops.io`. This is used for Gitea, DevSpaces, and Developer Hub URLs in generated repos.
+
+## Quay and container images
+
+| Use | Image reference |
+| --- | ----------------- |
+| Pipeline build (Tekton buildah) | Internal OCP registry: `image-registry.openshift-image-registry.svc:5000/<namespace>/<app>:latest` |
+| Deployment | Same internal image |
+| Public catalog label | `quay.io/maximilianopizarro/<uniqueName>` |
+
+Quay push credentials are optional on the hub (`quayDockerConfigJson` via Helm `--set`, never committed). Helper: `scripts/generate-quay-dockerconfig.sh`.
+
+## Proxies for scaffolder
+
+| Proxy | Purpose |
+| ----- | ------- |
+| `/api/proxy/gitea` | Delete Gitea repositories |
+| `/api/proxy/k8s-api` | Create/delete ArgoCD Applications |
+
+## Deployment components
+
+| Resource | Purpose |
+| -------- | ------- |
+| `Backstage` CR | RHDH operator workload |
+| `app-config-rhdh` | Catalog, kubernetes, OCM, integrations, proxy |
+| `app-config-auth-rhdh` | OIDC auth |
+| `dynamic-plugins-rhdh` | Plugin enable/disable |
+| `managed-service-accounts.yaml` | Spoke SA for K8s plugin |
+| `spoke-token-sync.yaml` | Token refresh CronJob |
+| `hub-sa-token-secret.yaml` | Hub SA token for k8s-api proxy |
+| `continue-ai-secret.yaml` | Continue AI in `admin-devspaces` |
+
+Route: `https://developer-hub.<hub-apps-domain>`
+
+## Troubleshooting
+
+| Symptom | Likely cause | Action |
+| ------- | ------------- | ------ |
+| No templates / empty catalog | Permissions or mount paths | `permission.enabled: false` for demo; fix `extraFiles` mountPath; sync ArgoCD |
+| `No integration found` for github.io | Missing integration host | Add `maximilianopizarro.github.io` under `integrations.github` |
+| Topology shows hub only | Missing cluster annotation | Set `backstage.io/kubernetes-cluster: east\|west` |
+| K8s plugin TLS errors | Self-signed API certs | `skipTLSVerify` + `NODE_TLS_REJECT_UNAUTHORIZED=0` |
+| CI tab empty | Wrong Tekton annotation | `janus-idp.io/tekton: <namespace>` not `"true"` |
+| IoT dashboard 503 from hub | Mesh on IE namespaces | Keep `industrial-edge-tst-all` and `spoke-gateway-system` **off** ambient mesh |
+
+See also [Backstage assets README]({{ site.baseurl }}/assets/backstage/README.html) and the **developer-hub-scaffolder** Cursor skill.
 
 ## Links
 
-- [Red Hat Developer Hub product documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub/)
+- [Red Hat Developer Hub documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub/)
 - [Backstage documentation](https://backstage.io/docs/)
-- [RHDH dynamic plugins](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/configuring_plugins_in_red_hat_developer_hub/)
+- [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg) — reference scaffolding pattern

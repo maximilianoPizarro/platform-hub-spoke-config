@@ -24,7 +24,6 @@ These labels are applied via `components/namespaces` (sync-wave 0) and control w
 
 | Namespace | Purpose |
 | --------- | ------- |
-| `industrial-edge-tst-all` | Industrial Edge test workloads |
 | `industrial-edge-stormshift-messaging` | Kafka messaging (Stormshift) |
 | `industrial-edge-ml-workspace` | ML workspace |
 | `industrial-edge-ci` | CI/CD pipelines |
@@ -41,6 +40,8 @@ These labels are applied via `components/namespaces` (sync-wave 0) and control w
 
 | Namespace | Reason |
 | --------- | ------ |
+| `industrial-edge-tst-all` | ztunnel/istiod auth issues break hub→spoke gateway and WebSocket dashboard traffic |
+| `spoke-gateway-system` | Same — use direct TCP + Gateway API ReferenceGrant instead of ambient HBONE |
 | `stackrox` | ACS Central ↔ PostgreSQL TLS breaks under ambient interception |
 | `gitea` | Gitea init container → PostgreSQL via ClusterIP conflicts with ztunnel |
 | `industrial-edge-data-lake` | MinIO / data lake in-namespace patterns |
@@ -106,6 +107,30 @@ Defined in `components/istio-monitoring/templates/all.yaml`. Strimzi automatical
 | Label | Value | Resource | File | Effect |
 | ----- | ----- | -------- | ---- | ------ |
 | `rhdh.redhat.com/ext-config-sync` | `"true"` | `ConfigMap` | `components/developer-hub/templates/all.yaml`, `catalog-users.yaml` | RHDH operator **syncs** the ConfigMap content into the Backstage runtime as external configuration. |
+
+---
+
+## Backstage catalog annotations (Developer Hub entities)
+
+Applied on `catalog-info.yaml` entities (static catalog or scaffolder-generated).
+
+| Annotation | Example | Effect |
+| ---------- | ------- | ------ |
+| `backstage.io/kubernetes-id` | `line-dashboard` | Label selector for workloads in Topology/Kubernetes tab |
+| `backstage.io/kubernetes-namespace` | `industrial-edge-tst-all` | Namespace to query on the target cluster |
+| `backstage.io/kubernetes-cluster` | `east`, `west`, or `hub` | **Which cluster** the Kubernetes plugin uses — required for spoke visibility |
+| `janus-idp.io/tekton` | `industrial-edge-ci` or target namespace | Enables **Tekton CI** tab for PipelineRuns in that namespace |
+| `backstage.io/source-location` | `url:https://gitea-gitea.../owner/repo` | Links entity to Gitea repository |
+| `quay.io/repository-slug` | `maximilianopizarro/my-app` | Public Quay repo reference for catalog |
+| `argocd/app-name` | `field-content-industrial-edge-tst` | Argo CD application hint (when ArgoCD plugin enabled) |
+
+**Scaffolder-generated links** (in `metadata.links`, not annotations):
+
+| Link title | Purpose |
+| ---------- | ------- |
+| Source Code (Gitea) | Repository browser |
+| Documentation | Raw `README.md` on Gitea |
+| Open in DevSpaces | `https://devspaces.<domain>/#<gitea-repo-url>` |
 
 ---
 
