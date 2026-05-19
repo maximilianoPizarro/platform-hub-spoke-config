@@ -190,8 +190,8 @@ spec:
           "id": 16,
           "options": {"displayMode": "lcd", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "sizing": "auto", "valueMode": "color"},
           "targets": [
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "topk(5, sum(kafka_network_requestmetrics_requestspersec_total) by (request))", "legendFormat": "East {{ \"{{request}}\" }}", "refId": "A"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "topk(5, sum(kafka_network_requestmetrics_requestspersec_total) by (request))", "legendFormat": "West {{ \"{{request}}\" }}", "refId": "B"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "topk(5, sum(kafka_network_requestmetrics_requestspersec_total) by (request))", "legendFormat": "East {{ "{{request}}" }}", "refId": "A"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "topk(5, sum(kafka_network_requestmetrics_requestspersec_total) by (request))", "legendFormat": "West {{ "{{request}}" }}", "refId": "B"}
           ],
           "title": "Kafka API requests/sec (top 5 per spoke)",
           "type": "bargauge"
