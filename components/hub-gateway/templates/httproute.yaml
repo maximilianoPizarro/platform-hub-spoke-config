@@ -20,42 +20,18 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-east-api
-          port: 443
+          port: 8080
           weight: {{- if hasKey $apiW "east" }} {{ $apiW.east }}{{- else }} 100{{- end }}
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         - name: industrial-edge-west-api
-          port: 443
+          port: 8080
           weight: {{- if hasKey $apiW "west" }} {{ $apiW.west }}{{- else }} 0{{- end }}
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
         - name: industrial-edge-east-front
-          port: 443
+          port: 8080
           weight: {{ .Values.gateway.weights.east }}
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
         - name: industrial-edge-west-front
-          port: 443
+          port: 8080
           weight: {{ .Values.gateway.weights.west }}
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     {{- else if .Values.clusters.east.domain }}
     - matches:
         - path:
@@ -63,24 +39,12 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-east-api
-          port: 443
+          port: 8080
           weight: 100
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
     - backendRefs:
         - name: industrial-edge-east-front
-          port: 443
+          port: 8080
           weight: 100
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.east.domain }}
     {{- else if .Values.clusters.west.domain }}
     - matches:
         - path:
@@ -88,24 +52,12 @@ spec:
             value: /api
       backendRefs:
         - name: industrial-edge-west-api
-          port: 443
+          port: 8080
           weight: 100
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     - backendRefs:
         - name: industrial-edge-west-front
-          port: 443
+          port: 8080
           weight: 100
-          filters:
-            - type: RequestHeaderModifier
-              requestHeaderModifier:
-                set:
-                  - name: Host
-                    value: line-dashboard-industrial-edge-tst-all.{{ .Values.clusters.west.domain }}
     {{- else }}
     - backendRefs:
         - name: hub-gateway-istio

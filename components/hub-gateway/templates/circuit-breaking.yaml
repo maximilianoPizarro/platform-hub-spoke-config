@@ -5,17 +5,18 @@
 {{- $cpHttp := $cp.http | default dict }}
 {{- $od := $cb.outlierDetection | default dict }}
 
-{{- $services := list }}
+{{- $frontends := list }}
+{{- $apis := list }}
 {{- if .Values.clusters.east.domain }}
-  {{- $services = append $services "industrial-edge-east-front" }}
-  {{- $services = append $services "industrial-edge-east-api" }}
+  {{- $frontends = append $frontends "industrial-edge-east-front" }}
+  {{- $apis = append $apis "industrial-edge-east-api" }}
 {{- end }}
 {{- if .Values.clusters.west.domain }}
-  {{- $services = append $services "industrial-edge-west-front" }}
-  {{- $services = append $services "industrial-edge-west-api" }}
+  {{- $frontends = append $frontends "industrial-edge-west-front" }}
+  {{- $apis = append $apis "industrial-edge-west-api" }}
 {{- end }}
 
-{{- range $i, $svc := $services }}
+{{- range $i, $svc := $frontends }}
 {{- if $i }}
 ---
 {{- end }}
@@ -37,6 +38,32 @@ spec:
         maxRequestsPerConnection: {{ $cpHttp.maxRequestsPerConnection | default 10 }}
     outlierDetection:
       consecutive5xxErrors: {{ $od.consecutive5xxErrors | default 3 }}
+      interval: {{ $od.interval | default "10s" }}
+      baseEjectionTime: {{ $od.baseEjectionTime | default "30s" }}
+      maxEjectionPercent: {{ $od.maxEjectionPercent | default 100 }}
+{{- end }}
+
+{{- range $i, $svc := $apis }}
+---
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: cb-{{ $svc }}
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  host: {{ $svc }}.hub-gateway-system.svc.cluster.local
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: {{ $cpTcp.maxConnections | default 100 }}
+        connectTimeout: 30s
+      http:
+        h2UpgradePolicy: DEFAULT
+        idleTimeout: 3600s
+    outlierDetection:
+      consecutive5xxErrors: {{ $od.consecutive5xxErrors | default 5 }}
       interval: {{ $od.interval | default "10s" }}
       baseEjectionTime: {{ $od.baseEjectionTime | default "30s" }}
       maxEjectionPercent: {{ $od.maxEjectionPercent | default 100 }}

@@ -94,7 +94,11 @@ data:
           rules:
             - allow: [User, Group]
         - type: url
-          target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/main/software-templates/templates-catalog.yaml
+          target: https://raw.githubusercontent.com/maximilianoPizarro/platform-hub-spoke-config/main/catalog/location.yaml
+          rules:
+            - allow: [System, Domain, Component, API, Resource, Location]
+        - type: url
+          target: https://raw.githubusercontent.com/maximilianoPizarro/platform-hub-spoke-config/main/software-templates/templates-catalog.yaml
           rules:
             - allow: [Template, Location]
       providers:
@@ -112,6 +116,12 @@ data:
             schedule:
               frequency: { minutes: 30 }
               timeout: { minutes: 3 }
+    techdocs:
+      builder: local
+      generator:
+        runIn: local
+      publisher:
+        type: local
     signInPage: oidc
     proxy:
       endpoints:
@@ -178,6 +188,12 @@ data:
     includes:
       - dynamic-plugins.default.yaml
     plugins:
+      - package: ./dynamic-plugins/dist/backstage-plugin-techdocs
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-plugin-techdocs-backend-dynamic
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-plugin-techdocs-module-addons-contrib
+        disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm-backend-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm

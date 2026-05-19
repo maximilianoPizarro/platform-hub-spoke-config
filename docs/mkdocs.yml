@@ -1,0 +1,12 @@
+site_name: Platform Hub-Spoke
+site_description: Multi-cluster Industrial Edge platform documentation
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Industrial Edge: industrial-edge.md
+  - Hub Gateway: hub-gateway.md
+  - Service Interconnect: service-interconnect.md
+  - Observability: observability.md
+  - Getting Started: getting-started.md
+plugins:
+  - techdocs-core
