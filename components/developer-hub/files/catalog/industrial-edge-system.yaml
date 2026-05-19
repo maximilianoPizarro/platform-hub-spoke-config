@@ -8,7 +8,7 @@ metadata:
     IoT manufacturing platform across hub and east/west spokes — MQTT sensors,
     Kafka streaming, Camel integrations, ML anomaly detection, and centralized data lake.
   annotations:
-    backstage.io/techdocs-ref: url:https://maximilianopizarro.github.io/platform-hub-spoke-config/docs/
+    backstage.io/techdocs-entity: system:default/industrial-edge
     grafana/dashboard-selector: industrial-edge
   tags:
     - industrial-edge
