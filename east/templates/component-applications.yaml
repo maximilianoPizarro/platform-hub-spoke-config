@@ -104,8 +104,7 @@ spec:
       kind: ConfigMap
       name: kiali-hub-export
       jsonPointers:
-        - /data/token
-        - /data/updatedAt
+        - /data
     - group: datasciencecluster.opendatahub.io
       kind: "*"
       jsonPointers:

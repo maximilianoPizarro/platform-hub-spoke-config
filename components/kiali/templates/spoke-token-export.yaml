@@ -18,9 +18,6 @@ metadata:
   namespace: openshift-cluster-observability-operator
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-data:
-  token: ""
-  updatedAt: ""
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
