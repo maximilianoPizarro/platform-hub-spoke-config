@@ -119,6 +119,60 @@ oc get applications -n openshift-gitops
 
 Healthy sync waves progress: namespaces → operators → platform → observability → Industrial Edge workloads.
 
+## Step 7: Kiali multi-cluster (hub)
+
+Hub Kiali can show mesh topology from east and west without Istio trust federation. Each spoke keeps its own Istio; the hub Kiali uses remote cluster secrets plus optional links to spoke Kiali UIs.
+
+### 7a. Service account on spokes
+
+On **each spoke**, confirm the Kiali operator created `kiali-service-account` in `openshift-cluster-observability-operator` (deployed by `kiali-east` / `kiali-west` Applications). Create a long-lived token:
+
+```bash
+# Run on east (repeat on west with west kubeconfig)
+oc create token kiali-service-account \
+  -n openshift-cluster-observability-operator \
+  --duration=8760h
+```
+
+### 7b. Cluster CA data
+
+Extract the spoke API CA (base64, single line) for each cluster. Example from the hub using the Argo CD cluster secret:
+
+```bash
+oc get secret east-application-manager-cluster-secret -n openshift-gitops \
+  -o jsonpath='{.data.config}' | base64 -d | python3 -c \
+  "import sys,json; print(json.load(sys.stdin)['tlsClientConfig']['caData'])"
+```
+
+Or from the spoke:
+
+```bash
+oc config view --raw -o jsonpath='{.clusters[0].cluster.certificate-authority-data}'
+```
+
+### 7c. Apply tokens to the hub Application
+
+Pass values to the root chart (never commit tokens to Git):
+
+```bash
+helm upgrade field-content . \
+  --set clusters.east.kialiToken=sha256~... \
+  --set clusters.east.kialiCaData=LS0tLS1... \
+  --set clusters.west.kialiToken=sha256~... \
+  --set clusters.west.kialiCaData=LS0tLS1... \
+  --reuse-values
+```
+
+Then sync `field-content-kiali` in Argo CD. The chart creates `kiali-multi-cluster-secret` when all three fields (token, apiUrl, caData) are set for a cluster.
+
+### 7d. OpenShift login per cluster
+
+With `auth.strategy: openshift`, users must use **Log in** in the Kiali UI for each remote cluster the first time they access it.
+
+### 7e. Metrics note
+
+Topology and configuration are visible across clusters. Request-rate metrics on the hub use the hub Thanos endpoint; full cross-cluster metrics require Prometheus federation (see [Observability]({% link observability.md %})).
+
 ---
 
 Next: [Deploy with ACM and GitOps]({% link deploy-acm-gitops.md %}) · [Architecture]({% link architecture.md %})

@@ -316,7 +316,26 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         clusterRole: hub
-    {{- else if has .path (list "opentelemetry" "kiali" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit") }}
+    {{- else if eq .path "kiali" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        multiCluster:
+          enabled: true
+          clusters:
+            east:
+              name: east
+              apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
+              caData: {{ $.Values.clusters.east.kialiCaData | default "" | quote }}
+              kialiToken: {{ $.Values.clusters.east.kialiToken | default "" | quote }}
+              kialiUrl: {{ printf "https://kiali-openshift-cluster-observability-operator.%s" ($.Values.clusters.east.domain | default $domain) | quote }}
+            west:
+              name: west
+              apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
+              caData: {{ $.Values.clusters.west.kialiCaData | default "" | quote }}
+              kialiToken: {{ $.Values.clusters.west.kialiToken | default "" | quote }}
+              kialiUrl: {{ printf "https://kiali-openshift-cluster-observability-operator.%s" ($.Values.clusters.west.domain | default $domain) | quote }}
+    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}

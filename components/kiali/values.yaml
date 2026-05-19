@@ -1,1 +1,19 @@
 clusterDomain: ""
+
+# Hub-only: multi-cluster access to east/west spokes (independent Istio per cluster).
+# Tokens and CA must be supplied at deploy time — never commit secrets.
+multiCluster:
+  enabled: false
+  clusters:
+    east:
+      name: east
+      apiUrl: ""
+      caData: ""
+      kialiToken: ""
+      kialiUrl: ""
+    west:
+      name: west
+      apiUrl: ""
+      caData: ""
+      kialiToken: ""
+      kialiUrl: ""
