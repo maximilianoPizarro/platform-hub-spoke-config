@@ -1,0 +1,102 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: industrial-edge-camel-kaoto
+  title: "Industrial Edge — Camel Routes (Kaoto + Continue AI)"
+  description: >
+    Camel Quarkus routes (MQTT→Kafka, Kafka→S3/MinIO, alerts→Mailpit) editable in DevSpaces
+    with Kaoto and Continue AI (MaaS deepseek). Sidecar mesh for Prometheus traffic metrics.
+  tags:
+    - camel
+    - kaoto
+    - industrial-edge
+    - continue-ai
+spec:
+  owner: platform-engineering
+  type: service
+  parameters:
+    - title: Project Configuration
+      required:
+        - name
+        - owner
+        - targetCluster
+        - clusterDomain
+      properties:
+        name:
+          title: Application Name
+          type: string
+          default: ie-camel-routes
+          pattern: "^[a-z0-9-]+$"
+        owner:
+          title: Owner
+          type: string
+          default: ${{ user.entity.metadata.name }}
+        targetCluster:
+          title: Target spoke cluster
+          type: string
+          enum: [east, west]
+          default: east
+        clusterDomain:
+          title: Hub apps domain
+          type: string
+    - title: Integration Endpoints
+      properties:
+        mqttBrokerUri:
+          title: MQTT Broker URI
+          type: string
+          default: "tcp://messaging.industrial-edge-tst-all.svc:1883"
+        kafkaBrokerUri:
+          title: Kafka bootstrap
+          type: string
+          default: "dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
+        s3Endpoint:
+          title: MinIO S3 endpoint (hub via Skupper)
+          type: string
+          default: "http://minio-hub.service-interconnect.svc:9000"
+        s3Bucket:
+          title: S3 bucket
+          type: string
+          default: "industrial-edge-data"
+        mailpitApiUrl:
+          title: Mailpit API (hub)
+          type: string
+          default: "http://mailpit.mailpit.svc:8025"
+  steps:
+    - id: fetch-skeleton
+      name: Fetch Skeleton
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}"
+          owner: ${{ parameters.owner }}
+          namespace: "${{ parameters.owner }}-apps-${{ parameters.targetCluster }}"
+          targetCluster: ${{ parameters.targetCluster }}
+          clusterDomain: ${{ parameters.clusterDomain }}
+          mqttBrokerUri: ${{ parameters.mqttBrokerUri }}
+          kafkaBrokerUri: ${{ parameters.kafkaBrokerUri }}
+          s3Endpoint: ${{ parameters.s3Endpoint }}
+          s3Bucket: ${{ parameters.s3Bucket }}
+          mailpitApiUrl: ${{ parameters.mailpitApiUrl }}
+    - id: publish
+      name: Publish to Gitea
+      action: publish:github
+      input:
+        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}"
+        description: ${{ parameters.name }}
+        defaultBranch: main
+        repoVisibility: public
+    - id: register
+      name: Register in Catalog
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: /main/catalog-info.yaml
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in DevSpaces (Kaoto)
+        icon: chat
+        url: "https://devspaces.${{ parameters.clusterDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"

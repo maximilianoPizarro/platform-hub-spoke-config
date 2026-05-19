@@ -24,6 +24,17 @@ data:
     apiVersion: backstage.io/v1alpha1
     kind: User
     metadata:
+      name: platformadmin
+    spec:
+      profile:
+        displayName: Platform Admin
+        email: platformadmin@redhat.local
+      memberOf:
+        - platform-engineering
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: User
+    metadata:
       name: maximilianoPizarro
       annotations:
         github.com/user-login: maximilianoPizarro

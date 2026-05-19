@@ -1,0 +1,16 @@
+{{- /*
+  Industrial Edge catalog entities — bundled in-chart (no GitHub API).
+  Published copy also lives under docs/assets/backstage/catalog/ for GitHub Pages.
+*/ -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: developer-hub-catalog-ie
+  namespace: developer-hub
+  labels:
+    rhdh.redhat.com/ext-config-sync: "true"
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+data:
+  industrial-edge-system.yaml: |
+{{ .Files.Get "files/catalog/industrial-edge-system.yaml" | indent 4 }}

@@ -61,6 +61,8 @@ spec:
               value: "mqtt://messaging:1883"
             - name: MQTT_TOPIC
               value: "iot-sensor/sw/#"
+            - name: SOCKET_PATH
+              value: "/api/service-web/socket"
           resources:
             requests:
               cpu: 100m

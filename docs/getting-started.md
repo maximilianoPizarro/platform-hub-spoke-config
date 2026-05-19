@@ -197,7 +197,11 @@ oc create secret generic continue-ai-config -n devspaces \
   --dry-run=client -o yaml | oc apply -f -
 ```
 
-Software templates **Industrial Edge** and **Industrial Edge — Camel Kaoto** appear under **Create** in Developer Hub after catalog sync.
+The **Industrial Edge** system and components are loaded from an in-cluster catalog ConfigMap (no GitHub API). Software templates are published as static assets on GitHub Pages:
+
+`https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/software-templates/`
+
+After Argo CD syncs `developer-hub`, open **Catalog → Systems → industrial-edge** and **Create** for the templates. Ensure GitHub Pages is enabled for this repo (`docs/` on `main`).
 
 ---
 
