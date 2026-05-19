@@ -1,8 +1,14 @@
 {{- /*
   Headless Services + EndpointSlices for Kafka broker DNS on the hub.
   Maps broker advertised hostnames to Skupper listener ClusterIPs.
-  IPs are passed as values from the parent chart (no lookup required).
+  Uses Helm lookup to resolve IPs dynamically from Skupper services.
 */ -}}
+{{- $eastTstIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-east-tst" }}{{ $eastTstIP = .spec.clusterIP }}{{- end }}
+{{- $westTstIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-west-tst" }}{{ $westTstIP = .spec.clusterIP }}{{- end }}
+{{- $eastStormshiftIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-east-stormshift" }}{{ $eastStormshiftIP = .spec.clusterIP }}{{- end }}
+{{- $westStormshiftIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-west-stormshift" }}{{ $westStormshiftIP = .spec.clusterIP }}{{- end }}
+{{- $eastDatalakeIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-east-datalake" }}{{ $eastDatalakeIP = .spec.clusterIP }}{{- end }}
+{{- $westDatalakeIP := "" }}{{- with lookup "v1" "Service" "service-interconnect" "kafka-west-datalake" }}{{ $westDatalakeIP = .spec.clusterIP }}{{- end }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -54,16 +60,16 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if .Values.brokerDns.eastTstIP }}
+{{- if $eastTstIP }}
   - addresses:
-      - {{ .Values.brokerDns.eastTstIP | quote }}
+      - {{ $eastTstIP | quote }}
     hostname: dev-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- if .Values.brokerDns.westTstIP }}
+{{- if $westTstIP }}
   - addresses:
-      - {{ .Values.brokerDns.westTstIP | quote }}
+      - {{ $westTstIP | quote }}
     hostname: dev-cluster-broker-0-west
     conditions:
       ready: true
@@ -99,16 +105,16 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if .Values.brokerDns.eastStormshiftIP }}
+{{- if $eastStormshiftIP }}
   - addresses:
-      - {{ .Values.brokerDns.eastStormshiftIP | quote }}
+      - {{ $eastStormshiftIP | quote }}
     hostname: factory-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- if .Values.brokerDns.westStormshiftIP }}
+{{- if $westStormshiftIP }}
   - addresses:
-      - {{ .Values.brokerDns.westStormshiftIP | quote }}
+      - {{ $westStormshiftIP | quote }}
     hostname: factory-cluster-broker-0-west
     conditions:
       ready: true
@@ -144,16 +150,16 @@ ports:
     port: 9092
     protocol: TCP
 endpoints:
-{{- if .Values.brokerDns.eastDatalakeIP }}
+{{- if $eastDatalakeIP }}
   - addresses:
-      - {{ .Values.brokerDns.eastDatalakeIP | quote }}
+      - {{ $eastDatalakeIP | quote }}
     hostname: prod-cluster-broker-0-east
     conditions:
       ready: true
 {{- end }}
-{{- if .Values.brokerDns.westDatalakeIP }}
+{{- if $westDatalakeIP }}
   - addresses:
-      - {{ .Values.brokerDns.westDatalakeIP | quote }}
+      - {{ $westDatalakeIP | quote }}
     hostname: prod-cluster-broker-0-west
     conditions:
       ready: true

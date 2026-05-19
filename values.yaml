@@ -282,13 +282,6 @@ litemaas:
   enabled: true
   model: "deepseek-r1-distill-qwen-14b"
 
-kafkaConsoleBrokerDns:
-  eastTstIP: "172.231.250.171"
-  westTstIP: "172.231.75.221"
-  eastStormshiftIP: "172.231.83.139"
-  westStormshiftIP: "172.231.145.82"
-  eastDatalakeIP: "172.231.176.254"
-  westDatalakeIP: "172.231.109.146"
 
 fieldContent:
   deploymentType: "helm"
