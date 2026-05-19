@@ -5,3 +5,5 @@ brokerDns:
   westTstIP: ""
   eastStormshiftIP: ""
   westStormshiftIP: ""
+  eastDatalakeIP: ""
+  westDatalakeIP: ""

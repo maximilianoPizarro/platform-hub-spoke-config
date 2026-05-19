@@ -16,11 +16,16 @@ metadata:
 spec:
   hostname: kafka-console.{{ .Values.clusterDomain }}
   kafkaClusters:
-    - name: prod-cluster
+    - name: prod-cluster-east
       properties:
         values:
           - name: bootstrap.servers
-            value: prod-cluster-kafka-bootstrap.industrial-edge-data-lake.svc.cluster.local:9092
+            value: kafka-east-datalake.service-interconnect.svc.cluster.local:9092
+    - name: prod-cluster-west
+      properties:
+        values:
+          - name: bootstrap.servers
+            value: kafka-west-datalake.service-interconnect.svc.cluster.local:9092
     - name: dev-cluster-east
       properties:
         values:

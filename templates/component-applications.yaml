@@ -318,6 +318,8 @@ spec:
           westTstIP: {{ $.Values.kafkaConsoleBrokerDns.westTstIP | quote }}
           eastStormshiftIP: {{ $.Values.kafkaConsoleBrokerDns.eastStormshiftIP | quote }}
           westStormshiftIP: {{ $.Values.kafkaConsoleBrokerDns.westStormshiftIP | quote }}
+          eastDatalakeIP: {{ $.Values.kafkaConsoleBrokerDns.eastDatalakeIP | quote }}
+          westDatalakeIP: {{ $.Values.kafkaConsoleBrokerDns.westDatalakeIP | quote }}
     {{- else if eq .path "kubecost" }}
     helm:
       valuesObject:
