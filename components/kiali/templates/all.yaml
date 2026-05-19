@@ -26,11 +26,18 @@ spec:
   deployment:
     cluster_wide_access: true
     namespace: openshift-cluster-observability-operator
+  kubernetes_config:
+    cluster_name: Kubernetes
   {{- if .Values.multiCluster.enabled }}
   clustering:
     autodetect_secrets:
       enabled: true
       label: "kiali.io/multiCluster=true"
+    clusters:
+    - name: {{ .Values.multiCluster.clusters.east.name }}
+      secret_name: kiali-multi-cluster-secret
+    - name: {{ .Values.multiCluster.clusters.west.name }}
+      secret_name: kiali-multi-cluster-secret
     {{- if or .Values.multiCluster.clusters.east.kialiUrl .Values.multiCluster.clusters.west.kialiUrl }}
     kiali_urls:
     {{- if .Values.multiCluster.clusters.east.kialiUrl }}
