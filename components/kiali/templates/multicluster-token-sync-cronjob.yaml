@@ -46,7 +46,6 @@ metadata:
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
-    resourceNames: ["kiali-multi-cluster-secret"]
     verbs: ["get", "create", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -75,7 +74,8 @@ metadata:
 data:
   sync.py: |
     #!/usr/bin/env python3
-    """Build kiali-multi-cluster-secret from ManagedCluster CA/URL and spoke-exported tokens."""
+    """Build kiali-multi-cluster-secret from ManagedCluster CA/URL and spoke-exported tokens.
+    Retries with backoff when spoke tokens are not yet available."""
     import json
     import os
     import ssl
@@ -91,6 +91,8 @@ data:
     EXPORT_CM = os.environ.get("EXPORT_CONFIGMAP", "kiali-hub-export")
     VIEW_NAME = os.environ.get("VIEW_NAME", "kiali-hub-export-token")
     CLUSTERS = [c.strip() for c in os.environ.get("CLUSTERS", "east,west").split(",") if c.strip()]
+    MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "12"))
+    RETRY_INTERVAL = int(os.environ.get("RETRY_INTERVAL", "30"))
 
     SA_TOKEN_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/token")
     SA_CA_PATH = Path("/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
@@ -152,7 +154,7 @@ data:
                 token = data.get("token", "").strip()
                 if token:
                     return token
-                raise RuntimeError(f"empty token in {EXPORT_CM} on {cluster_name}; run spoke kiali-hub-token-export CronJob first")
+                return None
             time.sleep(2)
         raise RuntimeError(f"timeout waiting for ManagedClusterView on {cluster_name}")
 
@@ -199,12 +201,11 @@ data:
         }
         try:
             api_request("GET", f"/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}")
-            path = f"/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}"
             token = SA_TOKEN_PATH.read_text().strip()
             ctx = ssl.create_default_context(cafile=str(SA_CA_PATH))
             body = json.dumps({"stringData": string_data}).encode()
             req = urllib.request.Request(
-                f"{API_BASE}{path}",
+                f"{API_BASE}/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}",
                 data=body,
                 method="PATCH",
                 headers={
@@ -233,24 +234,85 @@ data:
 
 
     def main():
-        string_data = {}
-        for cluster in CLUSTERS:
-            mc = get_managed_cluster(cluster)
-            cfg = mc["spec"]["managedClusterClientConfigs"][0]
-            api_url = cfg["url"]
-            ca_data = cfg["caBundle"]
-            kiali_token = fetch_spoke_token(cluster)
-            string_data[cluster] = build_kubeconfig(cluster, api_url, ca_data, kiali_token)
-            print(f"OK: built kubeconfig for {cluster}", file=sys.stderr)
-        if not string_data:
-            print("No clusters configured", file=sys.stderr)
-            sys.exit(1)
-        upsert_secret(string_data)
-        print(f"Updated secret {SECRET_NAME} with {len(string_data)} cluster(s)", file=sys.stderr)
+        for attempt in range(1, MAX_RETRIES + 1):
+            string_data = {}
+            all_ready = True
+            for cluster in CLUSTERS:
+                try:
+                    mc = get_managed_cluster(cluster)
+                    cfg = mc["spec"]["managedClusterClientConfigs"][0]
+                    api_url = cfg["url"]
+                    ca_data = cfg["caBundle"]
+                    kiali_token = fetch_spoke_token(cluster)
+                    if not kiali_token:
+                        print(f"WARN: token not yet available for {cluster} (attempt {attempt}/{MAX_RETRIES})", file=sys.stderr)
+                        all_ready = False
+                        break
+                    string_data[cluster] = build_kubeconfig(cluster, api_url, ca_data, kiali_token)
+                    print(f"OK: built kubeconfig for {cluster}", file=sys.stderr)
+                except Exception as e:
+                    print(f"WARN: error processing {cluster}: {e} (attempt {attempt}/{MAX_RETRIES})", file=sys.stderr)
+                    all_ready = False
+                    break
+
+            if all_ready and string_data:
+                upsert_secret(string_data)
+                print(f"Updated secret {SECRET_NAME} with {len(string_data)} cluster(s)", file=sys.stderr)
+                return
+
+            if attempt < MAX_RETRIES:
+                print(f"Retrying in {RETRY_INTERVAL}s...", file=sys.stderr)
+                time.sleep(RETRY_INTERVAL)
+
+        print(f"FAILED: could not build secret after {MAX_RETRIES} attempts", file=sys.stderr)
+        sys.exit(1)
 
 
     if __name__ == "__main__":
         main()
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kiali-multicluster-token-sync-hook
+  namespace: openshift-cluster-observability-operator
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 5
+  activeDeadlineSeconds: 900
+  template:
+    spec:
+      serviceAccountName: kiali-multicluster-token-sync
+      restartPolicy: OnFailure
+      containers:
+        - name: sync
+          image: {{ .Values.multiCluster.tokenSync.image | quote }}
+          command: ["python3", "/scripts/sync.py"]
+          env:
+            - name: CLUSTERS
+              value: {{ printf "%s,%s" .Values.multiCluster.clusters.east.name .Values.multiCluster.clusters.west.name | quote }}
+            - name: MAX_RETRIES
+              value: "20"
+            - name: RETRY_INTERVAL
+              value: "30"
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      volumes:
+        - name: script
+          configMap:
+            name: kiali-multicluster-token-sync-script
+            defaultMode: 0755
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -258,7 +320,7 @@ metadata:
   name: kiali-multicluster-token-sync
   namespace: openshift-cluster-observability-operator
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   schedule: {{ .Values.multiCluster.tokenSync.schedule | quote }}
   successfulJobsHistoryLimit: 1
@@ -278,6 +340,10 @@ spec:
               env:
                 - name: CLUSTERS
                   value: {{ printf "%s,%s" .Values.multiCluster.clusters.east.name .Values.multiCluster.clusters.west.name | quote }}
+                - name: MAX_RETRIES
+                  value: "6"
+                - name: RETRY_INTERVAL
+                  value: "20"
               volumeMounts:
                 - name: script
                   mountPath: /scripts

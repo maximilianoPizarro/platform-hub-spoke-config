@@ -123,28 +123,16 @@ Healthy sync waves progress: namespaces → operators → platform → observabi
 
 Hub Kiali can show mesh topology from east and west without Istio trust federation. Each spoke keeps its own Istio; the hub Kiali uses remote cluster secrets plus links to spoke Kiali UIs.
 
-### 7a. Automated token sync (default)
+### 7a. Automated token sync (default — zero manual steps)
 
-With `multiCluster.automateTokens: true` (hub) and `exportTokenForHub: true` (spokes), two CronJobs cooperate:
+With `multiCluster.automateTokens: true` (hub) and `exportTokenForHub: true` (spokes), Argo CD **PostSync hook Jobs** run automatically on every sync:
 
-1. **Spoke** (`kiali-hub-token-export` on east/west): creates a token for `kiali-service-account` and stores it in ConfigMap `kiali-hub-export`
-2. **Hub** (`kiali-multicluster-token-sync`): reads **apiUrl** and **caBundle** from each ACM `ManagedCluster`, fetches the spoke token via **ManagedClusterView**, and updates **`kiali-multi-cluster-secret`**
+1. **Spoke PostSync** (`kiali-hub-token-export-hook`): waits for `kiali-service-account` (created by Kiali operator), creates a token, and stores it in ConfigMap `kiali-hub-export`
+2. **Hub PostSync** (`kiali-multicluster-token-sync-hook`): reads **apiUrl**/**caBundle** from each ACM `ManagedCluster`, fetches spoke tokens via **ManagedClusterView** (retries up to 10 min if spoke export hasn't completed), and creates/updates **`kiali-multi-cluster-secret`**
 
-**Prerequisites:** `kiali-east` / `kiali-west` synced (Kiali operator + `kiali-service-account` on spokes).
+Both hooks have retry logic so the installation is fully automatic even if Kiali operator takes time to provision the ServiceAccount.
 
-Trigger an immediate sync after deploy (spokes first, then hub):
-
-```bash
-# On each spoke namespace via hub (or login to each spoke):
-oc create job -n openshift-cluster-observability-operator --from=cronjob/kiali-hub-token-export kiali-hub-token-export-manual --context east
-oc create job -n openshift-cluster-observability-operator --from=cronjob/kiali-hub-token-export kiali-hub-token-export-manual --context west
-
-# On hub:
-oc create job -n openshift-cluster-observability-operator \
-  --from=cronjob/kiali-multicluster-token-sync kiali-multicluster-token-sync-manual
-oc logs -n openshift-cluster-observability-operator -l job-name=kiali-multicluster-token-sync-manual -f
-oc get secret kiali-multi-cluster-secret -n openshift-cluster-observability-operator
-```
+**Periodic refresh:** CronJobs (`kiali-hub-token-export` on spokes, `kiali-multicluster-token-sync` on hub) renew tokens every 6 hours.
 
 To disable automation and use manual tokens instead, set `multiCluster.automateTokens: false` on the kiali chart.
 
