@@ -1,5 +1,4 @@
 {{- $ieAmbientNamespaces := list
-  "industrial-edge-tst-all"
   "industrial-edge-stormshift-messaging"
   "industrial-edge-ml-workspace"
   "industrial-edge-ci"
@@ -12,7 +11,7 @@
   "developer-hub"
   "devspaces"
 }}
-{{- $ieNoMeshNamespaces := list "industrial-edge-data-lake" }}
+{{- $ieNoMeshNamespaces := list "industrial-edge-data-lake" "industrial-edge-tst-all" }}
 {{- /* RHCL dns-operator: no ambient — CrashLoopBackOff on spokes when meshed */ -}}
 {{- $noMeshNamespaces := list
   "gitea"
