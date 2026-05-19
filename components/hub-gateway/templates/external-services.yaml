@@ -10,7 +10,8 @@ spec:
   type: ExternalName
   externalName: ie-gateway-east.service-interconnect.svc.cluster.local
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       protocol: TCP
       targetPort: 8080
 ---
@@ -25,7 +26,8 @@ spec:
   type: ExternalName
   externalName: ie-gateway-east.service-interconnect.svc.cluster.local
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       protocol: TCP
       targetPort: 8080
 {{- end }}
@@ -42,7 +44,8 @@ spec:
   type: ExternalName
   externalName: ie-gateway-west.service-interconnect.svc.cluster.local
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       protocol: TCP
       targetPort: 8080
 ---
@@ -57,7 +60,8 @@ spec:
   type: ExternalName
   externalName: ie-gateway-west.service-interconnect.svc.cluster.local
   ports:
-    - port: 8080
+    - name: http
+      port: 8080
       protocol: TCP
       targetPort: 8080
 {{- end }}
