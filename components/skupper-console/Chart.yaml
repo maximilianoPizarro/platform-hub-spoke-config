@@ -1,5 +1,0 @@
-apiVersion: v2
-name: skupper-console
-description: Skupper Network Observer console for visualizing Service Interconnect topology and traffic
-type: application
-version: 0.1.0

@@ -359,7 +359,10 @@ spec:
     {{- else if eq .id "skupper-network-observer" }}
     helm:
       valuesObject:
-        auth: unsecured
+        auth:
+          strategy: openshift
+        route:
+          enabled: true
         resources:
           requests:
             cpu: 50m
@@ -367,7 +370,7 @@ spec:
           limits:
             cpu: 200m
             memory: 128Mi
-    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "skupper-console" "quay-registry") }}
+    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "quay-registry") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
