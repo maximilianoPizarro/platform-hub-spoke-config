@@ -239,6 +239,8 @@ data:
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
         - host: maximilianopizarro.github.io
+          apiBaseUrl: https://api.github.com
+          rawBaseUrl: https://maximilianopizarro.github.io/platform-hub-spoke-config
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:
