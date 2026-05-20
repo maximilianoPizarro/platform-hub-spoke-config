@@ -360,7 +360,7 @@ spec:
     helm:
       valuesObject:
         auth:
-          strategy: openshift
+          strategy: none
         route:
           enabled: true
         resources:
