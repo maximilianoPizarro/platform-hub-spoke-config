@@ -224,4 +224,4 @@ Charts: `components/observability`, `components/grafana-dashboards`, `components
 
 ---
 
-**Next:** tighten workload telemetry wiring from **[OpenShift Service Mesh](products/service-mesh.md)** (ztunnel prerequisites), then revisit **[Service Interconnect](service-interconnect.md)** when Prometheus crosses clusters via Skupper.
+**Next →** [Industrial Edge](industrial-edge.md) for the factory data pipeline pattern, then deep dive into [Red Hat Products](products/) for per-operator specifics (Service Mesh, Service Interconnect, AMQ Streams).

@@ -97,3 +97,7 @@ The OpenShift / ACM UI may report *no Argo applications* when any link in this c
 - [ACM Architecture — Welcome](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.16/html/about/welcome-to-red-hat-advanced-cluster-management-for-kubernetes)
 - [Multicloud GitOps Validated Pattern](https://validatedpatterns.io/patterns/multicloud-gitops)
 - [ApplicationSet Generators](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/Generators/)
+
+---
+
+**Next →** [Scaffolding](scaffolding.md) to deploy Industrial Edge instances from Developer Hub, or [Getting Started](getting-started.md) for the full bootstrap walk-through.

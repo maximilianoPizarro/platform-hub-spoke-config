@@ -5,7 +5,7 @@ metadata:
   title: "Industrial Edge — Camel Routes (Kaoto + Continue AI)"
   description: >
     Camel Quarkus routes (MQTT→Kafka, Kafka→S3/MinIO, alerts→Mailpit) editable in DevSpaces
-    with Kaoto and Continue AI (MaaS deepseek). Sidecar mesh for Prometheus traffic metrics.
+    with Kaoto and Continue AI (MaaS deepseek). Ambient mesh with ztunnel L4 Prometheus metrics.
   tags:
     - camel
     - kaoto

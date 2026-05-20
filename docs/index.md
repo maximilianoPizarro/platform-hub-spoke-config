@@ -42,18 +42,19 @@ This repository models a **GitOps-first platform** where:
 | Hub Gateway | [Hub Gateway](hub-gateway.md) |
 | Observability | [Observability](observability.md) |
 | Industrial Edge | [Industrial Edge](industrial-edge.md) |
+| Scaffolding | [Scaffolding](scaffolding.md) |
 | Service Interconnect | [Service Interconnect](service-interconnect.md) |
 | Branch strategy | [Branch Strategy](branch-strategy.md) |
 
 ## Recommended reading order
 
-1. [Architecture](architecture.md) — mental model of hub, spokes, GitOps, and observability pipes  
+1. [Architecture](architecture.md) — mental model of hub, spokes, GitOps, and observability  
 2. [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md) — bring clusters under GitOps  
-3. [Scaffolding](scaffolding.md) — create Industrial Edge instances on east/west from Developer Hub  
-4. [Hub Gateway](hub-gateway.md) — weighted ingress and circuit breaking  
+3. [Scaffolding](scaffolding.md) — deploy Industrial Edge instances on east/west from Developer Hub  
+4. [Hub Gateway](hub-gateway.md) — weighted ingress and circuit breaking across spokes  
 5. [Observability](observability.md) — Grafana, Kiali, Kafka Console  
-6. [Industrial Edge](industrial-edge.md) — factory data pipeline pattern  
-7. [Red Hat Products](products/index.md) — operator specifics (discovery annotations live here)
+6. [Industrial Edge](industrial-edge.md) — factory data pipeline: sensors, Kafka, Camel, ML  
+7. [Red Hat Products](products/index.md) — per-operator deep dives and discovery annotations
 
 Screenshots and architecture diagrams support **click-to-zoom** in a full-screen modal — handy after deploying dashboards.
 

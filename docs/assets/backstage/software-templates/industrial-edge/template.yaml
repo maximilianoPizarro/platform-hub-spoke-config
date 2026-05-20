@@ -5,7 +5,7 @@ metadata:
   title: "Industrial Edge: IoT Manufacturing (Multi-Cluster)"
   description: >
     Deploy an Industrial Edge IoT stack on a selected spoke (east/west).
-    Uses Istio sidecar injection (not ambient) so Prometheus captures istio_* metrics.
+    Runs under OSSM3 ambient mesh with ztunnel L4 metrics and Prometheus scraping.
   tags:
     - iot
     - kafka

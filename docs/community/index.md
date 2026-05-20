@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Community & Third-Party
-nav_order: 6
+nav_order: 12
 has_children: true
 ---
 

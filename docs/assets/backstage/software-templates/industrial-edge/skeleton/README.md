@@ -11,8 +11,8 @@ IoT edge instance scaffolded from Developer Hub.
 
 ## Components
 
-- Namespace with Istio sidecar injection (Prometheus `istio_*` metrics)
-- Tekton pipeline (git-clone → buildah → Quay.io)
+- Namespace under OSSM3 ambient mesh (ztunnel L4 metrics, Prometheus `istio_tcp_*` series)
+- Tekton pipeline (git-clone → buildah → internal registry)
 - Deployment + Service
 
 ## Links

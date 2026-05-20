@@ -138,3 +138,7 @@ The Industrial Edge `line-dashboard` (iot-frontend) requires an `iot-consumer` s
 - [Istio DestinationRule](https://istio.io/latest/docs/reference/config/networking/destination-rule/)
 
 Implementation chart: `components/hub-gateway`.
+
+---
+
+**Next →** [Observability](observability.md) for Grafana dashboards, Kiali traffic graphs, and Kafka Console across clusters.
