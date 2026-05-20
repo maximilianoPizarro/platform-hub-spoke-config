@@ -1,0 +1,6 @@
+clusterDomain: ""
+minio:
+  endpoint: "minio.industrial-edge-ml-workspace.svc.cluster.local:9000"
+  accessKey: "minio"
+  secretKey: "minio123"
+  bucket: "quay"

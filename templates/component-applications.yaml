@@ -186,6 +186,11 @@ spec:
       jsonPointers:
         - /spec/application/appConfig/configMaps
         - /spec/application/extraFiles
+    - group: quay.redhat.com
+      kind: QuayRegistry
+      jsonPointers:
+        - /metadata/annotations
+        - /status
   {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
   {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
   {{- $eastDomain := $.Values.clusters.east.domain | default "" }}
@@ -351,7 +356,7 @@ spec:
               caData: {{ $.Values.clusters.west.kialiCaData | default "" | quote }}
               kialiToken: {{ $.Values.clusters.west.kialiToken | default "" | quote }}
               kialiUrl: {{ printf "https://kiali-openshift-cluster-observability-operator.%s" ($.Values.clusters.west.domain | default $domain) | quote }}
-    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit") }}
+    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "skupper-console" "quay-registry") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}

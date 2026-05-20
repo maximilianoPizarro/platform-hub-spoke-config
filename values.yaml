@@ -71,6 +71,10 @@ connectivityLink:
         namespace: openshift-operators
         channel: stable-2
         source: redhat-operators
+      - name: quay-operator
+        namespace: openshift-operators
+        channel: stable-3.14
+        source: redhat-operators
 
   apps:
     # Core platform
@@ -267,6 +271,24 @@ connectivityLink:
       enabled: true
       path: kafka-console
       destinationNamespace: kafka-console
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    # Skupper Network Observer console
+    - id: skupper-console
+      enabled: true
+      path: skupper-console
+      destinationNamespace: service-interconnect
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    # Quay on-prem registry (minimal — uses existing MinIO for storage)
+    - id: quay-registry
+      enabled: true
+      path: quay-registry
+      destinationNamespace: quay-registry
       syncWave: "0"
       prune: true
       selfHeal: true
