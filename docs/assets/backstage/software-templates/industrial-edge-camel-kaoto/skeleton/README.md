@@ -1,3 +1,8 @@
+---
+nav_exclude: true
+search_exclude: true
+---
+
 # Camel Kaoto — ${{ values.name }} (${{ values.targetCluster }})
 
 Camel Quarkus routes with Kaoto and Continue AI in DevSpaces.

@@ -1,3 +1,8 @@
+---
+nav_exclude: true
+search_exclude: true
+---
+
 # Industrial Edge — ${{ values.name }} (${{ values.targetCluster }})
 
 IoT edge instance scaffolded from Developer Hub.
