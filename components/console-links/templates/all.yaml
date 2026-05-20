@@ -146,4 +146,32 @@ spec:
   href: "https://kubecost.{{ $hubDomain }}"
   location: ApplicationMenu
   text: "Kubecost (Cost Management)"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-quay-registry
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzQwQjVBNCI+PHBhdGggZD0iTTIwIDRINGMtMS4xIDAtMiAuOS0yIDJ2MTJjMCAxLjEuOSAyIDIgMmgxNmMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0yem0wIDE0SDRWNmgxNnYxMnpNNiA4aDJ2Mmg4VjhoMnY2aC0ydi0yaC00djJINlY4eiIvPjwvc3ZnPg=="
+    section: "Platform Hub-Spoke"
+  href: "https://registry-quay-quay-registry.{{ $domain }}"
+  location: ApplicationMenu
+  text: "Quay Registry"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
+  name: platform-skupper-console
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTE1IDRjLTQuNDIgMC04IDMuNTgtOCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0wIDE0Yy0zLjMxIDAtNi0yLjY5LTYtNnMyLjY5LTYgNi02IDYgMi42OSA2IDYtMi42OSA2LTYgNnptLTEtOWgydjZoLTJ6bTAtMmgydjJoLTJ6Ii8+PHBhdGggZD0iTTQgMTJjMC0yLjIxIDEuNzktNCA0LTRWNmMtMy4zMSAwLTYgMi42OS02IDZzMi42OSA2IDYgNnYtMmMtMi4yMSAwLTQtMS43OS00LTR6Ii8+PC9zdmc+"
+    section: "Platform Hub-Spoke"
+  href: "https://field-content-skupper-network-observer-service-interconnect.{{ $domain }}"
+  location: ApplicationMenu
+  text: "Skupper Console (Network)"
 {{- end }}
