@@ -145,6 +145,8 @@ data:
         allow:
           - host: "*.redhatworkshops.io"
           - host: "*.github.io"
+          - host: raw.githubusercontent.com
+          - host: github.com
     enabled:
       kubernetes: true
       argocd: true
