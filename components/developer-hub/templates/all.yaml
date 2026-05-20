@@ -189,9 +189,9 @@ data:
           rules:
             - allow: [System, Domain, Component, API, Resource]
         - type: url
-          target: https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/software-templates/templates-catalog.yaml
+          target: https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
-            - allow: [Template]
+            - allow: [Template, Location]
       providers:
         ocm:
           default:
@@ -234,13 +234,13 @@ data:
           changeOrigin: true
     integrations:
       github:
+        - host: github.com
+          apiBaseUrl: https://api.github.com
+          rawBaseUrl: https://raw.githubusercontent.com
         - host: gitea-gitea.{{ .Values.clusterDomain }}
           apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
-        - host: maximilianopizarro.github.io
-          apiBaseUrl: https://api.github.com
-          rawBaseUrl: https://maximilianopizarro.github.io/platform-hub-spoke-config
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:
