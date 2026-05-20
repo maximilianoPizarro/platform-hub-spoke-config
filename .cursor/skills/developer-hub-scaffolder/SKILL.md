@@ -39,27 +39,32 @@ The operator mounts `extraFiles` as **directories** when `mountPath` includes th
 
 **Wrong:** `mountPath: /opt/app-root/src/catalog-users.yaml` → `EISDIR` error.
 
-## Software templates via GitHub Pages
+## Software templates via GitHub (catalog + raw fetch)
 
-Templates live under `docs/assets/backstage/software-templates/` and are loaded from GitHub Pages (no GitHub API at runtime):
+Templates still live under `docs/assets/backstage/software-templates/`, but the catalog location must use a GitHub `blob` URL so relative `./skeleton` paths resolve reliably in scaffolder runs:
 
 ```yaml
 catalog:
   locations:
     - type: url
-      target: https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/software-templates/templates-catalog.yaml
+      target: https://github.com/maximilianopizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/software-templates/templates-catalog.yaml
 ```
 
-**Scaffolder integration** requires **two** `integrations.github` hosts:
+**Scaffolder integrations** should include:
 
 ```yaml
 integrations:
   github:
-    - host: gitea-gitea.<clusterDomain>   # publish:github → Gitea
+    - host: github.com                       # fetch:template / catalog URLs
+      apiBaseUrl: https://api.github.com
+      rawBaseUrl: https://raw.githubusercontent.com
+    - host: gitea-gitea.<clusterDomain>      # publish:github -> Gitea
       apiBaseUrl: https://gitea-gitea.<domain>/api/v1
+      rawBaseUrl: https://gitea-gitea.<domain>/raw
       token: ${GITEA_TOKEN}
-    - host: maximilianopizarro.github.io   # fetch:template from Pages
 ```
+
+Do **not** force a separate `raw.githubusercontent.com` integration host unless strictly required; incorrect host routing can cause scaffolder URL reader mismatches.
 
 **Reading allowlist:**
 
@@ -68,6 +73,8 @@ backend:
   reading:
     allow:
       - host: "*.github.io"
+      - host: github.com
+      - host: raw.githubusercontent.com
 ```
 
 ## Proxy endpoints (scaffolder http:backstage:request)
@@ -202,6 +209,16 @@ clusterDomain:
 
 Repo URL pattern: `gitea-gitea.${{ parameters.clusterDomain }}` (not bare cluster API domain).
 
+### catalog:register path (critical)
+
+When using `repoContentsUrl` from `publish:github`, set:
+
+```yaml
+catalogInfoPath: /catalog-info.yaml
+```
+
+Do **not** use `/main/catalog-info.yaml`; it can produce `.../main/main/catalog-info.yaml` and fail with catalog HTTP 400.
+
 ## Pipelines: internal registry + Quay catalog
 
 | Stage | Registry |
@@ -266,15 +283,19 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 
 | Error | Fix |
 | ----- | --- |
-| `InputError: No integration found` for github.io | Add `integrations.github` host `maximilianopizarro.github.io` |
+| `InputError: No integration found` for GitHub template URLs | Ensure `integrations.github` has `host: github.com` with `apiBaseUrl` + `rawBaseUrl` |
+| `NotFoundError` on `/repos/.../main/docs/.../skeleton` | Use GitHub `blob` catalog URL (not raw URL) for `templates-catalog.yaml` |
+| `catalog:register` HTTP 400 with `/main/main/catalog-info.yaml` | Set `catalogInfoPath: /catalog-info.yaml` |
 | `EISDIR` on catalog-users.yaml | Fix extraFiles mountPath (directory not file) |
-| `NotAllowedError` fetching templates | `backend.reading.allow: *.github.io` |
+| `NotAllowedError` fetching templates | Add `github.com` and `raw.githubusercontent.com` to `backend.reading.allow` |
 | Empty catalog / templates | `permission.enabled: false`; verify catalog locations; rollout RHDH |
 | Topology empty on spoke entities | Add `backstage.io/kubernetes-cluster: east\|west`; verify `developer-hub-spoke-tokens` |
+| Topology/Kubernetes tabs disappear after plugin edits | Remove custom topology mount override; keep default dynamic plugin wiring |
 | `ENOENT` SA token | `automountServiceAccountToken: true` |
 | Self-signed cert in K8s plugin | `NODE_TLS_REJECT_UNAUTHORIZED=0` + skipTLSVerify |
 | TechDocs `FetchUrlReader does not implement readTree` | Disable techdocs plugins or use local builder with pre-generated docs |
 | Scaffolder 503 on industrial-edge URL | Spoke gateway / mesh — see mesh exclusions above |
+| `publish:github` fails: `user redirect does not exist [name: ws-<owner>]` | Ensure Gitea bootstrap created org/user; hook job must be recreatable (`BeforeHookCreation,HookSucceeded,HookFailed`) |
 
 ## Files map
 

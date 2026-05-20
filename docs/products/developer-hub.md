@@ -83,6 +83,17 @@ oc get job -n developer-hub | grep spoke-token
 
 See **[Scaffolding]({{ site.baseurl }}/scaffolding.html)** for prerequisites and troubleshooting.
 
+## Contribution guide for this solution
+
+If you are changing Developer Hub behavior (catalog, templates, topology, or scaffolder), follow the repository contribution checklist in [`CONTRIBUTING.md`](https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/CONTRIBUTING.md).
+
+Focus points for this platform:
+
+- keep both **Topology** and **Kubernetes** tabs working for Industrial Edge entities,
+- validate full scaffolder flow (`fetch`, `publish`, `register`, ArgoCD create),
+- use `catalogInfoPath: /catalog-info.yaml` in templates,
+- keep Gitea bootstrap hook recreatable so `ws-<owner>` orgs exist for `publish:github`.
+
 ## Software templates
 
 Templates are published as **GitHub Pages** static assets under `docs/assets/backstage/software-templates/`:

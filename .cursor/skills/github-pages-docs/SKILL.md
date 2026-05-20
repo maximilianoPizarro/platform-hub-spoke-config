@@ -7,6 +7,14 @@ description: Jekyll + Just the Docs for platform-hub-spoke-config GitHub Pages u
 
 Use this skill when authoring or restructuring **`docs/`** static documentation published via GitHub Pages.
 
+## Contribution policy linkage
+
+Before finalizing docs changes, align with root `CONTRIBUTING.md`:
+
+- run the required Helm validation commands,
+- update related skills when behavior/process changes,
+- include troubleshooting signatures for any new failure mode discovered during rollout.
+
 ## Stack
 
 - **Jekyll 4.x** builds the site.

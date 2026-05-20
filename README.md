@@ -264,6 +264,10 @@ helm template test . -f values-west.yaml --set deployer.domain=apps.west.example
 
 Full documentation available at: https://maximilianoPizarro.github.io/platform-hub-spoke-config
 
+## Contributing
+
+See `CONTRIBUTING.md` for branch strategy, validation requirements, and Developer Hub/scaffolder contribution checks.
+
 ## CI Pipeline
 
 GitHub Actions runs on push/PR to `main`, `east`, `west`:
