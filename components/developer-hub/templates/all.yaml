@@ -84,6 +84,11 @@ rules:
     resources:
       - routes
     verbs: [get, list, watch]
+  - apiGroups: ["metrics.k8s.io"]
+    resources:
+      - pods
+      - nodes
+    verbs: [get, list]
   - apiGroups: [""]
     resources:
       - events
