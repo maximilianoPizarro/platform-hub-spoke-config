@@ -65,6 +65,12 @@ metadata:
     argocd.argoproj.io/sync-wave: "1"
 spec:
   namespace: ztunnel
+  {{- if .Values.clusterName }}
+  values:
+    ztunnel:
+      multiCluster:
+        clusterName: {{ .Values.clusterName }}
+  {{- end }}
 ---
 apiVersion: telemetry.istio.io/v1
 kind: Telemetry

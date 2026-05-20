@@ -85,9 +85,9 @@ spec:
           "id": 5,
           "options": {"legend": {"calcs": ["mean"], "displayMode": "table", "placement": "right", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
           "targets": [
-            {"expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"industrial-edge-east-.*\"}[5m]))", "legendFormat": "east backends", "refId": "A"},
-            {"expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"industrial-edge-west-.*\"}[5m]))", "legendFormat": "west backends", "refId": "B"},
-            {"expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_namespace=\"hub-gateway-system\"}[5m])) by (destination_service_name)", "legendFormat": "{{ "{{destination_service_name}}" }}", "refId": "C"}
+            {"expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"ie-gateway-east.*\"}[5m]))", "legendFormat": "east backends", "refId": "A"},
+            {"expr": "sum(rate(istio_requests_total{reporter=\"source\", destination_service_name=~\"ie-gateway-west.*\"}[5m]))", "legendFormat": "west backends", "refId": "B"},
+            {"expr": "sum(rate(istio_requests_total{source_workload=\"hub-gateway-istio\"}[5m])) by (destination_service_name)", "legendFormat": "{{ "{{destination_service_name}}" }}", "refId": "C"}
           ],
           "title": "Hub gateway weighted backends & downstream",
           "type": "timeseries"

@@ -363,6 +363,9 @@ spec:
           strategy: none
         route:
           enabled: true
+        tls:
+          openshiftIssued: true
+          skupperIssued: false
         resources:
           requests:
             cpu: 50m

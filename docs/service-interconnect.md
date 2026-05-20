@@ -168,6 +168,44 @@ flowchart LR
   CONN -->|"VAN"| LIST["Hub Listener<br/>ie-gateway-*"]
 ```
 
+## Network Console (Skupper GUI)
+
+The Skupper Network Observer provides a web console to visualize the service interconnect topology, traffic flow, and process-level communication across clusters.
+
+![Skupper Network Console — Topology]({{ site.baseurl }}/assets/images/service-interconnect-console-topology.png)
+{: .mb-4 }
+*Sites view showing the hub, east, and west clusters linked via the Virtual Application Network.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Skupper Network Console — Components]({{ site.baseurl }}/assets/images/service-interconnect-console.png)
+{: .mb-4 }
+*Components view with listeners and connectors bridging services across clusters.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Skupper Network Console — Processes]({{ site.baseurl }}/assets/images/service-interconnect-console-topology-process.png)
+{: .mb-4 }
+*Process-level topology showing individual workloads and their cross-cluster connections.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Skupper Network Console — Process detail]({{ site.baseurl }}/assets/images/service-interconnect-console-process.png)
+{: .mb-4 }
+*Process detail panel with connection metadata and traffic direction.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Skupper Network Console — Metrics]({{ site.baseurl }}/assets/images/service-interconnect-console-metrics.png)
+{: .mb-4 }
+*Built-in metrics view with Prometheus data for TCP bytes, latency, and connection counts.*
+{: .fs-2 .text-grey-dk-000 }
+
+### Deployment notes
+
+The Network Observer is deployed via the official OCI Helm chart (`oci://quay.io/skupper/helm/network-observer`). Key configuration:
+
+- **`auth.strategy: none`** — no OAuth proxy, direct access
+- **`tls.openshiftIssued: true`** — uses OpenShift service serving certificates (trusted by the router for `reencrypt` TLS)
+- **`tls.skupperIssued: false`** — prevents Skupper from overwriting the TLS secret with its own CA (which the router does not trust, causing 503)
+- **`route.enabled: true`** — creates an OpenShift Route for external access
+
 ## Operator deployment
 
 The `skupper-operator` subscription is deployed to spokes via the `operators` component in the ApplicationSet `valuesObject`. This ensures the CRDs are available before Skupper CRs are applied.

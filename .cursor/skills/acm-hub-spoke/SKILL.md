@@ -173,10 +173,50 @@ Use **`channel: stable-3.2`** in `components/operators/templates/servicemeshoper
 
 Required GitOps resources in `components/servicemeshoperator3/templates/all.yaml`:
 
-1. **`Istio` CR** — `profile: ambient`, `PILOT_ENABLE_AMBIENT: "true"`, **`trustedZtunnelNamespace: ztunnel`**. Do **not** pin `version: v1.24.1`; let the operator choose the Istio version for 3.2.
+1. **`Istio` CR** — `profile: ambient`, `PILOT_ENABLE_AMBIENT: "true"`, **`trustedZtunnelNamespace: ztunnel`**. Do **not** pin `version: v1.24.1`; let the operator choose the Istio version for 3.2. Set `values.global.multiCluster.clusterName` to the cluster identity (e.g. `east`, `west`).
 2. **`IstioCNI` CR** — **`profile: ambient`** (required). Namespace-only is **not** enough: CNI starts with `AmbientEnabled: false`, never creates `/var/run/ztunnel/ztunnel.sock`, and ztunnel stays `0/N Ready` with `ZTunnelNotHealthy`.
-3. **`ZTunnel` CR** + namespace `ztunnel` — deploys the per-node L4 proxy DaemonSet.
+3. **`ZTunnel` CR** + namespace `ztunnel` — deploys the per-node L4 proxy DaemonSet. **CRITICAL: set `spec.values.ztunnel.multiCluster.clusterName`** — see section below.
 4. **`Telemetry` mesh-default** in `istio-system` — enables Prometheus metrics from the mesh.
+
+### ZTunnel `multiCluster.clusterName` — CRITICAL for multi-cluster
+
+The Sail operator does **NOT** propagate the Istio CR's `global.multiCluster.clusterName` to the ztunnel DaemonSet. By default, ztunnel gets `ISTIO_META_CLUSTER_ID=Kubernetes`, while istiod expects the configured cluster name (e.g. `east`). This causes **all ztunnel pods to stay `0/1 Running`** with:
+
+```
+XDS client connection error: status: Unauthenticated, message: "authentication failure"
+```
+
+istiod logs show:
+
+```
+Failed to authenticate client: KubeJWTAuthenticator: client claims to be in cluster "Kubernetes",
+but we only know about local cluster "east" and remote clusters []
+```
+
+**Fix**: Set `clusterName` explicitly in the `ZTunnel` CR:
+
+```yaml
+apiVersion: sailoperator.io/v1
+kind: ZTunnel
+metadata:
+  name: default
+  namespace: ztunnel
+spec:
+  namespace: ztunnel
+  values:
+    ztunnel:
+      multiCluster:
+        clusterName: {{ .Values.clusterName }}  # east, west, etc.
+```
+
+This is already implemented in `components/servicemeshoperator3/templates/all.yaml`. The `oc set env daemonset/ztunnel` approach does NOT work because the Sail operator reconciles the DaemonSet and reverts env var changes — always patch via the `ZTunnel` CR.
+
+**Emergency fix** (if ztunnel is broken and can't wait for ArgoCD sync):
+
+```bash
+oc patch ztunnel default -n ztunnel --type merge \
+  -p '{"spec":{"values":{"ztunnel":{"multiCluster":{"clusterName":"east"}}}}}'
+```
 
 **IstioCNI ambient example** (from Red Hat OSSM 3.2 docs):
 
@@ -234,9 +274,9 @@ GitOps maintains two lists in `components/namespaces/templates/all.yaml`:
 | `industrial-edge-data-lake` | Data lake / MinIO patterns | `$noMeshNamespaces` |
 | `redhat-connectivity-link-operator` | `dns-operator-controller-manager` CrashLoopBackOff under ambient | `$noMeshNamespaces` |
 
-**Currently ambient:** `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
+**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
 
-**Explicitly NOT ambient (verified):** `industrial-edge-tst-all`, `spoke-gateway-system` — ztunnel/istiod auth failures break hub→spoke HTTPRoute/WebSocket (line-dashboard). Use Gateway API cross-namespace `backendRefs` + `ReferenceGrant` without HBONE.
+**Explicitly NOT ambient (verified):** `spoke-gateway-system` — stays off mesh. `industrial-edge-data-lake` — data lake / MinIO patterns.
 
 Kiali may show Gitea/ACS as outside the mesh — expected. Gitea remains reachable via Route and cluster DNS for Developer Hub / DevSpaces.
 
@@ -518,6 +558,50 @@ metricsSources:
   - name: prometheus-west
     type: standalone
     url: http://prometheus-west.service-interconnect.svc.cluster.local:9091
+```
+
+### Skupper Network Observer (Network Console GUI)
+
+Deploy the official Skupper Network Observer Helm chart (OCI) for a web GUI showing the service interconnect topology. Uses `oci://quay.io/skupper/helm/network-observer`.
+
+**CRITICAL — TLS configuration for OpenShift Route**:
+
+The network-observer binary binds to `127.0.0.1:8080` (localhost only) by design. An nginx reverse proxy in the same pod listens on `0.0.0.0:8443` with TLS and forwards to localhost. The OpenShift Route uses `reencrypt` termination, so the router verifies the backend certificate against the service CA.
+
+**You MUST set `tls.openshiftIssued: true` and `tls.skupperIssued: false`** in the Helm values. Without this, the chart creates a Skupper `Certificate` CR that provisions a cert signed by the Skupper internal CA — the OpenShift router does NOT trust this CA and returns **503 Service Unavailable**.
+
+```yaml
+# In component-applications.yaml valuesObject for skupper-network-observer:
+auth:
+  strategy: none
+route:
+  enabled: true
+tls:
+  openshiftIssued: true
+  skupperIssued: false
+```
+
+**If already deployed with the wrong TLS cert**, fix manually:
+
+```bash
+# 1. Delete the Skupper Certificate CR (prevents Skupper from recreating its cert)
+oc delete certificate.skupper.io <release>-network-observer-tls -n service-interconnect
+
+# 2. Delete the Skupper-issued secret
+oc delete secret <release>-network-observer-tls -n service-interconnect
+
+# 3. Clear stale error annotations on the service
+oc annotate svc <release>-network-observer -n service-interconnect \
+  service.alpha.openshift.io/serving-cert-generation-error- \
+  service.alpha.openshift.io/serving-cert-generation-error-num- \
+  service.alpha.openshift.io/serving-cert-signed-by- \
+  service.beta.openshift.io/serving-cert-generation-error- \
+  service.beta.openshift.io/serving-cert-generation-error-num- \
+  service.beta.openshift.io/serving-cert-signed-by-
+
+# 4. OpenShift service-ca will regenerate the secret with proper SANs
+# 5. Restart the deployment
+oc rollout restart deploy -n service-interconnect -l app.kubernetes.io/name=network-observer
 ```
 
 ## Kiali + OSSM Console plugin
@@ -914,6 +998,73 @@ spec:
 ```
 
 If the ArgoCD CR sync fails with schema validation errors on `resourceCustomizations`, migrate all custom health checks to `resourceHealthChecks` format.
+
+## Post-restart recovery checklist
+
+After a cluster restart (hub or spokes), verify and fix in this order:
+
+### 1. ztunnel health (most common failure)
+
+```bash
+# Check ztunnel pods — must be 1/1 Running on every node
+oc get pods -n ztunnel
+oc get ztunnel -A  # STATUS must be Ready, not DaemonSetNotReady
+
+# If 0/1 Running, check istiod for auth errors
+oc logs deploy/istiod -n istio-system --tail=10 | grep "Failed to authenticate"
+# If "client claims to be in cluster Kubernetes" → fix clusterName:
+oc patch ztunnel default -n ztunnel --type merge \
+  -p '{"spec":{"values":{"ztunnel":{"multiCluster":{"clusterName":"<east|west>"}}}}}'
+```
+
+### 2. MQTT sensors (Industrial Edge)
+
+```bash
+# Check sensor pods and broker
+oc get pods -n industrial-edge-tst-all | grep -E "sensor|messaging"
+# Check sensor MQTT connectivity
+oc logs deploy/machine-sensor-1 -n industrial-edge-tst-all --tail=10
+# If "Client is not connected" or "UnknownHostException: messaging":
+oc rollout restart deploy/machine-sensor-1 deploy/machine-sensor-2 -n industrial-edge-tst-all
+# If broker itself is unresponsive:
+oc delete pod messaging-ss-0 -n industrial-edge-tst-all  # StatefulSet recreates it
+```
+
+Intermittent "Connection lost!" messages after successful publishes are normal MQTT Paho client behavior — the client auto-reconnects. Verify data flows by checking the `iot-consumer`:
+
+```bash
+oc logs deploy/line-dashboard -c iot-consumer -n industrial-edge-tst-all --tail=5
+# Should show: handleTemperature data pump-1,...  / handleVibration data pump-1,...
+```
+
+### 3. Skupper links
+
+```bash
+# Hub: check site count (should be 3 for hub+east+west)
+oc get site -n openshift-operators -o jsonpath='{.items[0].status.sitesInNetwork}{"\n"}'
+# If < 3, check spoke links
+oc get link -n openshift-operators  # run on spoke
+```
+
+### 4. Grafana datasources (hub)
+
+```bash
+# Verify Skupper listeners exist
+oc get svc -n service-interconnect | grep -E "prometheus|ie-gateway"
+# Test east/west Prometheus via Skupper
+oc run prom-test --rm -i --restart=Never --image=curlimages/curl -n service-interconnect \
+  -- -s 'http://prometheus-east:9091/api/v1/query?query=up' | head -c 100
+```
+
+### 5. Istio metrics flowing
+
+```bash
+# After ztunnel is healthy AND namespaces labeled with ambient:
+oc run prom-test --rm -i --restart=Never --image=curlimages/curl -n service-interconnect \
+  -- -s 'http://prometheus-east:9091/api/v1/query?query=istio_tcp_connections_opened_total' \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print('istio_tcp series:', len(d['data']['result']))"
+# Should be > 0 if ambient-labeled namespaces have active connections
+```
 
 ## Quick verification commands
 
