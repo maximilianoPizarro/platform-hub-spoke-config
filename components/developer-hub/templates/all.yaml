@@ -244,6 +244,9 @@ data:
         - host: github.com
           apiBaseUrl: https://api.github.com
           rawBaseUrl: https://raw.githubusercontent.com
+        - host: raw.githubusercontent.com
+          apiBaseUrl: https://api.github.com
+          rawBaseUrl: https://raw.githubusercontent.com
         - host: gitea-gitea.{{ .Values.clusterDomain }}
           apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
@@ -333,6 +336,13 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-topology
         disabled: false
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-topology:
+                mountPoints:
+                  - mountPoint: entity.page.topology/content
+                    importName: TopologyPage
       # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka-backend-dynamic
         disabled: true
