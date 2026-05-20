@@ -155,6 +155,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ml-workspace
     backstage.io/kubernetes-cluster: hub
+    backstage.io/kubernetes-id: minio
     argocd/app-name: field-content-industrial-edge-minio
   links:
     - url: https://minio-console-industrial-edge-ml-workspace.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
@@ -175,6 +176,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: kafka-console
     backstage.io/kubernetes-cluster: hub
+    backstage.io/kubernetes-id: kafka-console
     argocd/app-name: field-content-kafka-console
     kafka.apache.org/consumer-groups: kafka-console
   links:
@@ -223,6 +225,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: messaging
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -242,6 +245,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -264,6 +268,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -312,6 +317,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: anomaly-detection
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -350,6 +356,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-data-lake
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: prod-cluster
     argocd/app-name: field-content-industrial-edge-data-lake
 spec:
   type: service
@@ -371,6 +378,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-stormshift-messaging
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: factory-cluster
     argocd/app-name: field-content-industrial-edge-stormshift
 spec:
   type: service
@@ -414,6 +422,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: messaging
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -433,6 +442,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -455,6 +465,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -503,6 +514,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: anomaly-detection
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -541,6 +553,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-data-lake
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: prod-cluster
     argocd/app-name: field-content-industrial-edge-data-lake
 spec:
   type: service
@@ -562,6 +575,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-stormshift-messaging
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: factory-cluster
     argocd/app-name: field-content-industrial-edge-stormshift
 spec:
   type: service

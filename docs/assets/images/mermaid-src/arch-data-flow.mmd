@@ -1,0 +1,8 @@
+flowchart LR
+  S["Sensors OPC-UA PLC"] --> M["MQTT broker AMQ"]
+  M --> C["Camel K integration"]
+  C --> K["Kafka AMQ Streams"]
+  K --> ML["OpenShift AI scoring"]
+  ML --> DB["Grafana dashboards"]
+  K --> DB
+  K -->|"MirrorMaker"| DL["Data Lake S3 MinIO"]

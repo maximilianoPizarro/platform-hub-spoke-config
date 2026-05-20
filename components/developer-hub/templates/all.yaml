@@ -144,6 +144,7 @@ data:
       reading:
         allow:
           - host: "*.redhatworkshops.io"
+          - host: "*.github.io"
     enabled:
       kubernetes: true
       argocd: true
@@ -183,7 +184,10 @@ data:
           target: /opt/app-root/src/catalog-ie/industrial-edge-system.yaml
           rules:
             - allow: [System, Domain, Component, API, Resource]
-        # Software templates loaded from Gitea (local) — no GitHub Pages dependency
+        - type: url
+          target: https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/software-templates/templates-catalog.yaml
+          rules:
+            - allow: [Template]
       providers:
         ocm:
           default:
@@ -230,6 +234,7 @@ data:
           apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
           rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
+        - host: maximilianopizarro.github.io
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
     #   azure:

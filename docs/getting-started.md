@@ -8,6 +8,21 @@ nav_order: 3
 
 Follow these steps to bootstrap the hub-spoke GitOps platform from this repository.
 
+## You'll have when finished
+
+After a successful hub deploy and spoke registration, expect:
+
+- [ ] **ACM** — `east` and `west` in `ManagedCluster` Ready state
+- [ ] **Argo CD** — root Application synced; ApplicationSet pushing `east/` and `west/` charts
+- [ ] **Industrial Edge** — sensors, MQTT, Kafka, line-dashboard on each spoke
+- [ ] **Skupper** — hub `sitesInNetwork: 3`; listeners Ready in `service-interconnect`
+- [ ] **Grafana** — hub dashboards with east/west Prometheus datasources
+- [ ] **Developer Hub** — Industrial Edge catalog + three software templates under **Create**
+- [ ] **Gitea** — route `gitea-gitea.<domain>`; orgs `ws-platformadmin`, `app-of-apps`
+- [ ] **Quay** — route `quay-registry.<domain>` (optional image catalog)
+
+Then continue with **[Scaffolding](scaffolding.md)** to deploy a new edge instance on east or west.
+
 ## Prerequisites
 
 - **Red Hat OpenShift** 4.14 or newer on each cluster (hub + two spokes is the reference layout).
@@ -230,4 +245,4 @@ Scaffolded pipelines push to the **internal OpenShift registry**; Quay is refere
 
 ---
 
-Next: [Deploy with ACM and GitOps]({% link deploy-acm-gitops.md %}) · [Architecture]({% link architecture.md %})
+**Next →** [Scaffolding](scaffolding.md) — deploy a new Industrial Edge instance on east/west · [Architecture](architecture.md) · [Deploy with ACM and GitOps](deploy-acm-gitops.md)

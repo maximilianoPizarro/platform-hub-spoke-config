@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.uniqueName }}
+  title: Industrial Edge ${{ values.name }} (${{ values.targetCluster }})
+  description: IoT edge instance on spoke ${{ values.targetCluster }}
+  annotations:
+    backstage.io/kubernetes-id: ${{ values.uniqueName }}
+    backstage.io/kubernetes-namespace: ${{ values.namespace }}
+    backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
+    janus-idp.io/tekton: ${{ values.namespace }}
+    backstage.io/source-location: url:https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
+    quay.io/repository-slug: maximilianopizarro/${{ values.uniqueName }}
+  links:
+    - url: https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
+      title: Source Code (Gitea)
+      icon: code
+    - url: https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}/raw/branch/main/README.md
+      title: Documentation
+      icon: docs
+    - url: https://devspaces.${{ values.clusterDomain }}/#https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
+      title: Open in DevSpaces
+      icon: chat
+  tags:
+    - industrial-edge
+    - iot
+    - ${{ values.targetCluster }}
+spec:
+  type: service
+  lifecycle: experimental
+  owner: ${{ values.owner }}
+  system: industrial-edge

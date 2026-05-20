@@ -23,73 +23,14 @@ Spokes remain the execution venues for application namespaces, data-plane compon
 
 ## Platform architecture overview
 
-```mermaid
-flowchart TB
-  subgraph Git["Git Repository (main branch)"]
-    ROOT["path: .  (hub)"]
-    EAST_DIR["path: east/"]
-    WEST_DIR["path: west/"]
-    COMP["components/"]
-  end
+![Hub-spoke platform — Git paths, ApplicationSet, Skupper VAN, and per-cluster components]({{ site.baseurl }}/assets/images/arch-hub-spoke-flow.png)
+{: .mb-4 }
+*Single `main` branch: hub chart at `.`, spoke charts at `east/` and `west/`, shared `components/` referenced by all clusters.*
+{: .fs-2 .text-grey-dk-000 }
 
-  subgraph Hub["Hub Cluster"]
-    direction TB
-    ARGO_H["Argo CD (hub)"]
-    ACM["Advanced Cluster<br/>Management"]
-    APPSET["ApplicationSet<br/>(clusterDecisionResource)"]
-    GW["Hub Gateway<br/>(Gateway API + Istio)"]
-    GRAFANA["Grafana<br/>(multi-cluster dashboards)"]
-    KAFKA_C["Kafka Console"]
-    KIALI_H["Kiali + OSSM Console"]
-    ACS_C["ACS Central"]
-    DEVHUB["Developer Hub"]
-    SKUPPER_H["Skupper Hub Site<br/>(Listeners)"]
-    RHCL["Connectivity Link"]
-  end
+## Follow the request — one temperature reading end to end
 
-  subgraph East["East Spoke"]
-    direction TB
-    ARGO_E["Argo CD (east)"]
-    IE_E["Industrial Edge<br/>(sensors, MQTT, Kafka, ML)"]
-    SGW_E["Spoke Gateway"]
-    SKUPPER_E["Skupper Spoke Site<br/>(Connectors)"]
-    GRAFANA_E["Grafana (local)"]
-    KIALI_E["Kiali + OSSM Console"]
-    MESH_E["OSSM3 Ambient<br/>(ztunnel)"]
-  end
-
-  subgraph West["West Spoke"]
-    direction TB
-    ARGO_W["Argo CD (west)"]
-    IE_W["Industrial Edge<br/>(sensors, MQTT, Kafka, ML)"]
-    SGW_W["Spoke Gateway"]
-    SKUPPER_W["Skupper Spoke Site<br/>(Connectors)"]
-    GRAFANA_W["Grafana (local)"]
-    KIALI_W["Kiali + OSSM Console"]
-    MESH_W["OSSM3 Ambient<br/>(ztunnel)"]
-  end
-
-  ROOT --> ARGO_H
-  ARGO_H --> ACM
-  ARGO_H --> APPSET
-  APPSET -->|"push east/ chart"| ARGO_E
-  APPSET -->|"push west/ chart"| ARGO_W
-  EAST_DIR -.->|"source"| ARGO_E
-  WEST_DIR -.->|"source"| ARGO_W
-  COMP -.->|"referenced by"| ARGO_E
-  COMP -.->|"referenced by"| ARGO_W
-  ARGO_E -->|"local sync"| IE_E
-  ARGO_W -->|"local sync"| IE_W
-  ACM ---|"fleet mgmt"| East
-  ACM ---|"fleet mgmt"| West
-  GW -->|"front/api traffic"| East
-  GW -->|"front/api traffic"| West
-  SKUPPER_E <-->|"VAN link"| SKUPPER_H
-  SKUPPER_W <-->|"VAN link"| SKUPPER_H
-  SKUPPER_H -->|"metrics"| GRAFANA
-  SGW_E --> SKUPPER_E
-  SGW_W --> SKUPPER_W
-```
+When a machine sensor on the **east** spoke publishes a temperature sample, the path is: **MQTT** (`messaging` broker) → **Camel K** (`mqtt-to-kafka` integration) → **Kafka** (`dev-cluster` topic) → optional **ML scoring** (KServe) → **line-dashboard** WebSocket consumer. In parallel, **Thanos Querier** on east scrapes Istio and Kafka metrics; a **Skupper Connector** (`prometheus-east`) tunnels HTTP to the hub, where **Grafana** datasource `prometheus-east` plots the series. The **Hub Gateway** can route browser traffic to the east line-dashboard via **spoke-gateway** and Skupper listener `ie-gateway-east`. Developer Hub **Topology** shows the same pods when the catalog entity carries `backstage.io/kubernetes-cluster: east` and spoke API tokens are synced.
 
 ## Components on the hub vs spokes
 
@@ -119,158 +60,51 @@ flowchart TB
 
 ## GitOps application delivery flow
 
-```mermaid
-sequenceDiagram
-  participant Git as Git Repository
-  participant HubArgo as ArgoCD (Hub)
-  participant Hub as Hub Cluster
-  participant AppSet as ApplicationSet
-  participant EastArgo as ArgoCD (East)
-  participant WestArgo as ArgoCD (West)
-
-  Git->>HubArgo: Webhook / poll (main branch)
-  HubArgo->>Hub: Sync hub components<br/>(path: . — operators, gateway, observability)
-  HubArgo->>AppSet: Evaluate clusterDecisionResource
-  AppSet->>EastArgo: Push east/ chart<br/>(remote deploy via cluster secret)
-  AppSet->>WestArgo: Push west/ chart<br/>(remote deploy via cluster secret)
-  EastArgo->>EastArgo: Sync child Apps locally<br/>(namespaces, operators, IE, mesh...)
-  WestArgo->>WestArgo: Sync child Apps locally<br/>(namespaces, operators, IE, mesh...)
-  EastArgo-->>HubArgo: Health + sync status
-  WestArgo-->>HubArgo: Health + sync status
-```
+![GitOps sequence — hub Argo CD, ApplicationSet, remote spoke sync]({{ site.baseurl }}/assets/images/arch-gitops-sync-sequence.png)
+{: .mb-4 }
+*Hub syncs first; ApplicationSet pushes per-spoke charts; each spoke Argo CD reconciles child Applications locally.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Sync wave ordering
 
 Components deploy in strict order via ArgoCD sync waves:
 
-```mermaid
-flowchart LR
-  W0["Wave 0<br/>GitOps bootstrap"] --> W1["Wave 1<br/>Namespaces, RBAC"]
-  W1 --> W2["Wave 2<br/>Operators (OLM)"]
-  W2 --> W3["Wave 3<br/>Platform<br/>(Mesh, ACM, ACS)"]
-  W3 --> W4["Wave 4<br/>ACM hub-spoke<br/>bindings"]
-  W4 --> W5["Wave 5<br/>Observability,<br/>Industrial Edge"]
-  W5 --> W6["Wave 6<br/>Apps,<br/>Connectivity Link"]
-  W6 --> W7["Wave 7<br/>Hub Gateway,<br/>routing"]
-  W7 --> W8["Wave 8<br/>Dashboards,<br/>presentation"]
-```
+![Argo CD sync wave ordering from bootstrap through dashboards]({{ site.baseurl }}/assets/images/arch-sync-waves.png)
+{: .mb-4 }
+*Sync waves prevent operators from racing workloads — mesh and namespaces land before Industrial Edge and gateways.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Service Interconnect (Skupper) topology
 
 Red Hat Service Interconnect creates a Virtual Application Network (VAN) that bridges services across clusters without VPN or direct network connectivity.
 
-```mermaid
-flowchart LR
-  subgraph Hub["Hub Cluster"]
-    SITE_H["Skupper Site<br/>(hub)"]
-    L1["Listener<br/>ie-gateway-east:8080"]
-    L2["Listener<br/>ie-gateway-west:8080"]
-    L3["Listener<br/>prometheus-east:9091"]
-    L4["Listener<br/>prometheus-west:9091"]
-    AG["AccessGrant<br/>(spoke-link)"]
-  end
-
-  subgraph East["East Spoke"]
-    SITE_E["Skupper Site<br/>(east)"]
-    AT_E["AccessToken<br/>(hub-token)"]
-    C1_E["Connector<br/>ie-gateway-east"]
-    C2_E["Connector<br/>prometheus-east"]
-    SGW_E["Spoke Gateway<br/>:8080"]
-    TQ_E["Thanos Querier<br/>:9091"]
-  end
-
-  subgraph West["West Spoke"]
-    SITE_W["Skupper Site<br/>(west)"]
-    AT_W["AccessToken<br/>(hub-token)"]
-    C1_W["Connector<br/>ie-gateway-west"]
-    C2_W["Connector<br/>prometheus-west"]
-    SGW_W["Spoke Gateway<br/>:8080"]
-    TQ_W["Thanos Querier<br/>:9091"]
-  end
-
-  AG -.->|"claim"| AT_E
-  AG -.->|"claim"| AT_W
-  AT_E -->|"TLS link"| SITE_H
-  AT_W -->|"TLS link"| SITE_H
-  C1_E -->|"routingKey"| L1
-  C2_E -->|"routingKey"| L3
-  C1_W -->|"routingKey"| L2
-  C2_W -->|"routingKey"| L4
-  SGW_E --> C1_E
-  TQ_E --> C2_E
-  SGW_W --> C1_W
-  TQ_W --> C2_W
-```
+![Skupper VAN — hub Listeners, spoke Connectors, AccessGrant and AccessToken]({{ site.baseurl }}/assets/images/arch-skupper-topology.png)
+{: .mb-4 }
+*Connectors expose spoke-gateway and prometheus-auth-proxy; Listeners materialize ClusterIP services on the hub.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Spoke gateway aggregation
 
 Each spoke runs a **Gateway API gateway** that fronts all Industrial Edge services, providing a single entry point for Skupper to expose to the hub.
 
-```mermaid
-flowchart LR
-  subgraph Spoke["Spoke Cluster"]
-    GW["spoke-gateway<br/>(Gateway API)"]
-    FE["line-dashboard<br/>(frontend)"]
-    AD["anomaly-detection<br/>(ML inference)"]
-    MSG["messaging<br/>(MQTT/AMQP)"]
-    KAFKA["kafka-bootstrap"]
-  end
-
-  GW -->|"/frontend"| FE
-  GW -->|"/anomaly"| AD
-  GW -->|"/messaging"| MSG
-  GW -->|"/kafka"| KAFKA
-
-  SKUPPER["Skupper Connector"] --> GW
-```
+![Spoke gateway aggregates Industrial Edge HTTP routes for Skupper]({{ site.baseurl }}/assets/images/arch-spoke-gateway.png)
+{: .mb-4 }
+*One Connector per spoke exposes the gateway instead of every microservice individually.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Multi-cluster observability pipeline
 
-```mermaid
-flowchart TB
-  subgraph East["East Spoke"]
-    PROM_E["Prometheus /<br/>Thanos Querier"]
-    ISTIO_E["Istio metrics"]
-    KAFKA_E["Kafka metrics"]
-    ISTIO_E --> PROM_E
-    KAFKA_E --> PROM_E
-  end
-
-  subgraph West["West Spoke"]
-    PROM_W["Prometheus /<br/>Thanos Querier"]
-    ISTIO_W["Istio metrics"]
-    KAFKA_W["Kafka metrics"]
-    ISTIO_W --> PROM_W
-    KAFKA_W --> PROM_W
-  end
-
-  subgraph Hub["Hub Cluster"]
-    PROM_H["Prometheus /<br/>Thanos Querier"]
-    GRAFANA["Grafana"]
-    DS_H["Datasource: Hub"]
-    DS_E["Datasource: East<br/>(via Skupper)"]
-    DS_W["Datasource: West<br/>(via Skupper)"]
-    GRAFANA --> DS_H --> PROM_H
-    GRAFANA --> DS_E
-    GRAFANA --> DS_W
-  end
-
-  PROM_E -->|"Skupper VAN<br/>prometheus-east:9091"| DS_E
-  PROM_W -->|"Skupper VAN<br/>prometheus-west:9091"| DS_W
-```
+![Multi-cluster observability — spoke metrics via Skupper into hub Grafana]({{ site.baseurl }}/assets/images/arch-observability-pipeline.png)
+{: .mb-4 }
+*Spoke Thanos Querier is reached through nginx auth-proxy Connectors; hub Grafana uses HTTP datasources without bearer tokens.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Data flow (sensors to dashboard)
 
-```mermaid
-flowchart LR
-  S["Sensors / OPC-UA / PLC"] --> M["MQTT broker<br/>(AMQ)"]
-  M --> C["Camel K<br/>integration"]
-  C --> K["Kafka<br/>(AMQ Streams)"]
-  K --> ML["OpenShift AI<br/>scoring"]
-  ML --> DB["Grafana<br/>dashboards"]
-  K --> DB
-  K -->|"MirrorMaker"| DL["Data Lake<br/>(S3 / MinIO)"]
-```
+![Industrial Edge data flow — sensors through MQTT, Camel, Kafka to Grafana and data lake]({{ site.baseurl }}/assets/images/arch-data-flow.png)
+{: .mb-4 }
+*Telemetry path on each spoke; MirrorMaker replicates to the hub-centralized MinIO data lake.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Comparison with Red Hat Validated Patterns
 
@@ -280,7 +114,7 @@ This platform extends that idea with **Industrial Edge** workloads, **Service Me
 
 ---
 
-**Next:** translate diagrams into installs via **[Getting Started](getting-started.md)** / **[Deploy with ACM and GitOps](deploy-acm-gitops.md)**, then follow **[Observability](observability.md)** once workloads expose Prometheus signals. For onboarding namespaces, see the **[Annotations & Labels Reference](annotations-reference.md)**.
+**Next →** translate diagrams into installs via **[Getting Started](getting-started.md)** / **[Deploy with ACM and GitOps](deploy-acm-gitops.md)**, scaffold new edge instances via **[Scaffolding](scaffolding.md)**, then follow **[Observability](observability.md)** once workloads expose Prometheus signals. For onboarding namespaces, see the **[Annotations & Labels Reference](annotations-reference.md)**.
 
 ## Official documentation
 

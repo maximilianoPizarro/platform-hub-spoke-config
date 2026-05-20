@@ -6,9 +6,11 @@ nav_order: 1
 
 # Platform Hub-Spoke Config
 
+> **Your journey:** This platform deploys in one `helm upgrade`, connects three OpenShift clusters (hub + east + west), and shows IoT sensor data across Grafana and Developer Hub within about 30 minutes. The pages below follow one continuous story — concept, install, operate, scaffold — so you can read straight through or jump to any chapter.
+
 **Multi-cluster GitOps platform using Red Hat products** — a hub-spoke topology that centralizes governance with Red Hat Advanced Cluster Management (ACM), delivers Industrial Edge workloads on regional spokes, uses OpenShift Service Mesh in ambient mode for east-west connectivity, layers Connectivity Link (Kuadrant) for API-aware ingress policy, exposes Grafana dashboards for cross-cluster visibility, and integrates Advanced Cluster Security (ACS) for vulnerability and runtime protection.
 
-Read **concept → mechanics → operations**: start with [Architecture](architecture.md), install via [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md), then use platform chapters (**Hub Gateway**, **Observability**, **Industrial Edge**) before drilling into individual **[Red Hat Products](products/)**.
+Read **concept → mechanics → operations**: start with [Architecture](architecture.md), install via [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md), scaffold workloads via [Scaffolding](scaffolding.md), then use platform chapters (**Hub Gateway**, **Observability**, **Industrial Edge**) before drilling into individual **[Red Hat Products](products/)**.
 
 ## Overview
 
@@ -24,46 +26,10 @@ This repository models a **GitOps-first platform** where:
 - **Grafana dashboards** roll up cluster and application signals from all clusters.
 - **ACS** provides centralized policy, CVE visibility, and SecuredCluster agents on spokes.
 
-```mermaid
-flowchart TB
-  subgraph Hub["Hub Cluster"]
-    ARGO["ArgoCD / GitOps"]
-    ACM["ACM"]
-    GW["Hub Gateway<br/>(Gateway API)"]
-    SKUPPER_H["Skupper<br/>(Listeners)"]
-    OBS["Grafana<br/>(multi-cluster)"]
-    KIALI_H["Kiali"]
-    ACS_C["ACS Central"]
-  end
-
-  subgraph East["East Spoke"]
-    IE_E["Industrial Edge<br/>(sensors → MQTT → Kafka → ML)"]
-    SGW_E["Spoke Gateway"]
-    SKUPPER_E["Skupper<br/>(Connectors)"]
-    GRAFANA_E["Grafana (local)"]
-    KIALI_E["Kiali"]
-  end
-
-  subgraph West["West Spoke"]
-    IE_W["Industrial Edge<br/>(sensors → MQTT → Kafka → ML)"]
-    SGW_W["Spoke Gateway"]
-    SKUPPER_W["Skupper<br/>(Connectors)"]
-    GRAFANA_W["Grafana (local)"]
-    KIALI_W["Kiali"]
-  end
-
-  Git[(Git repo)] --> ARGO
-  ARGO --> ACM
-  ACM -->|"ApplicationSet"| East
-  ACM -->|"ApplicationSet"| West
-  GW -->|"front/api + circuit breaking"| East
-  GW -->|"front/api + circuit breaking"| West
-  SKUPPER_E <-->|"VAN"| SKUPPER_H
-  SKUPPER_W <-->|"VAN"| SKUPPER_H
-  SKUPPER_H -->|"metrics"| OBS
-  SGW_E --> SKUPPER_E
-  SGW_W --> SKUPPER_W
-```
+![Platform hub-spoke overview — Git, ACM, Skupper VAN, and Industrial Edge on east/west]({{ site.baseurl }}/assets/images/arch-overview.png)
+{: .mb-4 }
+*Hub cluster aggregates observability and Developer Hub; east and west spokes run Industrial Edge workloads connected via Service Interconnect (Skupper). Click the image to zoom.*
+{: .fs-2 .text-grey-dk-000 }
 
 ## Quick links
 
@@ -83,12 +49,15 @@ flowchart TB
 
 1. [Architecture](architecture.md) — mental model of hub, spokes, GitOps, and observability pipes  
 2. [Getting Started](getting-started.md) or [Deploy with ACM and GitOps](deploy-acm-gitops.md) — bring clusters under GitOps  
-3. [Hub Gateway](hub-gateway.md) — weighted ingress and circuit breaking  
-4. [Observability](observability.md) — Grafana, Kiali, Kafka Console  
-5. [Industrial Edge](industrial-edge.md) — factory data pipeline pattern  
-6. [Red Hat Products](products/index.md) — operator specifics (discovery annotations live here)
+3. [Scaffolding](scaffolding.md) — create Industrial Edge instances on east/west from Developer Hub  
+4. [Hub Gateway](hub-gateway.md) — weighted ingress and circuit breaking  
+5. [Observability](observability.md) — Grafana, Kiali, Kafka Console  
+6. [Industrial Edge](industrial-edge.md) — factory data pipeline pattern  
+7. [Red Hat Products](products/index.md) — operator specifics (discovery annotations live here)
 
-Screenshots support **click-to-zoom** in full-screen modal — handy after deploying dashboards.
+Screenshots and architecture diagrams support **click-to-zoom** in a full-screen modal — handy after deploying dashboards.
+
+**Next →** [Architecture](architecture.md) — understand how Git, ACM, and Skupper wire the three clusters together.
 
 ## Red Hat products used
 

@@ -73,6 +73,16 @@ oc get secret developer-hub-spoke-tokens -n developer-hub
 oc get job -n developer-hub | grep spoke-token
 ```
 
+## Scaffolding walkthrough (platformadmin)
+
+1. Sign in to Developer Hub as **`platformadmin`** (catalog user + Gitea `ws-platformadmin` org).
+2. **Create** → **Industrial Edge** → set **Target Cluster** to `east` or `west`.
+3. After success, open the registered entity → **Topology** (spoke workloads) and **Kubernetes** (pods).
+4. **Open in DevSpaces** link opens the Gitea repo in DevSpaces.
+5. To remove: **Create** → **Industrial Edge Delete** with the same name and cluster.
+
+See **[Scaffolding]({{ site.baseurl }}/scaffolding.html)** for prerequisites and troubleshooting.
+
 ## Software templates
 
 Templates are published as **GitHub Pages** static assets under `docs/assets/backstage/software-templates/`:
@@ -108,10 +118,21 @@ Use the **hub apps domain** including the `apps.` prefix, e.g. `apps.cluster-xqg
 | Use | Image reference |
 | --- | ----------------- |
 | Pipeline build (Tekton buildah) | Internal OCP registry: `image-registry.openshift-image-registry.svc:5000/<namespace>/<app>:latest` |
-| Deployment | Same internal image |
-| Public catalog label | `quay.io/maximilianopizarro/<uniqueName>` |
+| Deployment | Same internal image (no pull secret on OpenShift) |
+| Public catalog label | `quay.io/maximilianopizarro/<uniqueName>` (metadata only) |
+
+On-prem **Quay** (`components/quay-registry/`) stores images in hub MinIO via `RadosGWStorage`. Scaffolding does **not** push to Quay by default — the build pipeline uses the internal registry; the Quay slug appears in catalog annotations for discovery.
 
 Quay push credentials are optional on the hub (`quayDockerConfigJson` via Helm `--set`, never committed). Helper: `scripts/generate-quay-dockerconfig.sh`.
+
+## Gitea and app-of-apps org
+
+| Org | Created by | Use |
+| --- | ---------- | --- |
+| `ws-<user>` | `gitea-admin-setup` PostSync Job | Scaffolder `publish:github` repos |
+| `app-of-apps` | same Job | ApplicationSet Gitea generator repos — delete repo → ArgoCD prune |
+
+Gitea route: `https://gitea-gitea.<hub-apps-domain>`. Integration token: `GITEA_TOKEN` in `developer-hub-oidc-auth`.
 
 ## Proxies for scaffolder
 

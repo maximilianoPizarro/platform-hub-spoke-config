@@ -14,7 +14,7 @@ spokeTokenSync:
   image: registry.redhat.io/ubi9/python-311:latest
 # Enable after developer-hub-spoke-tokens Secret exists (PostSync job). URLs required; tokens from env.
 kubernetesSpokes:
-  enabled: false
+  enabled: true
   east:
     apiUrl: ""
   west:

@@ -1,0 +1,65 @@
+flowchart TB
+  subgraph Git["Git Repository (main branch)"]
+    ROOT["path: .  (hub)"]
+    EAST_DIR["path: east/"]
+    WEST_DIR["path: west/"]
+    COMP["components/"]
+  end
+
+  subgraph Hub["Hub Cluster"]
+    direction TB
+    ARGO_H["Argo CD (hub)"]
+    ACM["Advanced Cluster Management"]
+    APPSET["ApplicationSet"]
+    GW["Hub Gateway"]
+    GRAFANA["Grafana"]
+    KAFKA_C["Kafka Console"]
+    KIALI_H["Kiali + OSSM Console"]
+    ACS_C["ACS Central"]
+    DEVHUB["Developer Hub"]
+    SKUPPER_H["Skupper Hub Site"]
+    RHCL["Connectivity Link"]
+  end
+
+  subgraph East["East Spoke"]
+    direction TB
+    ARGO_E["Argo CD (east)"]
+    IE_E["Industrial Edge"]
+    SGW_E["Spoke Gateway"]
+    SKUPPER_E["Skupper Spoke Site"]
+    GRAFANA_E["Grafana (local)"]
+    KIALI_E["Kiali + OSSM Console"]
+    MESH_E["OSSM3 Ambient"]
+  end
+
+  subgraph West["West Spoke"]
+    direction TB
+    ARGO_W["Argo CD (west)"]
+    IE_W["Industrial Edge"]
+    SGW_W["Spoke Gateway"]
+    SKUPPER_W["Skupper Spoke Site"]
+    GRAFANA_W["Grafana (local)"]
+    KIALI_W["Kiali + OSSM Console"]
+    MESH_W["OSSM3 Ambient"]
+  end
+
+  ROOT --> ARGO_H
+  ARGO_H --> ACM
+  ARGO_H --> APPSET
+  APPSET -->|"push east/ chart"| ARGO_E
+  APPSET -->|"push west/ chart"| ARGO_W
+  EAST_DIR -.->|"source"| ARGO_E
+  WEST_DIR -.->|"source"| ARGO_W
+  COMP -.->|"referenced by"| ARGO_E
+  COMP -.->|"referenced by"| ARGO_W
+  ARGO_E -->|"local sync"| IE_E
+  ARGO_W -->|"local sync"| IE_W
+  ACM ---|"fleet mgmt"| East
+  ACM ---|"fleet mgmt"| West
+  GW -->|"front/api traffic"| East
+  GW -->|"front/api traffic"| West
+  SKUPPER_E <-->|"VAN link"| SKUPPER_H
+  SKUPPER_W <-->|"VAN link"| SKUPPER_H
+  SKUPPER_H -->|"metrics"| GRAFANA
+  SGW_E --> SKUPPER_E
+  SGW_W --> SKUPPER_W

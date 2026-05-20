@@ -253,6 +253,7 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         kubernetesSpokes:
+          enabled: true
           east:
             apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
           west:

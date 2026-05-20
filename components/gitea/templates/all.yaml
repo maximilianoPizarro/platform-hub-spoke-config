@@ -81,6 +81,12 @@ spec:
                 -u "$AUTH" -H "Content-Type: application/json" -d "$ORG_JSON" || true)
               echo "  developer-hub org: HTTP $CODE"
 
+              echo "Creating app-of-apps org for ApplicationSet GitOps repos..."
+              AOA_JSON='{"username":"app-of-apps","full_name":"App of Apps","visibility":"public","description":"ApplicationSet-managed GitOps repos — delete repo to trigger ArgoCD prune"}'
+              CODE=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$BASE/api/v1/orgs" \
+                -u "$AUTH" -H "Content-Type: application/json" -d "$AOA_JSON" || true)
+              echo "  app-of-apps org: HTTP $CODE"
+
               echo "Creating platformadmin user and org..."
               PA_JSON='{"username":"platformadmin","password":"Welcome123!","email":"platformadmin@developer-hub.local","must_change_password":false,"send_notify":false}'
               curl -sS -o /dev/null -w "  platformadmin user: HTTP %{http_code}\n" -X POST "$BASE/api/v1/admin/users" \

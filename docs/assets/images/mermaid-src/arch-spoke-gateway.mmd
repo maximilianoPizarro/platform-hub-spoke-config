@@ -1,0 +1,15 @@
+flowchart LR
+  subgraph Spoke["Spoke Cluster"]
+    GW["spoke-gateway Gateway API"]
+    FE["line-dashboard frontend"]
+    AD["anomaly-detection ML inference"]
+    MSG["messaging MQTT AMQP"]
+    KAFKA["kafka-bootstrap"]
+  end
+
+  GW -->|"/frontend"| FE
+  GW -->|"/anomaly"| AD
+  GW -->|"/messaging"| MSG
+  GW -->|"/kafka"| KAFKA
+
+  SKUPPER["Skupper Connector"] --> GW
