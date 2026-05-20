@@ -246,7 +246,6 @@ data:
           rawBaseUrl: https://raw.githubusercontent.com
         - host: gitea-gitea.{{ .Values.clusterDomain }}
           apiBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/api/v1
-          rawBaseUrl: https://gitea-gitea.{{ .Values.clusterDomain }}/raw
           token: ${GITEA_TOKEN}
     # -- Azure DevOps integration (uncomment when AZURE_TOKEN and AZURE_ORG are set) --
     # integrations:
