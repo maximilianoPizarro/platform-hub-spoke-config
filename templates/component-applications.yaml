@@ -356,6 +356,17 @@ spec:
               caData: {{ $.Values.clusters.west.kialiCaData | default "" | quote }}
               kialiToken: {{ $.Values.clusters.west.kialiToken | default "" | quote }}
               kialiUrl: {{ printf "https://kiali-openshift-cluster-observability-operator.%s" ($.Values.clusters.west.domain | default $domain) | quote }}
+    {{- else if eq .id "skupper-network-observer" }}
+    helm:
+      valuesObject:
+        auth: unsecured
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
     {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "skupper-console" "quay-registry") }}
     helm:
       valuesObject:

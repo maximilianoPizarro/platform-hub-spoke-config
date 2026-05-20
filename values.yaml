@@ -275,7 +275,19 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
-    # Skupper Network Observer console
+    # Skupper Network Observer (official Helm chart — handles mTLS to router automatically)
+    - id: skupper-network-observer
+      enabled: true
+      path: ""
+      repoURL: "oci://quay.io/skupper/helm"
+      chart: network-observer
+      targetRevision: "2.1.3"
+      destinationNamespace: service-interconnect
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    # Skupper console Route wrapper (exposes Network Observer via OpenShift Route)
     - id: skupper-console
       enabled: true
       path: skupper-console
