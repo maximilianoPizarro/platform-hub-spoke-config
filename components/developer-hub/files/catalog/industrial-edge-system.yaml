@@ -202,6 +202,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: machine-sensor
+    backstage.io/kubernetes-label-selector: app=machine-sensor
     argocd/app-name: field-content-industrial-edge-tst
   tags:
     - east
@@ -226,6 +227,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: messaging
+    backstage.io/kubernetes-label-selector: application=messaging-app
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -246,6 +248,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: dev-cluster
+    backstage.io/kubernetes-label-selector: strimzi.io/cluster=dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -269,6 +272,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: mqtt-to-kafka
+    backstage.io/kubernetes-label-selector: camel.apache.org/integration=mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -290,6 +294,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: line-dashboard
+    backstage.io/kubernetes-label-selector: app=line-dashboard
     argocd/app-name: field-content-industrial-edge-tst
   links:
     - url: https://line-dashboard-industrial-edge-tst-all.apps.cluster-2847b.dynamic2.redhatworkshops.io
@@ -338,6 +343,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ci
     backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-label-selector: tekton.dev/pipeline=build-and-test-iot-component
     janus-idp.io/tekton: industrial-edge-ci
     argocd/app-name: field-content-industrial-edge-pipelines
 spec:
@@ -399,6 +405,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: machine-sensor
+    backstage.io/kubernetes-label-selector: app=machine-sensor
     argocd/app-name: field-content-industrial-edge-tst
   tags:
     - west
@@ -423,6 +430,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: messaging
+    backstage.io/kubernetes-label-selector: application=messaging-app
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -443,6 +451,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: dev-cluster
+    backstage.io/kubernetes-label-selector: strimzi.io/cluster=dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -466,6 +475,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: mqtt-to-kafka
+    backstage.io/kubernetes-label-selector: camel.apache.org/integration=mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -487,6 +497,7 @@ metadata:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
     backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: line-dashboard
+    backstage.io/kubernetes-label-selector: app=line-dashboard
     argocd/app-name: field-content-industrial-edge-tst
   links:
     - url: https://line-dashboard-industrial-edge-tst-all.apps.cluster-5zjkk.dynamic2.redhatworkshops.io
@@ -535,6 +546,7 @@ metadata:
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ci
     backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-label-selector: tekton.dev/pipeline=build-and-test-iot-component
     janus-idp.io/tekton: industrial-edge-ci
     argocd/app-name: field-content-industrial-edge-pipelines
 spec:

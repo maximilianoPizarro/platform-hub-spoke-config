@@ -172,6 +172,10 @@ data:
               serviceAccountToken: ${WEST_SA_TOKEN}
               skipTLSVerify: true
 {{- end }}
+      customResources:
+        - group: route.openshift.io
+          apiVersion: v1
+          plural: routes
     catalog:
       import:
         entityFilename: catalog-info.yaml
@@ -408,6 +412,20 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
+            initContainers:
+              - name: wait-for-postgres
+                image: registry.redhat.io/openshift4/ose-cli:latest
+                command: ["/bin/bash", "-c"]
+                args:
+                  - |
+                    for i in $(seq 1 30); do
+                      timeout 3 bash -c \
+                        "</dev/tcp/backstage-psql-developer-hub/5432" \
+                        2>/dev/null && { sleep 2; exit 0; }
+                      echo "PostgreSQL not ready, attempt $i/30..."
+                      sleep 5
+                    done
+                    echo "PostgreSQL timed out — proceeding anyway."
             containers:
               - name: backstage-backend
                 env:
