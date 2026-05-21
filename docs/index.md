@@ -4,7 +4,7 @@ title: Home
 nav_order: 1
 ---
 
-# Platform Hub-Spoke Config
+# Hybrid Mesh Platform
 
 > **Your journey:** This platform deploys in one `helm upgrade`, connects three OpenShift clusters (hub + east + west), and shows IoT sensor data across Grafana and Developer Hub within about 30 minutes. The pages below follow one continuous story — concept, install, operate, scaffold — so you can read straight through or jump to any chapter.
 

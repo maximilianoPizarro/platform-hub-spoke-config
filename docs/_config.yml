@@ -3,7 +3,7 @@ remote_theme: just-the-docs/just-the-docs
 plugins:
   - jekyll-remote-theme
 
-title: "Platform Hub-Spoke Config"
+title: "Hybrid Mesh Platform"
 description: "Multi-cluster GitOps platform with ACM, Connectivity Link, and Industrial Edge on Red Hat OpenShift"
 url: "https://maximilianopizarro.github.io"
 baseurl: "/platform-hub-spoke-config"

@@ -1,35 +1,10 @@
-# Platform Hub-Spoke Config
+# Hybrid Mesh Platform
 
 Multi-cluster GitOps platform using Red Hat Advanced Cluster Management (ACM) with Industrial Edge, Connectivity Link, and centralized observability on OpenShift.
 
 ## Architecture
 
-```
-                         ┌─────────────────────────────────┐
-                         │        Hub Cluster (main)       │
-                         │                                 │
-                         │  ACM ─── ArgoCD ─── ACS Central │
-                         │  Developer Hub (OCM + ACS)      │
-                         │  Grafana ─── Kiali ─── OTel     │
-                         │  Service Mesh 3 (ambient)       │
-                         │  Connectivity Link (Kuadrant)   │
-                         │  Industrial Edge Data Lake      │
-                         │  Hub Gateway (F5 weighted)      │
-                         └───────────┬───────┬─────────────┘
-                                     │       │
-                    ┌────────────────┘       └────────────────┐
-                    ▼                                         ▼
-     ┌──────────────────────────┐           ┌──────────────────────────┐
-     │   East Cluster (east)   │           │   West Cluster (west)   │
-     │                         │           │                         │
-     │  Industrial Edge TST    │           │  Industrial Edge TST    │
-     │  Stormshift Sensors     │           │  Stormshift Sensors     │
-     │  Kafka + MirrorMaker    │           │  Kafka + MirrorMaker    │
-     │  ACS SecuredCluster     │           │  ACS SecuredCluster     │
-     │  Service Mesh (ambient) │           │  Service Mesh (ambient) │
-     │  Tekton Pipelines       │           │  Tekton Pipelines       │
-     └──────────────────────────┘           └──────────────────────────┘
-```
+![Platform hub-spoke overview — Git, ACM, Skupper VAN, and Industrial Edge on east/west](https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/images/arch-overview.png)
 
 ## Cluster Sizing
 
