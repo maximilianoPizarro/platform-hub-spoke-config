@@ -83,6 +83,38 @@ spec:
   metrics:
     - providers:
         - name: prometheus
+{{- /*
+  Ambient labels are applied AFTER Istio, IstioCNI, and ZTunnel CRs (wave 1)
+  so the ztunnel can configure HBONE listeners before application pods start.
+*/ -}}
+{{- $ieAmbientNamespaces := list
+  "industrial-edge-tst-all"
+  "industrial-edge-stormshift-messaging"
+  "industrial-edge-ml-workspace"
+  "industrial-edge-ci"
+  "ml-development"
+}}
+{{- $ambientNamespaces := list
+  "hub-gateway-system"
+  "redhat-ods-operator"
+  "openshift-cluster-observability-operator"
+  "developer-hub"
+  "devspaces"
+}}
+{{- if ne .Values.clusterRole "hub" }}
+{{- $ambientNamespaces = concat $ambientNamespaces $ieAmbientNamespaces }}
+{{- end }}
+{{- range $ambientNamespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ . }}
+  labels:
+    istio.io/dataplane-mode: ambient
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+{{- end }}
 {{- $waypointNamespaces := list "hub-gateway-system" }}
 {{- if ne .Values.clusterRole "hub" }}
 {{- $waypointNamespaces = append $waypointNamespaces "industrial-edge-tst-all" }}
@@ -99,7 +131,7 @@ metadata:
   labels:
     istio.io/waypoint-for: service
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   gatewayClassName: istio-waypoint
   listeners:
