@@ -157,7 +157,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzQwQjVBNCI+PHBhdGggZD0iTTIwIDRINGMtMS4xIDAtMiAuOS0yIDJ2MTJjMCAxLjEuOSAyIDIgMmgxNmMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0yem0wIDE0SDRWNmgxNnYxMnpNNiA4aDJ2Mmg4VjhoMnY2aC0ydi0yaC00djJINlY4eiIvPjwvc3ZnPg=="
     section: "Platform Hub-Spoke"
-  href: "https://registry-quay-quay-registry.{{ $domain }}"
+  href: "https://quay-registry.{{ $domain }}"
   location: ApplicationMenu
   text: "Quay Registry"
 ---
