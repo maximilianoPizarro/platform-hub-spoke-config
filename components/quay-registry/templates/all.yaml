@@ -74,10 +74,10 @@ spec:
         resources:
           requests:
             cpu: 300m
-            memory: 2Gi
+            memory: 4Gi
           limits:
             cpu: "2"
-            memory: 4Gi
+            memory: 8Gi
     - kind: postgres
       managed: true
     - kind: redis
