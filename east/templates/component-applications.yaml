@@ -197,6 +197,9 @@ spec:
           plugin:
             service:
               port: 8080
+          gateway:
+            service:
+              port: 8080
     {{- else }}
     helm:
       valuesObject:
