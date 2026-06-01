@@ -47,15 +47,11 @@ spec:
       configuration:
         secretName: camel-k-registry-docker
   flows:
-    - id: mqtt-temperature
-      from:
+    - from:
         uri: "paho:iot-sensor/sw/temperature?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
-      steps:
-        - to:
-            uri: "kafka:temperature?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
-    - id: mqtt-vibration
-      from:
+      to:
+        uri: "kafka:temperature?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
+    - from:
         uri: "paho:iot-sensor/sw/vibration?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
-      steps:
-        - to:
-            uri: "kafka:vibration?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
+      to:
+        uri: "kafka:vibration?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
