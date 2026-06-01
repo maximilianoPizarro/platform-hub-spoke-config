@@ -39,7 +39,7 @@ spec:
         targetRevision: {{ .Values.gitops.revision | default "main" | quote }}
         path: '{{`{{name}}`}}'
       destination:
-        name: '{{`{{name}}`}}'
+        server: '{{`{{server}}`}}'
         namespace: openshift-gitops
       syncPolicy:
         automated:
