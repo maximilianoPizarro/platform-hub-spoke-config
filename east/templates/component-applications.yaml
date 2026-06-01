@@ -194,6 +194,9 @@ spec:
           enabled: true
         hawtio-online-console-plugin:
           enabled: false
+          plugin:
+            service:
+              port: 8080
     {{- else }}
     helm:
       valuesObject:
