@@ -209,13 +209,35 @@ oc get integration mqtt-to-kafka -n industrial-edge-tst-all \
 
 ---
 
+## Camel Dashboard (spoke console plugin)
+
+**Symptom:** No **Camel** tab in the OpenShift console on east/west, or Argo app `camel-dashboard-openshift-all-{east,west}` OutOfSync.
+
+**GitOps:** Umbrella chart `camel-dashboard-openshift-all` **4.20.2** from `https://camel-tooling.github.io/camel-dashboard/charts`, namespace `camel-dashboard`, sync wave `3` (see `east/values.yaml`, `west/values.yaml`).
+
+**Post-sync (cluster-admin, once per spoke):** **Administration → Cluster settings → Console** → enable the **Camel Dashboard** console plugin. Argo ignores `ConsolePlugin.spec.enablement` so manual enablement does not fight GitOps.
+
+**Camel K vs CamelApp:** Industrial Edge uses Camel K `Integration` resources (e.g. `mqtt-to-kafka`). The dashboard operator primarily manages **`CamelApp`** CRs. Integrations may not appear in the Camel tab until you register them as `CamelApp` or add a bridge; use Topology/Kamelet views for Camel K workloads in the meantime.
+
+**Checks:**
+
+```bash
+oc get application camel-dashboard-openshift-all-east -n openshift-gitops -o jsonpath='{.status.sync.status}{" "}{.status.health.status}{"\n"}'
+oc get deployment -n camel-dashboard
+oc get consoleplugin | grep -i camel
+```
+
+**Air-gapped spokes:** mirror the Helm repo or chart tgz internally and point `repoURL` / `targetRevision` in spoke `values.yaml`.
+
+---
+
 ## Argo CD: where applications live
 
 | Cluster | Namespace | Examples |
 | ------- | --------- | -------- |
 | Hub | `openshift-gitops` | `field-content-*`, `east-spoke-components`, `west-spoke-components` |
-| East spoke | `openshift-gitops` | `operators-east`, `spoke-gateway-east`, `spoke-interconnect-east` |
-| West spoke | `openshift-gitops` | `operators-west`, `spoke-gateway-west`, `spoke-interconnect-west` |
+| East spoke | `openshift-gitops` | `camel-dashboard-openshift-all-east`, `operators-east`, `spoke-gateway-east`, `spoke-interconnect-east` |
+| West spoke | `openshift-gitops` | `camel-dashboard-openshift-all-west`, `operators-west`, `spoke-gateway-west`, `spoke-interconnect-west` |
 
 Parent apps use `destination.server` = cluster-proxy URL. Child apps on spokes use `https://kubernetes.default.svc`.
 

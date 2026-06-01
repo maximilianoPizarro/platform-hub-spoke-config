@@ -24,6 +24,7 @@ HUB_APPS=(
 )
 
 EAST_APPS=(
+  camel-dashboard-openshift-all-east
   industrial-edge-tst-east
   spoke-interconnect-east
   spoke-gateway-east
@@ -32,6 +33,7 @@ EAST_APPS=(
 )
 
 WEST_APPS=(
+  camel-dashboard-openshift-all-west
   industrial-edge-tst-west
   spoke-interconnect-west
   spoke-gateway-west

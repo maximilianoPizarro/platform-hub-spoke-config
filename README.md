@@ -243,11 +243,12 @@ Full documentation available at: https://maximilianoPizarro.github.io/platform-h
 
 | Tag | Notes |
 |-----|--------|
-| [`ocp-420-v3`](docs/RELEASE-OCP-4.20-v3.md) | Current — Skupper token sync, Kafka/Kiali fixes, Camel K registry, IE route hosts |
+| [`ocp-420-v4`](docs/RELEASE-OCP-4.20-v4.md) | Current — Camel Dashboard on east/west spokes (Helm 4.20.2) |
+| [`ocp-420-v3`](docs/RELEASE-OCP-4.20-v3.md) | Skupper token sync, Kafka/Kiali fixes, Camel K registry, IE route hosts |
 | `ocp-420-v2` | RHDH Topology + Scaffolder |
 | `ocp-420` | Initial OCP 4.20 baseline |
 
-Pin GitOps: set `targetRevision: ocp-420-v3` on hub/spoke Argo CD Applications.
+Pin GitOps: set `targetRevision: ocp-420-v4` on hub/spoke Argo CD Applications.
 
 ## Contributing
 

@@ -109,12 +109,29 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
+    {{- if eq .id "camel-dashboard-openshift-all" }}
+    - group: console.openshift.io
+      kind: ConsolePlugin
+      jsonPointers:
+        - /spec/enablement
+        - /status
+    - group: operators.coreos.com
+      kind: ClusterServiceVersion
+      jsonPointers:
+        - /status
+    {{- end }}
+  {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
+  {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
   source:
+    {{- if .chart }}
+    repoURL: {{ .repoURL }}
+    chart: {{ .chart }}
+    targetRevision: {{ .targetRevision }}
+    {{- else }}
     repoURL: {{ $.Values.gitops.repoUrl }}
     targetRevision: {{ $.Values.gitops.revision }}
     path: {{ .path }}
-    {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
-    {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
+    {{- end }}
     {{- if eq .id "operators" }}
     helm:
       valuesObject:
@@ -168,6 +185,15 @@ spec:
           region: us-east-1
           accessKey: minio
           secretKey: minio123
+    {{- else if eq .id "camel-dashboard-openshift-all" }}
+    helm:
+      valuesObject:
+        camel-dashboard-operator:
+          enabled: true
+        camel-dashboard-console:
+          enabled: true
+        hawtio-online-console-plugin:
+          enabled: false
     {{- else }}
     helm:
       valuesObject:

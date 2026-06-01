@@ -64,6 +64,13 @@ apps:
     path: components/operators
     destinationNamespace: openshift-operators
     syncWave: "2"
+  - id: camel-dashboard-openshift-all
+    path: ""
+    repoURL: "https://camel-tooling.github.io/camel-dashboard/charts"
+    chart: camel-dashboard-openshift-all
+    targetRevision: "4.20.2"
+    destinationNamespace: camel-dashboard
+    syncWave: "3"
   - id: servicemeshoperator3
     path: components/servicemeshoperator3
     destinationNamespace: openshift-operators
