@@ -46,12 +46,17 @@ spec:
       enabled: true
       configuration:
         secretName: camel-k-registry-docker
-  flows:
-    - from:
-        uri: "paho:iot-sensor/sw/temperature?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
-      to:
-        uri: "kafka:temperature?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
-    - from:
-        uri: "paho:iot-sensor/sw/vibration?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883"
-      to:
-        uri: "kafka:vibration?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092"
+  sources:
+    - name: MqttToKafka.java
+      content: |
+        import org.apache.camel.builder.RouteBuilder;
+
+        public class MqttToKafka extends RouteBuilder {
+            @Override
+            public void configure() {
+                from("paho:iot-sensor/sw/temperature?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883")
+                    .to("kafka:temperature?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092");
+                from("paho:iot-sensor/sw/vibration?brokerUrl=tcp://messaging.industrial-edge-tst-all.svc:1883")
+                    .to("kafka:vibration?brokers=dev-cluster-kafka-bootstrap.industrial-edge-tst-all.svc:9092");
+            }
+        }
