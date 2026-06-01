@@ -41,8 +41,6 @@ spec:
       destination:
         name: '{{`{{name}}`}}'
         namespace: openshift-gitops
-        # Explicit empty server prevents stale SSA field from older revisions
-        server: ""
       syncPolicy:
         automated:
           selfHeal: true
