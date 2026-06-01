@@ -99,8 +99,10 @@ spec:
   "redhat-ods-operator"
   "openshift-cluster-observability-operator"
   "developer-hub"
-  "devspaces"
 }}
+{{- if eq .Values.clusterRole "hub" }}
+{{- $ambientNamespaces = append $ambientNamespaces "devspaces" }}
+{{- end }}
 {{- if ne .Values.clusterRole "hub" }}
 {{- $ambientNamespaces = concat $ambientNamespaces $ieAmbientNamespaces }}
 {{- end }}
