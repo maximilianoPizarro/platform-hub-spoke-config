@@ -155,6 +155,7 @@ spec:
     matchLabels:
       strimzi.io/cluster: dev-cluster
       strimzi.io/kind: Kafka
+      strimzi.io/broker-role: "true"
   mtls:
     mode: STRICT
   portLevelMtls:
@@ -175,6 +176,7 @@ spec:
     matchLabels:
       strimzi.io/cluster: factory-cluster
       strimzi.io/kind: Kafka
+      strimzi.io/broker-role: "true"
   mtls:
     mode: STRICT
   portLevelMtls:
