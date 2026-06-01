@@ -239,6 +239,16 @@ helm template test . -f values-west.yaml --set deployer.domain=apps.west.example
 
 Full documentation available at: https://maximilianoPizarro.github.io/platform-hub-spoke-config
 
+## Releases (OpenShift 4.20)
+
+| Tag | Notes |
+|-----|--------|
+| [`ocp-420-v3`](docs/RELEASE-OCP-4.20-v3.md) | Current — Skupper token sync, Kafka/Kiali fixes, Camel K registry, IE route hosts |
+| `ocp-420-v2` | RHDH Topology + Scaffolder |
+| `ocp-420` | Initial OCP 4.20 baseline |
+
+Pin GitOps: set `targetRevision: ocp-420-v3` on hub/spoke Argo CD Applications.
+
 ## Contributing
 
 See `CONTRIBUTING.md` for branch strategy, validation requirements, and Developer Hub/scaffolder contribution checks.

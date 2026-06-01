@@ -44,7 +44,6 @@ spec:
     - group: route.openshift.io
       kind: Route
       jsonPointers:
-        - /spec/host
         - /status
     - group: apps
       kind: Deployment
