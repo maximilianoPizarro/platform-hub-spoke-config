@@ -326,6 +326,13 @@ spec:
         clusterDomain: {{ $domain }}
         apiRoute:
           enabled: true
+        brokerDns:
+          eastTst: {{ (lookup "v1" "Service" "service-interconnect" "kafka-east-tst").spec.clusterIP | default "" | quote }}
+          westTst: {{ (lookup "v1" "Service" "service-interconnect" "kafka-west-tst").spec.clusterIP | default "" | quote }}
+          eastStormshift: {{ (lookup "v1" "Service" "service-interconnect" "kafka-east-stormshift").spec.clusterIP | default "" | quote }}
+          westStormshift: {{ (lookup "v1" "Service" "service-interconnect" "kafka-west-stormshift").spec.clusterIP | default "" | quote }}
+          eastDatalake: {{ (lookup "v1" "Service" "service-interconnect" "kafka-east-datalake").spec.clusterIP | default "" | quote }}
+          westDatalake: {{ (lookup "v1" "Service" "service-interconnect" "kafka-west-datalake").spec.clusterIP | default "" | quote }}
     {{- else if eq .path "kubecost" }}
     helm:
       valuesObject:
