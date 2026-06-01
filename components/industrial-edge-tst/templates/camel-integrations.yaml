@@ -21,7 +21,8 @@ metadata:
     argocd.argoproj.io/sync-wave: "6"
 spec:
   dependencies:
-    - camel:mqtt
+    # Routes use paho: URIs; catalog artifact is camel-paho (not camel-mqtt).
+    - camel:paho
     - camel:kafka
   flows:
     - route:

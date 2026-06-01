@@ -118,6 +118,20 @@ spec:
 
 Do **not** set `haproxy.router.openshift.io/rewrite-target` — the API expects the `/api` prefix.
 
+### Blank UI / NextAuth 404 on `/api/auth/*`
+
+**Symptom:** Kafka Console page loads partially or stays blank; browser network tab shows **404** on `/api/auth/providers`; `console-api` logs show `GET /api/auth/providers ... 404`.
+
+**Cause:** The supplemental `/api` Route sends **all** `/api/*` traffic to Quarkus. NextAuth runs in the **UI** container (Next.js) on port **3000**, not in `console-api`.
+
+**Fix:** Add a more specific Route **`/api/auth`** → `kafka-console-console-service` with `port.targetPort: **3000**` (not `80` — the Service’s EndpointSlice exposes pod port 3000). GitOps: `components/kafka-console/templates/api-route.yaml` (`kafka-console-ui-auth`).
+
+```bash
+curl -sk -o /dev/null -w '%{http_code}\n' \
+  https://kafka-console.<hub-domain>/api/auth/providers
+# Expect 200
+```
+
 ### JSON `404` / code `4041` on cluster detail
 
 **Symptom:** UI shows `{"errors":[{"title":"Resource not found","status":"404","code":"4041"}]}` when opening a Kafka cluster.
@@ -140,6 +154,46 @@ oc get link -n service-interconnect
 ```
 
 **Fix:** Restore west (or east) spoke apps and Skupper link; resync `field-content-kafka-console` for broker DNS EndpointSlices.
+
+---
+
+## industrial-edge-tst Degraded (Camel / KServe)
+
+**Symptom:** Argo CD app `industrial-edge-tst-east` (or `-west`) is **Degraded** with:
+
+- `Integration/mqtt-to-kafka`: `dependency camel:mqtt not found in Camel catalog`
+- `InferenceService/anomaly-detection`: stuck **Progressing**; sync waits for healthy state
+
+**Causes:**
+
+1. **Camel K:** Routes use `paho:` URIs; the catalog dependency is **`camel:paho`**, not `camel:mqtt`.
+2. **KServe:** Chart ships `InferenceService` only when `anomalyDetection.enabled: true`. Default is **`false`** because spokes need ODH **RawDeployment** (no Serverless Operator), a MinIO model at `s3://models/anomaly-detection/model`, and a Ready `DataScienceCluster`. Threshold alerts still work via `ie-anomaly-alerter` without KServe.
+
+**Fix (GitOps):**
+
+```yaml
+# components/industrial-edge-tst/templates/camel-integrations.yaml
+dependencies:
+  - camel:paho
+  - camel:kafka
+
+# components/industrial-edge-data-science-cluster — edge RawDeployment
+kserve:
+  defaultDeploymentMode: RawDeployment
+  serving:
+    managementState: Removed
+modelmeshserving:
+  managementState: Removed
+```
+
+**Verify Camel integration:**
+
+```bash
+oc get integration mqtt-to-kafka -n industrial-edge-tst-all \
+  -o jsonpath='{range .status.conditions[?(@.type=="Ready")]}{.status} {.message}{"\n"}{end}'
+```
+
+**Enable ML inference later:** upload model to MinIO, set `anomalyDetection.enabled: true` in spoke app values, sync `industrial-edge-data-science-cluster` then `industrial-edge-tst`.
 
 ---
 

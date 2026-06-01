@@ -12,14 +12,12 @@ spec:
       managementState: Managed
     kserve:
       managementState: Managed
+      # Edge spokes: RawDeployment avoids OpenShift Serverless + deprecated ModelMesh.
+      defaultDeploymentMode: RawDeployment
       serving:
-        ingressGateway:
-          certificate:
-            type: SelfSigned
-        managementState: Managed
-        name: knative-serving
+        managementState: Removed
     modelmeshserving:
-      managementState: Managed
+      managementState: Removed
     ray:
       managementState: Removed
     workbenches:

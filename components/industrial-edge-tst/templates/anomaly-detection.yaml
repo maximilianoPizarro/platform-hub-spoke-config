@@ -15,6 +15,7 @@ stringData:
   AWS_DEFAULT_REGION: us-east-1
   AWS_S3_BUCKET: models
   AWS_S3_ENDPOINT: http://minio-hub.service-interconnect.svc:9000
+{{- if .Values.anomalyDetection.enabled }}
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
@@ -23,7 +24,8 @@ metadata:
   namespace: industrial-edge-tst-all
   annotations:
     argocd.argoproj.io/sync-wave: "6"
-    serving.kserve.io/deploymentMode: ModelMesh
+    serving.kserve.io/deploymentMode: RawDeployment
+    sidecar.istio.io/inject: "true"
 spec:
   predictor:
     model:
@@ -45,8 +47,9 @@ spec:
   host: anomaly-detection-industrial-edge-tst-all.{{ include "industrial-edge.domain" . }}
   to:
     kind: Service
-    name: modelmesh-serving
+    name: anomaly-detection-predictor-default
   port:
-    targetPort: 8008
+    targetPort: http
   tls:
     termination: edge
+{{- end }}
