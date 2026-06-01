@@ -87,14 +87,25 @@ spec:
 | No `istio_tcp_*` in Prometheus | ztunnel not Ready | Fix CNI first, confirm `PodMonitor` in `ztunnel` namespace |
 | InstallPlan blocked on CRD v1alpha1 removal | TP2 → GA upgrade | Delete `Istio`/`IstioCNI` CRs and sailoperator CRDs, reinstall `stable-3.2` |
 
-Namespaces receive `istio.io/dataplane-mode: ambient` via `components/namespaces`, except workloads that break when ztunnel intercepts in-namespace database traffic:
+## Sync-wave ordering (ambient)
+
+Ambient enrollment is **three phases** inside `components/servicemeshoperator3` (not `components/namespaces`):
+
+| Phase | Sync wave | Resources |
+| ----- | --------- | --------- |
+| 1 | 0 | `istio-system`, `istio-cni`, `ztunnel` namespaces; **IstioCNI** (`profile: ambient`, `reconcileIptablesOnStartup: true`) |
+| 2 | 1 | **Istio** + **ZTunnel** CRs (`Ready` before apps start) |
+| 3 | 2 | `istio.io/dataplane-mode: ambient` on workload namespaces |
+| 4 | 3 | Waypoint **Gateway** (HBONE `:15008`) where L7 policy is needed |
+
+`reconcileIptablesOnStartup: true` repairs CNI rules on node restart but **does not** retro-configure pods that started before ztunnel — restart those workloads if you see `upstream connect error`. See [Troubleshooting](../troubleshooting.md#hbone-port-15008-not-configured).
+
+Namespaces that stay **off mesh** (`components/namespaces`, no ambient label):
 
 | Namespace | Mesh mode | Reason |
 | --------- | --------- | ------ |
-| Most app namespaces (Industrial Edge, `hub-gateway-system`, `developer-hub`, …) | **ambient** | L4/L7 telemetry and policy |
-| `stackrox` | **off mesh** | ACS Central ↔ PostgreSQL |
-| `gitea` | **off mesh** | Gitea chart init → PostgreSQL via ClusterIP |
-| `industrial-edge-data-lake` | **off mesh** | Data lake / MinIO patterns |
+| `stackrox` | **none** (`istio.io/dataplane-mode: none`) | ACS Central ↔ PostgreSQL |
+| `industrial-edge-data-lake` | **none** | MinIO / double-TLS patterns |
 
 ## Operator discovery
 

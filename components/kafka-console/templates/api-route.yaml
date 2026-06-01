@@ -1,0 +1,46 @@
+{{- /*
+  StreamsHub operator routes all traffic to the UI (port 3000). The UI container sets
+  BACKEND_URL=http://127.0.0.1:8080 but Next.js does not proxy /api/* on the external route.
+  This supplemental Service + Route forwards /api to the console-api container.
+*/ -}}
+{{- if .Values.apiRoute.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-console-api-service
+  namespace: kafka-console
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app.kubernetes.io/instance: kafka-console-console-deployment
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: kafka-console-api
+  namespace: kafka-console
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  host: kafka-console.{{ .Values.clusterDomain }}
+  path: /api
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  to:
+    kind: Service
+    name: kafka-console-api-service
+    weight: 100
+{{- end }}

@@ -13,6 +13,15 @@ Use this skill when editing the **parent Helm chart** that renders Argo CD `Appl
 2. Each **child chart** lives in `components/<name>/` with its own `Chart.yaml` and manifests.
 3. Git remains the source of truth; Argo CD syncs the child chart path referenced by each Application `spec.source.path`.
 
+## Two deployment paths (hub vs spoke)
+
+| Cluster | Bootstrap | What deploys workloads |
+| ------- | --------- | ---------------------- |
+| **Hub** | `helm install` at repo root (`.`) | Root Application → hub `components/*` Applications |
+| **Spokes** | **No** `helm install` | Hub **ApplicationSet** (`industrial-edge-spoke`) → `east-spoke-components` / `west-spoke-components` → spoke Argo CD syncs `east/` or `west/` charts |
+
+Spoke charts (`east/values.yaml`, `west/values.yaml`) mirror the hub pattern: one parent chart listing `apps[]` with sync waves. Tokens and domains are set on the **hub** `helm upgrade` only.
+
 ## Adding a new component
 
 1. Scaffold `components/<component-id>/` with a valid Helm chart (`Chart.yaml`, `templates/`).

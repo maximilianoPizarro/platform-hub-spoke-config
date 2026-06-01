@@ -142,9 +142,33 @@ Using the wrong CA (e.g. OpenShift Ingress CA) causes `x509: certificate signed 
 
 ## Kafka bootstrap over Skupper
 
-Skupper forwards **TCP** to Kafka bootstrap (`:9092`). Clients then receive broker metadata with spoke-internal DNS names that **do not resolve on the hub** until you add hub-side DNS mappings (`EndpointSlice`) and matching Strimzi **advertisedHost** values on the spokes.
+Skupper forwards **TCP** to Kafka bootstrap (`:9092`). Hub **Kafka Console** and other hub clients use listener hostnames in `service-interconnect`:
 
-That fix is documented once (step-by-step and screenshots) under **[Observability → Kafka Console](observability.md#kafka-console-hub)** — keep Skupper docs limited to listeners/connectors above.
+```yaml
+# Hub listeners (components/service-interconnect) — ebook Ch.6 / Ch.12 alignment
+# kafka-east-tst:9092       → dev-cluster bootstrap (east)
+# kafka-east-stormshift:9092 → factory-cluster bootstrap (east)
+# kafka-east-datalake:9092   → prod-cluster bootstrap (east)
+# kafka-west-tst:9092        → dev-cluster bootstrap (west)
+# kafka-west-stormshift:9092 → factory-cluster bootstrap (west)
+# kafka-west-datalake:9092   → prod-cluster bootstrap (west)
+```
+
+Console CR (`components/kafka-console`) references these services:
+
+```yaml
+spec:
+  kafkaClusters:
+    - name: dev-cluster-east
+      properties:
+        values:
+          - name: bootstrap.servers
+            value: kafka-east-tst.service-interconnect.svc.cluster.local:9092
+```
+
+Clients then receive broker metadata with spoke-internal DNS names that **do not resolve on the hub** until you add hub-side **`EndpointSlice`** mappings and matching Strimzi **advertisedHost** on spokes.
+
+Step-by-step and screenshots: **[Observability → Kafka Console](observability.md#kafka-console-hub)**. External `/api` routing: **[Troubleshooting → Kafka Console 404](troubleshooting.md#kafka-console-404-on-api)**.
 
 ## Spoke gateway aggregation
 

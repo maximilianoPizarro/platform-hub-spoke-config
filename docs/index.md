@@ -43,6 +43,7 @@ This repository models a **GitOps-first platform** where:
 | Observability | [Observability](observability.md) |
 | Industrial Edge | [Industrial Edge](industrial-edge.md) |
 | Scaffolding | [Scaffolding](scaffolding.md) |
+| Troubleshooting | [Troubleshooting](troubleshooting.md) |
 | Service Interconnect | [Service Interconnect](service-interconnect.md) |
 | Branch strategy | [Branch Strategy](branch-strategy.md) |
 

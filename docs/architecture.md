@@ -74,6 +74,21 @@ Components deploy in strict order via ArgoCD sync waves:
 *Sync waves prevent operators from racing workloads — mesh and namespaces land before Industrial Edge and gateways.*
 {: .fs-2 .text-grey-dk-000 }
 
+### Spoke sync-wave reference
+
+Matches ebook Ch.4 ordering (`east/values.yaml` / `west/values.yaml`):
+
+| Wave | What deploys | Why this order |
+| ---- | ------------ | -------------- |
+| 1 | Namespaces (no ambient label yet) | Names must exist before operators and workloads |
+| 2 | OLM Subscriptions | CRDs and operators installed |
+| 3 | Service Mesh 3 (Istio + ZTunnel + ambient labels wave 2 inside chart) | Mesh dataplane before application pods |
+| 4 | Observability, ACS secured cluster | Scraping and security after mesh |
+| 5 | Industrial Edge (Kafka, sensors, dashboard) | Pods enroll in ambient with HBONE ready |
+| 6 | Spoke gateway + Skupper interconnect | Routing after backends exist |
+
+Hub chart uses a similar pattern; ApplicationSet for spokes runs at hub wave **5** after ACM placement is healthy.
+
 ## Service Interconnect (Skupper) topology
 
 Red Hat Service Interconnect creates a Virtual Application Network (VAN) that bridges services across clusters without VPN or direct network connectivity.

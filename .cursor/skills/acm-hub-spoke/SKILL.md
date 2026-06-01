@@ -7,6 +7,27 @@ description: ACM hub-spoke GitOps patterns for OpenShift—placement, Applicatio
 
 Apply this skill when designing or troubleshooting **fleet GitOps** that combines **Red Hat ACM** with **OpenShift GitOps** and regional Industrial Edge clusters.
 
+## Deploy Flow (ACM-first)
+
+1. **`helm install` on hub** — creates the root App-of-Apps (`values.yaml` at repo root); all hub `components/*` Applications sync from Git.
+2. **ACM imports spokes** — `ManagedCluster` + labels (`region=east|west`, `clusterset=global`).
+3. **Tokens injected** — `helm upgrade --set clusters.east.token=... --set clusters.west.token=...` (never commit tokens).
+4. **ApplicationSet fans out** — `industrial-edge-spoke` generates `east-spoke-components` / `west-spoke-components`; each spoke's Argo CD syncs `east/` or `west/` locally.
+5. **No `helm install` on spokes** — spoke charts are pushed by the hub ApplicationSet via ACM Placement + GitOpsCluster.
+6. **Adding a spoke** — label + `east/` or `west/` folder + one `helm upgrade` line for domain/token.
+
+### ApplicationSet destination (SSA pitfall)
+
+Template must use **`destination.name` only** (cluster secret name). If an older revision left `server: https://kubernetes.default.svc`, Server-Side Apply will **not** remove it — Argo CD errors with *both name and server defined*. Fix: delete/recreate the ApplicationSet or set `server: ""` explicitly in the template.
+
+### HBONE / sync-wave lesson
+
+Pods created **before** ztunnel starts may lack HBONE port **15008** → `upstream connect error` on routes. **Fix:** apply `istio.io/dataplane-mode: ambient` on namespaces **after** Istio + IstioCNI + ZTunnel CRs (wave 2 in `servicemeshoperator3`, not in `namespaces` wave 1). `reconcileIptablesOnStartup: true` alone is insufficient for pods already running — restart workloads if needed.
+
+### Kiali multi-cluster tokens
+
+With `automateTokens: true`, the hub CronJob writes **`kiali-remote-east`** / **`kiali-remote-west`** (label `kiali.io/multiCluster=true`). Delete stale **`kiali-multi-cluster-secret`** if present — it uses the same label and causes **Unauthorized** on remote clusters.
+
 ## ACM operator installation
 
 - Install from stable channels appropriate to your OpenShift version.

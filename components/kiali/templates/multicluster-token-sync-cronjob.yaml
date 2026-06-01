@@ -257,6 +257,13 @@ data:
             if all_ready and kubeconfigs:
                 for cluster, kc in kubeconfigs.items():
                     upsert_cluster_secret(cluster, kc)
+                # Legacy aggregate secret (same label) shadows per-cluster secrets and causes Unauthorized
+                try:
+                    api_request("DELETE", f"/api/v1/namespaces/{HUB_NS}/secrets/{SECRET_NAME}")
+                    print(f"Removed legacy secret {SECRET_NAME}", file=sys.stderr)
+                except urllib.error.HTTPError as e:
+                    if e.code != 404:
+                        print(f"WARN: could not delete {SECRET_NAME}: {e}", file=sys.stderr)
                 print(f"Updated {len(kubeconfigs)} remote cluster secret(s)", file=sys.stderr)
                 return
 
