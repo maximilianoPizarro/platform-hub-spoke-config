@@ -91,3 +91,8 @@ spec:
           key: kafka-metrics-config.yml
   entityOperator:
     topicOperator: {}
+    template:
+      pod:
+        metadata:
+          labels:
+            istio.io/dataplane-mode: none

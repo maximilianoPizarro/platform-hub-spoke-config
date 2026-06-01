@@ -49,6 +49,11 @@ spec:
           key: kafka-metrics-config.yml
   entityOperator:
     topicOperator: {}
+    template:
+      pod:
+        metadata:
+          labels:
+            istio.io/dataplane-mode: none
 ---
 apiVersion: kafka.strimzi.io/v1beta2
 kind: KafkaTopic
