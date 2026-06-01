@@ -14,6 +14,7 @@ Production lessons from fleet GitOps, ambient mesh, and centralized observabilit
 | ------- | ------------ | --- |
 | `upstream connect error` / 503 on mesh routes | HBONE port 15008 not configured (pod before ztunnel) | Restart pods in ambient namespaces; ensure ambient labels at sync-wave **2** after Istio/ZTunnel |
 | ApplicationSet Degraded: *both name and server* | Stale `destination.server` from older template (SSA) | Delete/recreate ApplicationSet or set `server: ""` in template |
+| ACM UI: *no Argo applications created* | ApplicationSet missing `cluster.open-cluster-management.io/placement` label | Label ApplicationSet + child Apps; verify with `oc get applications -n openshift-gitops \| grep spoke` |
 | Kiali: `Unauthorized` on east/west | Stale **`kiali-multi-cluster-secret`** or expired spoke token | Delete aggregate secret; run token-sync job; restart Kiali pod |
 | Kafka Console: `/api/kafkas` 404 | External route hits UI only; Next.js does not proxy `/api` | Enable `apiRoute` in `components/kafka-console`; verify HTTP 200 on `/api/kafkas` |
 | Strimzi entity-operator CrashLoop | mTLS on 9091 conflicts with ztunnel | Exclude operator namespace from ambient or use documented Strimzi tuning |

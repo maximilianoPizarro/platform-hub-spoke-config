@@ -90,7 +90,15 @@ The OpenShift / ACM UI may report *no Argo applications* when any link in this c
 5. **Define Placement** and verify generated **PlacementDecision** objects show expected clusters.
 6. **Create GitOpsCluster** referencing your Argo CD namespace (`openshift-gitops` by convention).
 7. **Apply ApplicationSet** manifests (often shipped via this repo’s `acm-hub-spoke` chart path) so Applications appear under the Argo CD project.
-8. **Observe sync waves** — lower waves (namespaces, operators) complete before application workloads.
+8. **ACM console labels**: the ApplicationSet metadata must include `cluster.open-cluster-management.io/placement: hub-spoke-placement` (same value as the Placement label). Without it, ACM **Search → ApplicationSet → Details** may show *no Argo applications* even when `east-spoke-components` / `west-spoke-components` exist in `openshift-gitops`.
+9. **Observe sync waves** — lower waves (namespaces, operators) complete before application workloads.
+
+Verify from CLI (source of truth):
+
+```bash
+oc get applicationset industrial-edge-spoke -n openshift-gitops -o jsonpath='{.status.resourcesCount}{"\n"}'
+oc get applications -n openshift-gitops | grep spoke
+```
 
 ## References
 

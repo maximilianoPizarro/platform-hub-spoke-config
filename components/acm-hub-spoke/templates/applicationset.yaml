@@ -6,9 +6,12 @@ metadata:
   labels:
     app.kubernetes.io/part-of: platform-hub-spoke
     argocd.argoproj.io/application-set-controller: openshift-gitops
+    # Required for ACM console to list generated Applications on this ApplicationSet
+    cluster.open-cluster-management.io/placement: hub-spoke-placement
   annotations:
     argocd.argoproj.io/sync-wave: "5"
     apps.open-cluster-management.io/source-repository: {{ .Values.gitops.repoUrl | quote }}
+    apps.open-cluster-management.io/gitops-cluster: hub-spoke-gitops
 spec:
   generators:
     - clusterDecisionResource:
@@ -24,6 +27,8 @@ spec:
         app.kubernetes.io/part-of: platform-hub-spoke
         apps.open-cluster-management.io/cluster-set: global
         apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{name}}`}}'
+        cluster.open-cluster-management.io/placement: hub-spoke-placement
+        argocd.argoproj.io/application-set-name: industrial-edge-spoke
       annotations:
         apps.open-cluster-management.io/ocm-managed-cluster: '{{`{{name}}`}}'
         apps.open-cluster-management.io/ocm-managed-cluster-app-namespace: openshift-gitops
