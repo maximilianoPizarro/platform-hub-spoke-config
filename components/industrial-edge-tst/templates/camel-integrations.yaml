@@ -12,6 +12,23 @@ spec:
       organization: industrial-edge-tst-all
   profile: Kubernetes
 ---
+# Camel K operator (openshift-operators) pushes IntegrationKit images to the namespace registry.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: camel-k-operator-image-builder
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:image-builder
+subjects:
+  - kind: ServiceAccount
+    name: camel-k-operator
+    namespace: openshift-operators
+---
 apiVersion: camel.apache.org/v1
 kind: Integration
 metadata:
@@ -24,6 +41,11 @@ spec:
     # Routes use paho: URIs; catalog artifact is camel-paho (not camel-mqtt).
     - camel:paho
     - camel:kafka
+  traits:
+    pull-secret:
+      enabled: true
+      configuration:
+        secretName: camel-k-registry-docker
   flows:
     - route:
         id: mqtt-temperature

@@ -195,6 +195,8 @@ oc get integration mqtt-to-kafka -n industrial-edge-tst-all \
 
 **Enable ML inference later:** upload model to MinIO, set `anomalyDetection.enabled: true` in spoke app values, sync `industrial-edge-data-science-cluster` then `industrial-edge-tst`.
 
+**Camel K `401 Unauthorized` / `ImagePullBackOff` on internal registry:** The PostSync Job `camel-k-registry-bootstrap` creates `camel-k-registry-docker` from the `builder` SA token and patches `IntegrationPlatform` + `pull-secret` trait. If the integration kit is stuck in Error, delete the Integration and IntegrationKit, then re-sync the app.
+
 ---
 
 ## spoke-gateway Degraded (`modelmesh-serving` not found)
