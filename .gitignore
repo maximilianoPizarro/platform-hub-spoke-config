@@ -8,3 +8,6 @@ components/_dh-*.yaml
 
 # Local ACS init-bundle YAML from roxctl (secrets — never commit)
 hub-init.yaml
+
+# Skupper AccessToken scratch files (contain grant codes — never commit)
+.tmp/

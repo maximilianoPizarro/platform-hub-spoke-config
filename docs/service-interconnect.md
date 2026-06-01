@@ -125,7 +125,54 @@ sequenceDiagram
 | `Connector/kafka-<cluster>-tst` | Exposes `dev-cluster-kafka-bootstrap` to hub |
 | `Connector/kafka-<cluster>-stormshift` | Exposes `factory-cluster-kafka-bootstrap` to hub |
 
-The `AccessToken` is created manually via `ManagedClusterAction` since it contains sensitive claim data that should not be stored in Git.
+The `AccessToken` on each spoke is created **automatically** by a hub PostSync Job (`components/service-interconnect/templates/accesstoken-sync.yaml`). The Job reads `AccessGrant/spoke-link` **status** (code, url, ca) at runtime and applies `AccessToken/hub-link` on each spoke through **ManagedClusterAction** — nothing sensitive is stored in Git.
+
+| Mechanism | Purpose |
+| --------- | ------- |
+| PostSync Job `skupper-accesstoken-sync-hook` | Runs after `field-content-service-interconnect` sync; links spokes when `Site` + grant exist |
+| CronJob `skupper-accesstoken-sync` | Re-reconciles tokens every 6h (grant rotation, link recovery) |
+| ManagedClusterAction | Creates `AccessToken` CR on spoke (`namespace: service-interconnect`) |
+| ManagedClusterView | Reads `Link/hub-link` status on spoke before re-applying token |
+
+**Prerequisites:** ACM imported clusters (`east`, `west`), spoke `Site` deployed (`spoke-interconnect` wave 6), hub `AccessGrant` status populated.
+
+**Manual fallback** (debug or without ACM):
+
+```bash
+CODE=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.code}')
+URL=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.url}')
+CA=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.ca}')
+# oc apply AccessToken on each spoke — see Getting Started Phase 3 step 5
+```
+
+### How the VAN connection works
+
+```mermaid
+sequenceDiagram
+  participant Hub as Hub cluster
+  participant Grant as AccessGrant + grant server Route
+  participant Sync as accesstoken-sync Job (hub)
+  participant MCA as ManagedClusterAction
+  participant Spoke as Spoke cluster
+  participant Router as Skupper routers
+
+  Hub->>Grant: AccessGrant status (code, url, ca)
+  Note over Grant: Passthrough TLS — SkupperGrantServerCA
+  Sync->>Grant: Read status (not from Git)
+  Sync->>MCA: Create AccessToken template per spoke
+  MCA->>Spoke: AccessToken hub-link in service-interconnect
+  Spoke->>Grant: HTTPS redeem (code + ca + url)
+  Grant-->>Spoke: Inter-router credentials
+  Spoke->>Router: Link hub-link → remote site hub
+  Router-->>Hub: VAN mesh (sitesInNetwork=3)
+  Note over Hub,Spoke: Hub Listeners ↔ Spoke Connectors bridge TCP
+```
+
+1. **Hub `Site/hub`** exposes grant server and inter-router routes (`linkAccess: route`).
+2. **`AccessGrant/spoke-link`** publishes redeem URL + one-time code + CA in **status** (not spec).
+3. **Spoke `Site/<name>`** registers the local router; no link until `AccessToken` exists.
+4. **`AccessToken`** (created by sync Job) redeems the grant; Skupper creates **`Link/hub-link`** with correct router endpoints — do not hand-craft `Link` YAML.
+5. **Connectors** on spokes and **Listeners** on hub share a **routing key** (e.g. `kafka-east-tst`); Skupper bridges TCP once the VAN is up.
 
 ### AccessToken CA certificate
 
@@ -238,7 +285,7 @@ The `skupper-operator` subscription is deployed to spokes via the `operators` co
 
 Skupper controllers reconcile **`Site`**, **`AccessGrant`**, **`AccessToken`**, **`Link`**, **`Listener`**, and **`Connector`** CRs (`skupper.io` / Skupper v2 APIs). Spokes expose workloads by targeting **`spec.routingKey`** / connector selectors — **Kubernetes Deployments do not need Skupper annotations** for discovery (CR linking wires listeners ↔ connectors).
 
-Tokens (`AccessToken`) bridge clusters via HTTPS grant servers — rotate manually when recycling demo clusters.
+Tokens (`AccessToken`) bridge clusters via HTTPS grant servers. The hub **`accesstoken-sync`** Job applies tokens on spokes at runtime; rotate the hub `AccessGrant` or re-sync `field-content-service-interconnect` when recycling demo clusters.
 
 ## References
 

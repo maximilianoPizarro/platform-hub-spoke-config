@@ -457,18 +457,26 @@ spec:
 
 ### AccessToken for link establishment
 
-The `AccessToken` on spokes is created manually (via `ManagedClusterAction`) because it contains sensitive claim data (ca, code, url from the hub's `AccessGrant`). Do NOT store AccessTokens in Git.
+Sensitive grant data (**code**, **url**, **ca**) must **not** be committed to Git. The hub chart deploys **`accesstoken-sync`** (PostSync Job + CronJob) that:
+
+1. Reads `AccessGrant/spoke-link` **status** on the hub.
+2. For each cluster in `accessTokenSync.clusters` (default `east,west`), creates `AccessToken/hub-link` on the spoke via **ManagedClusterAction**.
+3. Skips spokes whose `Link/hub-link` is already **Ready** (checked via **ManagedClusterView**).
+
+Chart: `components/service-interconnect/templates/accesstoken-sync.yaml`. Disable with `accessTokenSync.enabled: false` and apply tokens manually.
+
+**Manual fallback** (same shape as runtime apply — do not commit files like `.tmp/accesstoken-*.yaml`):
 
 ```yaml
 apiVersion: skupper.io/v2alpha1
 kind: AccessToken
 metadata:
   name: hub-link
-  namespace: openshift-operators
+  namespace: service-interconnect   # same namespace as Site
 spec:
-  ca: "<hub-grant-ca>"
-  code: "<hub-grant-code>"
-  url: "<hub-grant-url>"
+  ca: "<from AccessGrant.status.ca>"
+  code: "<from AccessGrant.status.code>"
+  url: "<from AccessGrant.status.url>"
 ```
 
 The AccessToken automatically creates a `Link` with correct TLS credentials and router endpoints. Do NOT manually create `Link` resources — the endpoints in the hub's `RouterAccess` change and the AccessToken handles this correctly.

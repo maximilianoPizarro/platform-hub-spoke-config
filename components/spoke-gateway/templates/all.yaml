@@ -81,6 +81,7 @@ spec:
         - name: line-dashboard
           namespace: industrial-edge-tst-all
           port: 8080
+{{- if .Values.inferenceRoute.enabled }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -100,5 +101,22 @@ spec:
             value: /inference
       backendRefs:
         - name: modelmesh-serving
-          namespace: industrial-edge-tst-all
+          namespace: redhat-ods-applications
           port: 8008
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-spoke-gateway-ods
+  namespace: redhat-ods-applications
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: spoke-gateway-system
+  to:
+    - group: ""
+      kind: Service
+{{- end }}

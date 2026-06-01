@@ -85,10 +85,73 @@ helm upgrade platform-hub-spoke . \
   --reuse-values
 ```
 
-4. **ApplicationSet** `industrial-edge-spoke` generates **`east-spoke-components`** and **`west-spoke-components`**. Each spoke's Argo CD syncs child Applications from `east/` or `west/` — **no Helm install on spokes**.
+4. **ApplicationSet** `industrial-edge-spoke` generates **`east-spoke-components`** and **`west-spoke-components`** on the **hub** only. Each parent app deploys to its spoke via cluster-proxy; the spoke's own Argo CD then syncs child Applications (`operators-east`, `spoke-gateway-west`, etc.) from `east/` or `west/` — **no Helm install on spokes**.
 
 ```bash
-oc get applications -n openshift-gitops | grep spoke
+# Hub — parent apps only
+oc config use-context hub
+oc get applications -n openshift-gitops | grep spoke-components
+
+# East — child apps (example)
+oc config use-context east
+oc get applications -n openshift-gitops | grep -E 'east$'
+
+# West — child apps (example)
+oc config use-context west
+oc get applications -n openshift-gitops | grep -E 'west$'
+```
+
+Do **not** expect `spoke-gateway-west` on the hub; it lives in **west** `openshift-gitops`.
+
+5. **Skupper link (automatic):** after hub `service-interconnect` and spoke `spoke-interconnect` sync, the PostSync Job **`skupper-accesstoken-sync-hook`** reads `AccessGrant/spoke-link` status and creates `AccessToken/hub-link` on each spoke via **ManagedClusterAction** (no secrets in Git). A CronJob re-runs every 6 hours.
+
+```bash
+# Hub — verify grant + sync job
+oc config use-context hub
+oc get accessgrant spoke-link -n service-interconnect -o jsonpath='url={.status.url}{"\n"}'
+oc logs job/skupper-accesstoken-sync-hook -n service-interconnect --tail=20
+
+# Spoke — verify link (repeat per cluster)
+oc config use-context east
+oc get accesstoken,link -n service-interconnect
+oc get site -n service-interconnect -o jsonpath='sitesInNetwork={.status.sitesInNetwork}{"\n"}'
+
+# Hub — full VAN
+oc config use-context hub
+oc get site hub -n service-interconnect -o jsonpath='sitesInNetwork={.status.sitesInNetwork}{"\n"}'   # expect 3
+```
+
+Connection flow (grant server → AccessToken → Link → VAN): **[Service Interconnect → How the VAN connection works](service-interconnect.md#how-the-van-connection-works)**.
+
+<details>
+<summary>Manual AccessToken (fallback if ACM Job fails)</summary>
+
+```bash
+CODE=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.code}')
+URL=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.url}')
+CA=$(oc get accessgrant spoke-link -n service-interconnect -o jsonpath='{.status.ca}')
+oc apply -f - <<EOF
+apiVersion: skupper.io/v2alpha1
+kind: AccessToken
+metadata:
+  name: hub-link
+  namespace: service-interconnect
+spec:
+  code: ${CODE}
+  url: ${URL}
+  ca: |
+$(echo "$CA" | sed 's/^/    /')
+EOF
+```
+
+Use **`status.ca`** from the grant (SkupperGrantServerCA), not the OpenShift ingress CA.
+
+</details>
+
+If **`west-spoke-components`** is missing on the hub while placement includes west, refresh the ApplicationSet:
+
+```bash
+oc annotate applicationset industrial-edge-spoke -n openshift-gitops argocd.argoproj.io/refresh=hard --overwrite
 ```
 
 ---

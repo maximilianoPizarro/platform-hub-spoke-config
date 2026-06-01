@@ -118,9 +118,53 @@ spec:
 
 Do **not** set `haproxy.router.openshift.io/rewrite-target` — the API expects the `/api` prefix.
 
+### JSON `404` / code `4041` on cluster detail
+
+**Symptom:** UI shows `{"errors":[{"title":"Resource not found","status":"404","code":"4041"}]}` when opening a Kafka cluster.
+
+**Cause:** Valid API route, but the cluster id is unknown **or** the console-api cannot reach brokers (often west spoke offline → Skupper listener has no connector).
+
+**Checks:**
+
+```bash
+# List works?
+curl -sk https://kafka-console.<hub-domain>/api/kafkas
+
+# Detail per cluster (replace id from list response)
+curl -sk -o /dev/null -w '%{http_code}\n' https://kafka-console.<hub-domain>/api/kafkas/<id>
+
+# West spoke up?
+oc config use-context west
+oc get applications spoke-interconnect-west -n openshift-gitops
+oc get link -n service-interconnect
+```
+
+**Fix:** Restore west (or east) spoke apps and Skupper link; resync `field-content-kafka-console` for broker DNS EndpointSlices.
+
 ---
 
-## Strimzi entity-operator and ambient mesh
+## spoke-gateway Degraded (`modelmesh-serving` not found)
+
+**Symptom:** Argo CD app `spoke-gateway-east` (on the **east** cluster) shows HTTPRoute `ie-anomaly-detection` Degraded.
+
+**Cause:** Optional KServe/ModelMesh route points at a backend that is not Ready yet (or ML stack not installed).
+
+**Fix (GitOps):** `components/spoke-gateway/values.yaml` sets `inferenceRoute.enabled: false` by default. Enable only after `InferenceService` is Ready and set backend namespace to `redhat-ods-applications` when using cluster-scoped ModelMesh.
+
+---
+
+## Argo CD: where applications live
+
+| Cluster | Namespace | Examples |
+| ------- | --------- | -------- |
+| Hub | `openshift-gitops` | `field-content-*`, `east-spoke-components`, `west-spoke-components` |
+| East spoke | `openshift-gitops` | `operators-east`, `spoke-gateway-east`, `spoke-interconnect-east` |
+| West spoke | `openshift-gitops` | `operators-west`, `spoke-gateway-west`, `spoke-interconnect-west` |
+
+Parent apps use `destination.server` = cluster-proxy URL. Child apps on spokes use `https://kubernetes.default.svc`.
+
+---
+
 
 **Symptom:** `entity-operator` CrashLoopBackOff after enabling ambient on Kafka namespaces.
 
