@@ -139,3 +139,45 @@ spec:
       port: 15008
       protocol: HBONE
 {{- end }}
+{{- if ne .Values.clusterRole "hub" }}
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: kafka-strimzi-bypass
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: dev-cluster
+      strimzi.io/kind: Kafka
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9091:
+      mode: DISABLE
+    9092:
+      mode: PERMISSIVE
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: kafka-strimzi-bypass-stormshift
+  namespace: industrial-edge-stormshift-messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: factory-cluster
+      strimzi.io/kind: Kafka
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9091:
+      mode: DISABLE
+    9092:
+      mode: PERMISSIVE
+{{- end }}
