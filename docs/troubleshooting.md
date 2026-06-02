@@ -255,6 +255,8 @@ oc get consoleplugin | grep -i camel
 
 **East spoke `Unknown` apps:** If `east-spoke-components` was removed from the hub, re-sync `field-content-acm-hub-spoke` so ApplicationSet `industrial-edge-spoke` recreates it (see [GitOps deployment chain](gitops-deployment-chain.md)).
 
+**`east-spoke-components` stuck Progressing:** Usually waiting on `devspaces-east` (CheCluster `InstallOrUpdateFailed` while `chePhase: Active`). Fixes: delete orphan **`east-devspaces`** on the spoke (duplicate of `devspaces-east`, often with `deletionTimestamp`); ensure only `devspaces-east` from `east/` chart exists. Git: `ignoreDifferences` on `CheCluster` status + `argocd.argoproj.io/skip-health-check` on the CheCluster CR. Then `oc patch application east-spoke-components -n openshift-gitops --type json -p='[{"op":"remove","path":"/operation"}]'` and re-sync.
+
 **Cannot find ApplicationSet in ACM UI:** ACM **Applications** lists `Application` CRs only. Use `oc get applicationset industrial-edge-spoke -n openshift-gitops` on the hub, or open **OpenShift GitOps → ApplicationSets**. Child apps like `industrial-edge-tst-east` come from the `east/` chart, not from the ApplicationSet template directly.
 
 ---
