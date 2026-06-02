@@ -186,20 +186,7 @@ spec:
           accessKey: minio
           secretKey: minio123
     {{- else if eq .id "camel-dashboard-openshift-all" }}
-    helm:
-      valuesObject:
-        camel-dashboard-operator:
-          enabled: true
-        camel-dashboard-console:
-          enabled: true
-        hawtio-online-console-plugin:
-          enabled: false
-          plugin:
-            service:
-              port: 8080
-          gateway:
-            service:
-              port: 8080
+    helm: {}
     {{- else }}
     helm:
       valuesObject:

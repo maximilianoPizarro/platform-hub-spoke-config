@@ -213,7 +213,7 @@ oc get integration mqtt-to-kafka -n industrial-edge-tst-all \
 
 **Symptom:** No **Camel** tab in the OpenShift console on east/west, or Argo app `camel-dashboard-openshift-all-{east,west}` OutOfSync.
 
-**GitOps:** Umbrella chart `camel-dashboard-openshift-all` **4.20.2** from `https://camel-tooling.github.io/camel-dashboard/charts`, namespace `camel-dashboard`, sync wave `3` (see `east/values.yaml`, `west/values.yaml`).
+**GitOps:** Vendored wrapper `components/camel-dashboard-openshift` (umbrella **4.20.2** in `charts/*.tgz`), namespace `camel-dashboard`, sync wave `3` (see `east/values.yaml`, `west/values.yaml`). Avoids Argo `DeadlineExceeded` when spokes cannot reach the public Helm repo in time.
 
 **Post-sync (cluster-admin, once per spoke):** **Administration → Cluster settings → Console** → enable the **Camel Dashboard** console plugin. Argo ignores `ConsolePlugin.spec.enablement` so manual enablement does not fight GitOps.
 
