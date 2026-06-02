@@ -374,6 +374,16 @@ body {
   border: 1px solid var(--rh-color-black-700);
 }
 
+/* Small brand mark under page title (e.g. Kairos community logo SVG) */
+.main-content img.page-brand-logo {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  margin: 0 0 0.75rem 0;
+  border: none;
+  display: block;
+}
+
 .main-content img.doc-img-zoomable {
   cursor: zoom-in;
 }

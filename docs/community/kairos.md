@@ -8,7 +8,7 @@ nav_order: 3
 # Kairos Community Operator
 
 ![Kairos Community]({{ site.baseurl }}/assets/images/kairos-community-logo.svg)
-{: .mb-2 }
+{: .page-brand-logo }
 
 AI-assisted Kubernetes optimization from the **Community Operators** catalog (`kairos-operator` v2.0.1). The platform deploys it on **hub, east, and west** via GitOps (`components/kairos/`).
 

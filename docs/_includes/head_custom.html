@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Escape' && dlg.open) closeLb();
   });
 
-  content.querySelectorAll('img').forEach(function(img) {
+  content.querySelectorAll('img:not(.page-brand-logo)').forEach(function(img) {
     var src = img.currentSrc || img.src;
     if (!src || src.indexOf('data:') === 0) return;
     img.classList.add('doc-img-zoomable');
