@@ -199,6 +199,21 @@ data:
           target: https://github.com/maximilianopizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
             - allow: [Template, Location]
+        - type: url
+          target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/onboarding/catalog-info.yaml
+          rules:
+            - allow: [Component]
+    quay:
+      baseUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      dangerouslyAllowInsecureConnections: true
+      skipTLSVerify: true
+      uiUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      apiUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      readOnly: false
+      defaultVisibility: public
+      allowedRegistries: ['quay-registry.{{ .Values.clusterDomain }}']
+      allowedRepositories: ['workshop/*']
+      allowedTags: ['latest', 'stable']
       providers:
         ocm:
           default:
@@ -233,6 +248,10 @@ data:
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE']
           headers:
             Authorization: token ${GITEA_TOKEN}
+        '/quay':
+          target: https://quay-registry.{{ .Values.clusterDomain }}/api/v1
+          allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
+          changeOrigin: true
         '/k8s-api':
           target: https://kubernetes.default.svc
           allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
@@ -300,11 +319,11 @@ data:
       - dynamic-plugins.default.yaml
     plugins:
       - package: ./dynamic-plugins/dist/backstage-plugin-techdocs
-        disabled: true
+        disabled: {{ not (.Values.plugins.techdocs.enabled | default true) }}
       - package: ./dynamic-plugins/dist/backstage-plugin-techdocs-backend-dynamic
-        disabled: true
+        disabled: {{ not (.Values.plugins.techdocs.enabled | default true) }}
       - package: ./dynamic-plugins/dist/backstage-plugin-techdocs-module-addons-contrib
-        disabled: true
+        disabled: {{ not (.Values.plugins.techdocs.enabled | default true) }}
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm-backend-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm
@@ -358,6 +377,19 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
         disabled: true
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-quay
+        disabled: {{ not (.Values.plugins.quay.enabled | default true) }}
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-quay-backend-dynamic
+        disabled: {{ not (.Values.plugins.quay.enabled | default true) }}
+      - package: ./dynamic-plugins/dist/backstage-plugin-security-insights
+        disabled: {{ not (.Values.plugins.acsSecurityInsights.enabled | default true) }}
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage.plugin-security-insights:
+                mountPoints:
+                  - mountPoint: entity.page.overview/cards
+                    importName: EntitySecurityInsightsContent
       - package: ./dynamic-plugins/dist/roadiehq-scaffolder-backend-module-http-request-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic

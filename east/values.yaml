@@ -7,6 +7,7 @@ argocd:
   project: default
 
 clusterName: east
+userCount: 50
 
 clusters:
   hub:
@@ -56,6 +57,10 @@ operators:
       source: redhat-operators
 
 apps:
+  - id: platform-users
+    path: components/platform-users
+    destinationNamespace: openshift-gitops
+    syncWave: "0"
   - id: namespaces
     path: components/namespaces
     destinationNamespace: openshift-gitops

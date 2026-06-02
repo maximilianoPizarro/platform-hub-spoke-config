@@ -7,6 +7,10 @@ argocd:
   namespace: openshift-gitops
   project: default
 
+# Workshop users (Gitea, DevSpaces, Keycloak, htpasswd) — profiles 30, 50, 100, 200
+userCount: 50
+defaultPassword: "Welcome123!"
+
 # Multi-cluster configuration
 clusters:
   hub:
@@ -78,6 +82,14 @@ connectivityLink:
 
   apps:
     # Core platform
+    - id: platform-users
+      enabled: true
+      path: components/platform-users
+      destinationNamespace: openshift-gitops
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     - id: openshift-gitops
       enabled: true
       path: openshift-gitops

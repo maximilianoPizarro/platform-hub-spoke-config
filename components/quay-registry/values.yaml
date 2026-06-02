@@ -1,4 +1,8 @@
 clusterDomain: ""
+workshopOrg: workshop
+workshopRobotName: push
+quayAdminUser: quayadmin
+quayAdminPassword: "Welcome123!"
 minio:
   endpoint: "minio.industrial-edge-ml-workspace.svc.cluster.local:9000"
   accessKey: "minio"

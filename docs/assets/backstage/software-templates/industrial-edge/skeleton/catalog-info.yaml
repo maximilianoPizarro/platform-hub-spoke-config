@@ -10,7 +10,7 @@ metadata:
     backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
     janus-idp.io/tekton: ${{ values.namespace }}
     backstage.io/source-location: url:https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
-    quay.io/repository-slug: maximilianopizarro/${{ values.uniqueName }}
+    quay.io/repository-slug: workshop/${{ values.uniqueName }}
   links:
     - url: https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
       title: Source Code (Gitea)
@@ -18,7 +18,7 @@ metadata:
     - url: https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}/raw/branch/main/README.md
       title: Documentation
       icon: docs
-    - url: https://devspaces.${{ values.clusterDomain }}/#https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
+    - url: https://devspaces.${{ values.spokeAppsDomain }}/#https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}
       title: Open in DevSpaces
       icon: chat
   tags:

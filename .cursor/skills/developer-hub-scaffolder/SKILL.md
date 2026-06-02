@@ -21,6 +21,13 @@ User → Developer Hub (hub)
 
 Reference pattern: [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg) (Neuralbank scaffolding flow).
 
+## Workshop users (`userCount`)
+
+- Root [`values.yaml`](../../values.yaml): `userCount: 50` (up to 200) drives Gitea, DevSpaces, Keycloak, and [`components/platform-users`](../../components/platform-users/) htpasswd.
+- Developer Hub login: Keycloak OIDC — `user1`…`userN` / `Welcome123!` (same as Gitea; not synced to spoke htpasswd).
+- Spoke DevSpaces: cluster htpasswd on east/west (`platform-users` chart); template link uses `spokeAppsDomain`.
+- Quay pushes: org `workshop`, secret `quay-workshop-push`; see [`docs/assets/backstage/onboarding/`](../../docs/assets/backstage/onboarding/).
+
 ## Authentication (Keycloak OIDC, not GitHub)
 
 - **`signInPage: oidc`** with Keycloak realm `backstage` at `https://sso.<clusterDomain>`

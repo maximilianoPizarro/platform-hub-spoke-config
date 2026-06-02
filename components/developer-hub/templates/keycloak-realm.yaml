@@ -2,7 +2,10 @@
   Backstage realm on the cluster Keycloak instance (namespace keycloak).
   Client secret must match Secret developer-hub-oidc-auth key OIDC_CLIENT_SECRET.
   Set via: helm --set keycloakOidcClientSecret='<value>' (do not commit real secrets).
+  Workshop users user1..userN share password with htpasswd/Gitea (default Welcome123!).
 */ -}}
+{{- $count := int (.Values.userCount | default 50) }}
+{{- $password := .Values.defaultPassword | default "Welcome123!" }}
 apiVersion: k8s.keycloak.org/v2alpha1
 kind: KeycloakRealmImport
 metadata:
@@ -70,23 +73,25 @@ spec:
         email: platformadmin@redhat.local
         credentials:
           - type: password
-            value: Welcome123!
+            value: {{ $password | quote }}
             temporary: false
         realmRoles:
           - platform-engineer
         groups:
           - platform-engineering
-      - username: developer1
+{{- range $i := until $count }}
+      - username: {{ printf "user%d" (add $i 1) | quote }}
         enabled: true
         emailVerified: true
-        firstName: Developer
-        lastName: One
-        email: developer1@redhat.local
+        firstName: Workshop
+        lastName: {{ printf "User %d" (add $i 1) | quote }}
+        email: {{ printf "user%d@developer-hub.local" (add $i 1) | quote }}
         credentials:
           - type: password
-            value: Welcome123!
+            value: {{ $password | quote }}
             temporary: false
         realmRoles:
           - developer
         groups:
           - developers
+{{- end }}

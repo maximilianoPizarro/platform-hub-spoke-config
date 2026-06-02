@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: workshop-onboarding
+  title: Workshop Onboarding
+  description: Getting started with Hybrid Mesh Platform — login, scaffolder, DevSpaces, Quay, observability
+  annotations:
+    backstage.io/techdocs-ref: url:https://github.com/maximilianopizarro/platform-hub-spoke-config/tree/main/docs/assets/backstage/onboarding
+  links:
+    - url: https://github.com/maximilianopizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/onboarding/index.md
+      title: Onboarding (GitHub)
+      icon: docs
+spec:
+  type: documentation
+  lifecycle: production
+  owner: platform-engineering
+  system: industrial-edge

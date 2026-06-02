@@ -39,7 +39,23 @@ spec:
         clusterDomain:
           title: Hub apps domain
           type: string
+          description: Gitea on hub
           default: apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+      dependencies:
+        targetCluster:
+          oneOf:
+            - properties:
+                targetCluster:
+                  const: east
+                spokeAppsDomain:
+                  type: string
+                  default: apps.cluster-2847b.dynamic2.redhatworkshops.io
+            - properties:
+                targetCluster:
+                  const: west
+                spokeAppsDomain:
+                  type: string
+                  default: apps.cluster-5zjkk.dynamic2.redhatworkshops.io
     - title: Integration Endpoints
       properties:
         mqttBrokerUri:
@@ -75,6 +91,7 @@ spec:
           namespace: "${{ parameters.owner }}-apps-${{ parameters.targetCluster }}"
           targetCluster: ${{ parameters.targetCluster }}
           clusterDomain: ${{ parameters.clusterDomain }}
+          spokeAppsDomain: ${{ parameters.spokeAppsDomain }}
           mqttBrokerUri: ${{ parameters.mqttBrokerUri }}
           kafkaBrokerUri: ${{ parameters.kafkaBrokerUri }}
           s3Endpoint: ${{ parameters.s3Endpoint }}
@@ -149,4 +166,4 @@ spec:
         entityRef: ${{ steps['register'].output.entityRef }}
       - title: Open in DevSpaces (Kaoto)
         icon: chat
-        url: "https://devspaces.${{ parameters.clusterDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"

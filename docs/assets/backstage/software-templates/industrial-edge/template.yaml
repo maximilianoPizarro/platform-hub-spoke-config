@@ -47,8 +47,25 @@ spec:
         clusterDomain:
           title: Hub cluster apps domain
           type: string
-          description: "e.g. apps.cluster-xxxxx.redhatworkshops.io"
+          description: "Gitea and hub services (e.g. apps.cluster-xxxxx.redhatworkshops.io)"
           default: apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+      dependencies:
+        targetCluster:
+          oneOf:
+            - properties:
+                targetCluster:
+                  const: east
+                spokeAppsDomain:
+                  title: East spoke apps domain
+                  type: string
+                  default: apps.cluster-2847b.dynamic2.redhatworkshops.io
+            - properties:
+                targetCluster:
+                  const: west
+                spokeAppsDomain:
+                  title: West spoke apps domain
+                  type: string
+                  default: apps.cluster-5zjkk.dynamic2.redhatworkshops.io
   steps:
     - id: fetch-skeleton
       name: Generate Skeleton
@@ -63,6 +80,7 @@ spec:
           targetCluster: ${{ parameters.targetCluster }}
           sensorCount: ${{ parameters.sensorCount }}
           clusterDomain: ${{ parameters.clusterDomain }}
+          spokeAppsDomain: ${{ parameters.spokeAppsDomain }}
     - id: publish
       name: Publish to Gitea
       action: publish:github
@@ -132,4 +150,4 @@ spec:
         entityRef: ${{ steps['register'].output.entityRef }}
       - title: Open in DevSpaces
         icon: chat
-        url: "https://devspaces.${{ parameters.clusterDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"

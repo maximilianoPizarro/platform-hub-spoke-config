@@ -1,4 +1,6 @@
 clusterDomain: ""
+userCount: 50
+defaultPassword: "Welcome123!"
 # OIDC client secret for developer-hub + Keycloak backstage realm (set via --set, never commit real values)
 keycloakOidcClientSecret: ""
 # Gitea personal access token for gitea_admin (create via Gitea UI or API, never commit real values)
@@ -19,3 +21,11 @@ kubernetesSpokes:
     apiUrl: ""
   west:
     apiUrl: ""
+# Dynamic plugins — disable if package missing in RHDH image (oc exec ... ls dynamic-plugins/dist)
+plugins:
+  techdocs:
+    enabled: true
+  quay:
+    enabled: true
+  acsSecurityInsights:
+    enabled: true

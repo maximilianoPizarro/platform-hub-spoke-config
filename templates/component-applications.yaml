@@ -242,10 +242,19 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        userCount: {{ $.Values.userCount | default 50 }}
+    {{- else if eq .path "platform-users" }}
+    helm:
+      valuesObject:
+        userCount: {{ $.Values.userCount | default 50 }}
+        defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
+        grantClusterReader: true
     {{- else if eq .path "developer-hub" }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        userCount: {{ $.Values.userCount | default 50 }}
+        defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
         kubernetesSpokes:
           enabled: true
           east:
