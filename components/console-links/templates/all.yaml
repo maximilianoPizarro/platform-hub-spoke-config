@@ -1,6 +1,7 @@
 {{- $domain := .Values.clusterDomain -}}
 {{- $hubDomain := .Values.hubClusterDomain | default $domain -}}
 {{- $role := .Values.clusterRole | default "hub" -}}
+{{- $icon := include "console-links.kairosIconURL" . -}}
 ---
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
@@ -10,7 +11,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTIxIDNoLThjLS41NSAwLTEgLjQ1LTEgMXY5YzAgLjU1LjQ1IDEgMSAxaDhjLjU1IDAgMS0uNDUgMS0xVjRjMC0uNTUtLjQ1LTEtMS0xem0tMSAxMGgtNlY1aDZ2OHpNNCAxM2MtMS4xIDAtMiAuOS0yIDJzLjkgMiAyIDIgMi0uOSAyLTItLjktMi0yLTJ6bTAgMTFjLTEuMSAwLTIgLjktMiAycy45IDIgMiAyIDItLjkgMi0yLS45LTItMi0yem0wLTVjLTEuMSAwLTIgLjktMiAycy45IDIgMiAyIDItLjkgMi0yLS45LTItMi0yem0xMi0ySDd2Mmg5djd6Ii8+PC9zdmc+"
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://industrial-edge.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -24,7 +25,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0Y0NjgwMCI+PHBhdGggZD0iTTIyIDloLTR2LTJoNHYyem0tNi0ydi0ySDh2Mmg4em0tMTAgMHYtMkgzdjJoM3ptMTYgNGgtOHYtMmg4djJ6bS0xMCAwdi0ySDV2Mmg3em0tOSAwdi0ySDJ2Mmgxem0xNiA0SDR2LTJoMTV2MnptLTYgNEg2di0yaDd2MnptLTkgMEg0di0yaDR2MnoiLz48L3N2Zz4="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   {{- if eq $role "hub" }}
   href: "https://grafana.{{ $hubDomain }}"
@@ -42,7 +43,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTktOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0tMS02aDJ2Mmgtdjd6bTAtNGgydjJoLTJ6Ii8+PC9zdmc+"
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kiali-openshift-cluster-observability-operator.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -52,12 +53,26 @@ spec:
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
+  name: platform-kairos-console
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  applicationMenu:
+    imageURL: {{ $icon | quote }}
+    section: "Platform Hub-Spoke"
+  href: "https://kairos-console-kairos-system.{{ $hubDomain }}"
+  location: ApplicationMenu
+  text: "Kairos Console"
+---
+apiVersion: console.openshift.io/v1
+kind: ConsoleLink
+metadata:
   name: platform-acm-clusters
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTgtOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0tMS0xMWgxdjZoLTFWOXptMyAwaDFWMTVoLTFWOXoiLz48L3N2Zz4="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://console-openshift-console.{{ $hubDomain }}/multicloud/infrastructure/clusters"
   location: ApplicationMenu
@@ -71,7 +86,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTEyIDFMMyA1djZjMCA1LjU1IDMuODQgMTAuNzQgOSAxMiA1LjE2LTEuMjYgOS02LjQ1IDktMTJWNWwtOS00em0tMiAxNmwtNC00IDEuNDEtMS40MUwxMCAxNC4xN2w2LjU5LTYuNTlMOCA2bC04IDh6Ii8+PC9zdmc+"
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://central-stackrox.{{ $domain }}"
   location: ApplicationMenu
@@ -85,7 +100,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTkuNCAzLjUtNi44OSA2Ljg5TDQgMTEuODhsLTEuNDktMS40OUwxIDExLjg4bDMgMyA4LjM5LTguMzktMS40OS0xLjVMMTIgM2wtMi42LjV6TTIxIDEyaDl2Mmg5di0yek0yMSA4aDl2MmgtOVY4eiIvPjwvc3ZnPg=="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://developer-hub.{{ $domain }}"
   location: ApplicationMenu
@@ -99,7 +114,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzYwOTkyNiI+PHBhdGggZD0iTTYgMTljMCAxLjEuOSAyIDIgMmg4YzEuMSAwIDItLjkgMi0yVjdINnYxMnpNOCA5aDh2MTBIOFY5em0xMC00aC0yVjNIOHYySDZ2MmgxMlY1em0tOC0xaDR2MWgtNFY0eiIvPjxwYXRoIGQ9Ik0xOSAxMGMxLjEgMCAyIC45IDIgMnMtLjkgMi0yIDJoLTF2LTRoMXoiIGZpbGw9IiM0YzdhMTAiLz48L3N2Zz4="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://gitea-gitea.{{ $domain }}"
   location: ApplicationMenu
@@ -113,7 +128,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0M3MkM0OCI+PHBhdGggZD0iTTIgMjBoMjB2LTRIMnY0em0yLTNoMnYySDR2LTJ6TTIgNHY0aDIwVjRIMnptNCAzSDRWNWgydjJ6bS00IDdoMjB2LTRIMnY0em0yLTNoMnYySDR2LTJ6Ii8+PC9zdmc+"
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://minio-console-industrial-edge-ml-workspace.{{ $domain }}"
   location: ApplicationMenu
@@ -127,7 +142,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwOTZENiI+PHBhdGggZD0iTTIwIDRINGMtMS4xIDAtMS45OS45LTEuOTkgMkwyIDE4YzAgMS4xLjkgMiAyIDJoMTZjMS4xIDAgMi0uOSAyLTJWNmMwLTEuMS0uOS0yLTItMnptMCAyLTggNS0yLTggNXoiLz48L3N2Zz4="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://mailpit.{{ $domain }}"
   location: ApplicationMenu
@@ -141,7 +156,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iI0VFMDAwMCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDIgMC04LTMuNTgtOC04czMuNTgtOCA4LTggOCAzLjU4IDggOC0zLjU4IDgtOCA4em0tMi0xMWgxdjZoLTFWOXptMyAwaDFWMTVoLTFWOXoiLz48L3N2Zz4="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kafka-console.{{ $domain }}"
   location: ApplicationMenu
@@ -155,7 +170,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwQkNENCI+PHBhdGggZD0iTTExLjggMTAuOWMtMi4yNy0uNTktNC0yLjYtNC00Ljk3IDAtMi44IDIuMi01IDUuMDEtNWEzLjEyIDMuMTIgMCAwIDEgMi4wOS43OEwxMiAzLjl2Mmgxdi0ybDMuMDktMS43OGMuNTgtLjQgMS4zLS42NSAyLjA5LS42NSAyLjggMCA1LjAxIDIuMiA1LjAxIDUgMCAyLjM3LTEuNzMgNC4zOC00IDQuOTdDMTguNiAxMi42NyAxNi4xNiAxNSAxMyAxNWgtMmMtMy4xNiAwLTUuNi0yLjMzLTYtNS4xem0wIDBjLjQgMi43NyAyLjg0IDUuMSA2IDUuMUgxNGMzLjE2IDAgNS42LTIuMzMgNi01LjEiLz48cGF0aCBkPSJNMTIgMjJjLTIuNzYgMC01LTIuMjQtNS01czIuMjQtNSA1LTUgNSAyLjI0IDUgNS0yLjI0IDUtNSA1em0wLThjLTEuNjYgMC0zIDEuMzQtMyAzczEuMzQgMyAzIDMgMy0xLjM0IDMtMy0xLjM0LTMtMy0zeiIvPjwvc3ZnPg=="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kubecost.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -169,7 +184,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzQwQjVBNCI+PHBhdGggZD0iTTIwIDRINGMtMS4xIDAtMiAuOS0yIDJ2MTJjMCAxLjEuOSAyIDIgMmgxNmMxLjEgMCAyLS45IDItMlY2YzAtMS4xLS45LTItMi0yem0wIDE0SDRWNmgxNnYxMnpNNiA4aDJ2Mmg4VjhoMnY2aC0ydi0yaC00djJINlY4eiIvPjwvc3ZnPg=="
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://quay-registry.{{ $domain }}"
   location: ApplicationMenu
@@ -183,7 +198,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTE1IDRjLTQuNDIgMC04IDMuNTgtOCA4czMuNTggOCA4IDggOC0zLjU4IDgtOC0zLjU4LTgtOC04em0wIDE0Yy0zLjMxIDAtNi0yLjY5LTYtNnMyLjY5LTYgNi02IDYgMi42OSA2IDYtMi42OSA2LTYgNnptLTEtOWgydjZoLTJ6bTAtMmgydjJoLTJ6Ii8+PHBhdGggZD0iTTQgMTJjMC0yLjIxIDEuNzktNCA0LTRWNmMtMy4zMSAwLTYgMi42OS02IDZzMi42OSA2IDYgNnYtMmMtMi4yMSAwLTQtMS43OS00LTR6Ii8+PC9zdmc+"
+    imageURL: {{ $icon | quote }}
     section: "Platform Hub-Spoke"
   href: "https://field-content-skupper-network-observer-service-interconnect.{{ $domain }}"
   location: ApplicationMenu

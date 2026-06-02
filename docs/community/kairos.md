@@ -69,6 +69,10 @@ oc get kairosagent,smartscalingpolicy -n kairos-system
 
 Console route: `https://kairos-console-kairos-system.<hub-apps-domain>`
 
+## OpenShift Console menu
+
+Hub **ConsoleLink** `platform-kairos-console` opens the Kairos governance UI. All **Platform Hub-Spoke** menu icons use the [Kairos Community logo](https://github.com/maximilianoPizarro/kairos) (`components/console-links/files/kairos-community-icon.svg`). To regenerate via NanoBanana 2 API: `NANOBANANA_API_KEY=... ./scripts/generate-kairos-console-icon.sh`
+
 ## Scan policies for machine sensors
 
 On **spokes**, Git deploys `SmartScalingPolicy` resources:
