@@ -186,7 +186,8 @@ spec:
           accessKey: minio
           secretKey: minio123
     {{- else if eq .id "camel-dashboard-openshift-all" }}
-    helm: {}
+    helm:
+      releaseName: camel-dashboard-openshift-all-{{ $.Values.clusterName }}
     {{- else }}
     helm:
       valuesObject:

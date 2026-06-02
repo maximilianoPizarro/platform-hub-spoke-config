@@ -219,6 +219,28 @@ oc get integration mqtt-to-kafka -n industrial-edge-tst-all \
 
 **Camel K vs CamelApp:** Industrial Edge uses Camel K `Integration` resources (e.g. `mqtt-to-kafka`). The dashboard operator primarily manages **`CamelApp`** CRs. Integrations may not appear in the Camel tab until you register them as `CamelApp` or add a bridge; use Topology/Kamelet views for Camel K workloads in the meantime.
 
+**Symptom:** `Failed to get a valid plugin manifest from /api/plugins/camel-dashboard-console/`
+
+**Cause:** The `camel-dashboard-console` Service has **no endpoints** — usually `app.kubernetes.io/instance` on the Service selector does not match the Deployment pod labels (e.g. after `helm template` + `oc apply` with release name `camel-dashboard` instead of `camel-dashboard-openshift-all-{east,west}`).
+
+**Fix:**
+
+```bash
+# Endpoints must be non-empty
+oc get endpointslices -n camel-dashboard -l kubernetes.io/service-name=camel-dashboard-console -o yaml | grep -A3 addresses
+
+# Align selector with running pods (or re-sync Argo with helm.releaseName set in spoke templates)
+oc get svc camel-dashboard-console -n camel-dashboard -o jsonpath='selector={.spec.selector}{"\n"}'
+oc get pod -n camel-dashboard -l app=camel-dashboard-console -o jsonpath='instance={.items[0].metadata.labels.app\.kubernetes\.io/instance}{"\n"}'
+
+# Test manifest from inside the cluster
+oc run curl-camel --rm -i --restart=Never -n camel-dashboard \
+  --image=registry.redhat.io/ubi9/ubi-minimal:latest -- \
+  curl -sk https://camel-dashboard-console.camel-dashboard.svc:9443/plugin-manifest.json
+```
+
+Prefer **Argo CD sync** (not manual `helm apply`) so `releaseName: camel-dashboard-openshift-all-{cluster}` matches Service and Deployment labels.
+
 **Checks:**
 
 ```bash
