@@ -41,8 +41,8 @@ The operator mounts `extraFiles` as **directories** when `mountPath` includes th
 
 | ConfigMap key | mountPath | catalog `target` |
 | ------------- | --------- | ---------------- |
-| `users.yaml` | `/opt/app-root/src` | `/opt/app-root/src/users.yaml` |
-| `industrial-edge-system.yaml` | `/opt/app-root/src/catalog-ie` | `/opt/app-root/src/catalog-ie/industrial-edge-system.yaml` |
+| `users.yaml` | `/opt/app-root/src/catalog-data` | `/opt/app-root/src/catalog-data/users.yaml` |
+| `industrial-edge-system.yaml` | `/opt/app-root/src/catalog-data/ie` | `/opt/app-root/src/catalog-data/ie/industrial-edge-system.yaml` |
 
 **Wrong:** `mountPath: /opt/app-root/src/catalog-users.yaml` → `EISDIR` error.
 
@@ -106,8 +106,11 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 | `roadiehq-scaffolder-backend-module-http-request-dynamic` | enabled | `http:backstage:request` |
 | `backstage-plugin-scaffolder-backend-module-github-dynamic` | enabled | `publish:github` → Gitea |
 | `backstage-plugin-notifications` + backend | enabled | In-app notifications |
-| `backstage-plugin-techdocs` | **disabled** | No pre-built docs (FetchUrlReader / empty UI) |
-| kafka, argocd, kuadrant plugins | disabled | ENOENT in RHDH 1.9 image |
+| `backstage-plugin-techdocs` | enabled (`plugins.techdocs.enabled`) | Docs tab (local builder/publisher) |
+| `roadiehq-backstage-plugin-argo-cd-backend-dynamic` | disabled | Needs `argocd.appLocatorMethods`; scaffolder uses `k8s-api` proxy |
+| kafka, kuadrant, quay-backend, security-insights | disabled | ENOENT or missing packages in RHDH 1.9 image |
+
+**YAML trap:** `catalog.providers` (ocm, keycloakOrg) must be indented under `catalog:`, not under `quay:`.
 
 ## Multi-cluster Kubernetes / Topology (CRITICAL)
 

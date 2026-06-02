@@ -283,21 +283,11 @@ data:
           target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/onboarding/catalog-info.yaml
           rules:
             - allow: [Component]
-    quay:
-      baseUrl: https://quay-registry.{{ .Values.clusterDomain }}
-      dangerouslyAllowInsecureConnections: true
-      skipTLSVerify: true
-      uiUrl: https://quay-registry.{{ .Values.clusterDomain }}
-      apiUrl: https://quay-registry.{{ .Values.clusterDomain }}
-      readOnly: false
-      defaultVisibility: public
-      allowedRegistries: ['quay-registry.{{ .Values.clusterDomain }}']
-      allowedRepositories: ['workshop/*']
-      allowedTags: ['latest', 'stable']
       providers:
         ocm:
           default:
             name: hub
+            kubernetesPluginRef: hub
             url: https://kubernetes.default.svc.cluster.local:443
             skipTLSVerify: true
         keycloakOrg:
@@ -309,6 +299,17 @@ data:
             schedule:
               frequency: { minutes: 30 }
               timeout: { minutes: 3 }
+    quay:
+      baseUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      dangerouslyAllowInsecureConnections: true
+      skipTLSVerify: true
+      uiUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      apiUrl: https://quay-registry.{{ .Values.clusterDomain }}
+      readOnly: false
+      defaultVisibility: public
+      allowedRegistries: ['quay-registry.{{ .Values.clusterDomain }}']
+      allowedRepositories: ['workshop/*']
+      allowedTags: ['latest', 'stable']
     techdocs:
       builder: local
       generator:
@@ -408,6 +409,15 @@ data:
         disabled: {{ not (.Values.plugins.techdocs.enabled | default true) }}
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm-backend-dynamic
         disabled: false
+        pluginConfig:
+          catalog:
+            providers:
+              ocm:
+                default:
+                  name: hub
+                  kubernetesPluginRef: hub
+                  url: https://kubernetes.default.svc.cluster.local:443
+                  skipTLSVerify: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm
         disabled: false
         pluginConfig:
@@ -453,9 +463,10 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.ci/content
                     importName: EntityTektonPipelinesContent
-      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
+      # Backend requires argocd.appLocatorMethods + admin credentials; scaffolder uses k8s-api proxy.
       - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
-        disabled: false
+        disabled: true
+      # Frontend-only; backend needs argocd.appLocatorMethods (use k8s-api proxy for scaffolder).
       - package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
@@ -478,6 +489,19 @@ data:
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-catalog-backend-module-keycloak-dynamic
         disabled: false
+        pluginConfig:
+          catalog:
+            providers:
+              keycloakOrg:
+                default:
+                  baseUrl: https://sso.{{ .Values.clusterDomain }}
+                  loginRealm: backstage
+                  realm: backstage
+                  clientId: developer-hub-catalog
+                  clientSecret: ${OIDC_CLIENT_SECRET}
+                  schedule:
+                    frequency: { minutes: 30 }
+                    timeout: { minutes: 3 }
       - package: ./dynamic-plugins/dist/backstage-plugin-scaffolder-backend-module-github-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-notifications
