@@ -1,5 +1,8 @@
 *.tgz
 charts/
+# Vendored spoke chart (Argo must not fetch camel-tooling.github.io at sync time)
+!components/camel-dashboard-openshift/charts/
+!components/camel-dashboard-openshift/charts/*.tgz
 .DS_Store
 agent-tools/
 
