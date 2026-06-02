@@ -12,7 +12,7 @@ Apply this skill when designing or troubleshooting **fleet GitOps** that combine
 1. **`helm install` on hub** — creates the root App-of-Apps (`values.yaml` at repo root); all hub `components/*` Applications sync from Git.
 2. **ACM imports spokes** — `ManagedCluster` + labels (`region=east|west`, `clusterset=global`).
 3. **Tokens injected** — `helm upgrade --set clusters.east.token=... --set clusters.west.token=...` (never commit tokens).
-4. **ApplicationSet fans out** — `industrial-edge-spoke` generates `east-spoke-components` / `west-spoke-components`; each spoke's Argo CD syncs `east/` or `west/` locally.
+4. **ApplicationSet fans out** — `industrial-edge-spoke` (persistent manifest in `components/acm-hub-spoke/templates/applicationset.yaml`, sync-wave 4) generates `east-spoke-components` / `west-spoke-components`; each spoke's Argo CD syncs `east/` or `west/` locally. See `docs/gitops-deployment-chain.md` for YAML chain.
 5. **No `helm install` on spokes** — spoke charts are pushed by the hub ApplicationSet via ACM Placement + GitOpsCluster.
 6. **Adding a spoke** — label + `east/` or `west/` folder + one `helm upgrade` line for domain/token.
 

@@ -239,6 +239,8 @@ helm template test . -f values-west.yaml --set deployer.domain=apps.west.example
 
 Full documentation available at: https://maximilianoPizarro.github.io/platform-hub-spoke-config
 
+Key doc: [GitOps deployment chain](docs/gitops-deployment-chain.md) — hub ApplicationSet `industrial-edge-spoke` and spoke app naming with YAML.
+
 ## Releases (OpenShift 4.20)
 
 | Tag | Notes |

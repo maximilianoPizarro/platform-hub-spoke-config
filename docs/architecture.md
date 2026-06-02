@@ -60,6 +60,8 @@ When a machine sensor on the **east** spoke publishes a temperature sample, the 
 
 ## GitOps application delivery flow
 
+See **[GitOps deployment chain](gitops-deployment-chain.md)** for the full encadenamiento (hub `field-content-*` → ApplicationSet `industrial-edge-spoke` → `*-spoke-components` → spoke `*-east` / `*-west` apps) with copy-paste YAML fragments.
+
 ![GitOps sequence — hub Argo CD, ApplicationSet, remote spoke sync]({{ site.baseurl }}/assets/images/arch-gitops-sync-sequence.png)
 {: .mb-4 }
 *Hub syncs first; ApplicationSet pushes per-spoke charts; each spoke Argo CD reconciles child Applications locally.*

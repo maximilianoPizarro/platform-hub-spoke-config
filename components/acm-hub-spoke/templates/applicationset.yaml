@@ -7,8 +7,7 @@ metadata:
     app.kubernetes.io/part-of: platform-hub-spoke
     cluster.open-cluster-management.io/placement: hub-spoke-placement
   annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "4"
     apps.open-cluster-management.io/source-repository: {{ .Values.gitops.repoUrl | quote }}
 spec:
   generators:
@@ -36,7 +35,7 @@ spec:
         targetRevision: {{ .Values.gitops.revision | default "main" | quote }}
         path: '{{`{{name}}`}}'
       destination:
-        server: '{{`{{server}}`}}'
+        name: '{{`{{name}}`}}'
         namespace: openshift-gitops
       syncPolicy:
         automated:

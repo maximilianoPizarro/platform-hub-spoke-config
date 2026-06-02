@@ -94,7 +94,9 @@ The OpenShift / ACM UI may report *no Argo applications* when any link in this c
 9. **Observe sync waves** — lower waves (namespaces, operators) complete before application workloads.
 10. **Camel Dashboard (spokes):** after wave 3, verify `camel-dashboard-openshift-all-{east,west}` and enable the console plugin — see [Getting Started — Camel Dashboard](getting-started.md#camel-dashboard-east--west-spokes) and [Troubleshooting](troubleshooting.md).
 
-If **`east-spoke-components`** or **`west-spoke-components`** is missing on the hub, re-sync `field-content-acm-hub-spoke` (ApplicationSet `industrial-edge-spoke` is a PostSync hook from `components/acm-hub-spoke`). Do not delete those parent apps with `prune: true` unless you intend to recreate them.
+If **`east-spoke-components`** or **`west-spoke-components`** is missing on the hub, re-sync `field-content-acm-hub-spoke`. The ApplicationSet `industrial-edge-spoke` is a **persistent** resource in [`components/acm-hub-spoke/templates/applicationset.yaml`](../components/acm-hub-spoke/templates/applicationset.yaml) (sync-wave `4`). Do not delete parent apps with `prune: true` unless you intend to recreate them.
+
+For a full YAML walkthrough of each layer, see **[GitOps deployment chain](gitops-deployment-chain.md)**.
 
 Verify from CLI (source of truth):
 

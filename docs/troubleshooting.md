@@ -253,7 +253,9 @@ oc get consoleplugin | grep -i camel
 
 **Helm template error (Hawtio disabled):** If Argo reports `index of nil pointer` on `hawtio-online-console-plugin`, ensure spoke `valuesObject` includes stub `plugin.service.port` and `gateway.service.port` (see `east/templates/component-applications.yaml`).
 
-**East spoke `Unknown` apps:** If `east-spoke-components` was removed from the hub, recreate it via ACM `industrial-edge-spoke` ApplicationSet (`field-content-acm-hub-spoke` sync) or re-apply the `camel-dashboard-openshift-all-east` Application from `helm template east/`.
+**East spoke `Unknown` apps:** If `east-spoke-components` was removed from the hub, re-sync `field-content-acm-hub-spoke` so ApplicationSet `industrial-edge-spoke` recreates it (see [GitOps deployment chain](gitops-deployment-chain.md)).
+
+**Cannot find ApplicationSet in ACM UI:** ACM **Applications** lists `Application` CRs only. Use `oc get applicationset industrial-edge-spoke -n openshift-gitops` on the hub, or open **OpenShift GitOps → ApplicationSets**. Child apps like `industrial-edge-tst-east` come from the `east/` chart, not from the ApplicationSet template directly.
 
 ---
 

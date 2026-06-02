@@ -85,7 +85,7 @@ helm upgrade platform-hub-spoke . \
   --reuse-values
 ```
 
-4. **ApplicationSet** `industrial-edge-spoke` generates **`east-spoke-components`** and **`west-spoke-components`** on the **hub** only. Each parent app deploys to its spoke via cluster-proxy; the spoke's own Argo CD then syncs child Applications (`operators-east`, `spoke-gateway-west`, etc.) from `east/` or `west/` — **no Helm install on spokes**.
+4. **ApplicationSet** `industrial-edge-spoke` generates **`east-spoke-components`** and **`west-spoke-components`** on the **hub** only. Each parent app deploys to its spoke via cluster-proxy; the spoke's own Argo CD then syncs child Applications (`operators-east`, `spoke-gateway-west`, etc.) from `east/` or `west/` — **no Helm install on spokes**. See **[GitOps deployment chain](gitops-deployment-chain.md)** for YAML at each layer (why ACM search shows `industrial-edge-*-east` but not the ApplicationSet name unless you filter for it).
 
 ```bash
 # Hub — parent apps only
