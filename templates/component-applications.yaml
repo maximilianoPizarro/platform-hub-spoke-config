@@ -270,7 +270,8 @@ spec:
           hubReporting:
             enabled: false
         sensorScanPolicies:
-          enabled: false
+          enabled: true
+          displayOnHub: true
     {{- else if eq .path "developer-hub" }}
     helm:
       valuesObject:

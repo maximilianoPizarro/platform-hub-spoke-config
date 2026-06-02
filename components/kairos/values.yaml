@@ -55,6 +55,11 @@ environmentAgents:
 # SmartScalingPolicy (Kairos “scan” policies) for platform machine-sensors.
 sensorScanPolicies:
   enabled: true
+  # Hub: paused mirror CRs so Scaling Policies UI lists east/west sensor policies (enforced on spokes).
+  displayOnHub: true
+  spokes:
+    - east
+    - west
   baselineNamespace: industrial-edge-tst-all
   otelEndpoint: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local:4317
   prometheusEndpoint: prometheus-k8s.openshift-monitoring.svc.cluster.local:9090
