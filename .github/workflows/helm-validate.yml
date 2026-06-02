@@ -59,6 +59,13 @@ jobs:
             --set deployer.domain=${{ matrix.profile.domain }} \
             > /dev/null
           echo "Template ${{ matrix.profile.name }} rendered successfully"
+      - name: Template vendored Camel Dashboard (OCP 4.20 kube 1.33)
+        if: matrix.profile.name == 'east'
+        run: |
+          helm template test-camel components/camel-dashboard-openshift \
+            --kube-version 1.33 \
+            --namespace camel-dashboard > /dev/null
+          echo "camel-dashboard-openshift vendored chart OK"
 
   yaml-validate:
     runs-on: ubuntu-latest

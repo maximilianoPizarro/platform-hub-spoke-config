@@ -92,6 +92,9 @@ The OpenShift / ACM UI may report *no Argo applications* when any link in this c
 7. **Apply ApplicationSet** manifests (often shipped via this repo’s `acm-hub-spoke` chart path) so Applications appear under the Argo CD project.
 8. **ACM console labels**: the ApplicationSet metadata must include `cluster.open-cluster-management.io/placement: hub-spoke-placement` (same value as the Placement label). Without it, ACM **Search → ApplicationSet → Details** may show *no Argo applications* even when `east-spoke-components` / `west-spoke-components` exist in `openshift-gitops`.
 9. **Observe sync waves** — lower waves (namespaces, operators) complete before application workloads.
+10. **Camel Dashboard (spokes):** after wave 3, verify `camel-dashboard-openshift-all-{east,west}` and enable the console plugin — see [Getting Started — Camel Dashboard](getting-started.md#camel-dashboard-east--west-spokes) and [Troubleshooting](troubleshooting.md).
+
+If **`east-spoke-components`** or **`west-spoke-components`** is missing on the hub, re-sync `field-content-acm-hub-spoke` (ApplicationSet `industrial-edge-spoke` is a PostSync hook from `components/acm-hub-spoke`). Do not delete those parent apps with `prune: true` unless you intend to recreate them.
 
 Verify from CLI (source of truth):
 

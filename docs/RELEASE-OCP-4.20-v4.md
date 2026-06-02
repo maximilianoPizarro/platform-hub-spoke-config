@@ -12,7 +12,7 @@ Snapshot extending **v3** with **Camel Dashboard** on east and west spokes (Open
 
 ## Highlights (since `ocp-420-v3`)
 
-- **Camel Dashboard (spokes only):** GitOps via Argo CD app `camel-dashboard-openshift-all-{east,west}`; Helm chart `camel-dashboard-openshift-all` **4.20.2**; namespace `camel-dashboard`; Hawtio plugin disabled by default.
+- **Camel Dashboard (spokes only):** GitOps via Argo CD app `camel-dashboard-openshift-all-{east,west}`; vendored wrapper `components/camel-dashboard-openshift` (umbrella **4.20.2** in `charts/*.tgz`); namespace `camel-dashboard`; Hawtio plugin disabled by default.
 - **Spoke templates:** `east/` and `west/` charts support external Helm repos (same pattern as hub `skupper-network-observer`).
 - **Console:** Enable the Camel Dashboard plugin under **Cluster settings → Console** after sync (see [Troubleshooting](troubleshooting.md#camel-dashboard-spoke-console-plugin)).
 - **Industrial Edge:** unchanged Camel K `Integration` workloads; dashboard lists `CamelApp` CRs primarily.

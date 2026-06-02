@@ -140,7 +140,13 @@ apps:
 
 Add new operator subscriptions to `operators.subscriptions[]` in **each spoke's `values.yaml`** (`east/values.yaml`, `west/values.yaml`). The `operators` component iterates `{{ range .Values.subscriptions }}` to render OLM Subscription CRs. **Critical**: `amq-streams` and `amq-broker-rhel8` must be in this list or Industrial Edge components will fail (missing Kafka/ActiveMQArtemis CRDs).
 
-Current spoke components: `namespaces`, `operators`, `servicemeshoperator3`, `observability`, `acs-secured-cluster`, `spoke-dashboards`, `istio-monitoring`, `rhcl-operator`, `kiali`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `industrial-edge-minio`, `industrial-edge-data-science-cluster`, `industrial-edge-data-lake`, `industrial-edge-data-science-project`, `ie-anomaly-alerter`, `spoke-gateway`, `spoke-interconnect`, `devspaces`, `console-links`, `kubecost`.
+Current spoke components: `namespaces`, `operators`, `camel-dashboard-openshift-all` (vendored under `components/camel-dashboard-openshift/`), `servicemeshoperator3`, `observability`, `acs-secured-cluster`, `spoke-dashboards`, `istio-monitoring`, `rhcl-operator`, `kiali`, `industrial-edge-tst`, `industrial-edge-stormshift`, `industrial-edge-pipelines`, `industrial-edge-minio`, `industrial-edge-data-science-cluster`, `industrial-edge-data-lake`, `industrial-edge-data-science-project`, `ie-anomaly-alerter`, `spoke-gateway`, `spoke-interconnect`, `devspaces`, `console-links`, `kubecost`.
+
+### Spoke external Helm charts (optional)
+
+Hub `templates/component-applications.yaml` and spoke `east|west/templates/component-applications.yaml` support optional `repoURL` / `chart` / `targetRevision` on `apps[]` entries (see hub `skupper-network-observer`).
+
+**Prefer vendoring** third-party charts under `components/<wrapper>/` with `charts/*.tgz` committed (see `components/camel-dashboard-openshift/`) when spokes have slow egress or Argo `DeadlineExceeded` on public Helm repos. Re-vendor with `scripts/vendor-camel-dashboard-chart.sh`.
 
 Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`.
 

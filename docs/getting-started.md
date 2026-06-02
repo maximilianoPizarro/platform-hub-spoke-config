@@ -164,11 +164,23 @@ oc annotate applicationset industrial-edge-spoke -n openshift-gitops argocd.argo
 | Spoke app tree | ACM **Applications** or hub Argo CD |
 | Skupper | `oc get listeners,connectors -n service-interconnect` (hub: `sitesInNetwork: 3`) |
 | Industrial Edge | Route `industrial-edge.apps.<spoke-domain>` |
-| Sync order | Spoke apps: wave 1 namespaces → 2 operators → 3 mesh → 5 edge → 6 interconnect |
+| Sync order | Spoke apps: wave 1 namespaces → 2 operators → **3 Camel Dashboard + mesh** → 5 edge → 6 interconnect |
+| Camel Dashboard (spokes) | `oc get application camel-dashboard-openshift-all-east -n openshift-gitops` → Synced/Healthy; `oc get deploy -n camel-dashboard` |
 
 ---
 
 ## Phase 5: Enable features
+
+### Camel Dashboard (east / west spokes)
+
+Deployed from `components/camel-dashboard-openshift` (vendored chart, wave **3**). Not installed on the hub.
+
+1. Confirm parent apps exist on the hub: `east-spoke-components`, `west-spoke-components` (from ApplicationSet `industrial-edge-spoke` after `field-content-acm-hub-spoke` sync).
+2. On each spoke: `camel-dashboard-openshift-all-{east,west}` → **Synced** / **Healthy**.
+3. **Cluster settings → Console** → enable plugin **camel-dashboard-console**.
+4. Camel K `Integration` workloads (Industrial Edge) may not appear until registered as **CamelApp** CRs — see [Troubleshooting](troubleshooting.md).
+
+Upgrade chart version: `./scripts/vendor-camel-dashboard-chart.sh <version>` then commit `charts/*.tgz`.
 
 ### Kiali multi-cluster (hub)
 
