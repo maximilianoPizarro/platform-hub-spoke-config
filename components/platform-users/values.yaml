@@ -5,3 +5,5 @@ defaultPassword: "Welcome123!"
 grantClusterReader: false
 htpasswdSecretName: htpasswd-users
 identityProviderName: htpasswd_users
+# ose-cli lacks htpasswd; httpd image generates bcrypt hashes for OAuth.
+htpasswdImage: registry.access.redhat.com/ubi9/httpd-24:latest

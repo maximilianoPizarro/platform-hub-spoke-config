@@ -139,7 +139,7 @@ spec:
       valuesObject:
         userCount: {{ $.Values.userCount | default 50 }}
         defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
-        grantClusterReader: false
+        grantClusterReader: true
     {{- else if eq .id "kairos" }}
     helm:
       valuesObject:

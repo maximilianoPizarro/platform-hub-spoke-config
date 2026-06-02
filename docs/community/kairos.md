@@ -45,7 +45,10 @@ flowchart TB
 
 ## Kairos Console (screenshots)
 
-Open from the hub: **Application menu → Platform Hub-Spoke → Kairos Console**, or route `https://kairos-console-kairos-system.<hub-apps-domain>`.
+Open from the **hub only**: **Application menu → Platform Hub-Spoke → Kairos Console**, or route `https://kairos-console-kairos-system.<hub-apps-domain>` (for example `cluster-xqg4c` in this workshop — not the east/west apps domain).
+
+{: .warning }
+**Console URL:** Use the hub route for Approvals and writes. Spoke-hosted console routes (leftover installs) may return **404** on approve actions. **Scaling Policies** in the UI list `SmartScalingPolicy` CRs on the **local** cluster only — Git deploys those CRs on **east/west**, not on the hub. **Approvals** and **Change History** may show demo/sample data until the console is wired to the operator API (see [kairos console](https://github.com/maximilianoPizarro/kairos/tree/main/console)).
 
 ![Kairos — AI agents and recommendations]({{ site.baseurl }}/assets/images/kairos-ia-agents.png)
 {: .mb-4 }
