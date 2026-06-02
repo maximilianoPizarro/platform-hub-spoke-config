@@ -229,6 +229,10 @@ oc get consoleplugin | grep -i camel
 
 **Air-gapped spokes:** mirror the Helm repo or chart tgz internally and point `repoURL` / `targetRevision` in spoke `values.yaml`.
 
+**Helm template error (Hawtio disabled):** If Argo reports `index of nil pointer` on `hawtio-online-console-plugin`, ensure spoke `valuesObject` includes stub `plugin.service.port` and `gateway.service.port` (see `east/templates/component-applications.yaml`).
+
+**East spoke `Unknown` apps:** If `east-spoke-components` was removed from the hub, recreate it via ACM `industrial-edge-spoke` ApplicationSet (`field-content-acm-hub-spoke` sync) or re-apply the `camel-dashboard-openshift-all-east` Application from `helm template east/`.
+
 ---
 
 ## Argo CD: where applications live
