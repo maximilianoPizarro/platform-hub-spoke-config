@@ -24,7 +24,7 @@ Do not use 4.21.x charts on OCP 4.20 clusters.
 
 ## Fresh install checklist
 
-1. Hub `field-content-acm-hub-spoke` synced → ApplicationSet `industrial-edge-spoke` creates `{east,west}-spoke-components`.
+1. Hub `field-content-acm-hub-spoke` synced → persistent ApplicationSet `industrial-edge-spoke` creates `{east,west}-spoke-components` (see [GitOps deployment chain](../../docs/gitops-deployment-chain.md)).
 2. Spoke Argo syncs `camel-dashboard-openshift-all-{east,west}`.
 3. **Cluster admin:** enable **Camel Dashboard** under **Administration → Cluster settings → Console**.
 4. Expect **CamelApp** CRs in the dashboard, not Camel K `Integration` workloads (see [Troubleshooting](../../docs/troubleshooting.md)).
