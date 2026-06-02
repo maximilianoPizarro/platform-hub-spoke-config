@@ -120,6 +120,12 @@ spec:
       jsonPointers:
         - /status
     {{- end }}
+    {{- if eq .id "devspaces" }}
+    - group: org.eclipse.che
+      kind: CheCluster
+      jsonPointers:
+        - /status
+    {{- end }}
   {{- $domain := $.Values.deployer.domain | default "apps.cluster.example.com" }}
   {{- $hubDomain := $.Values.clusters.hub.domain | default $domain }}
   source:
