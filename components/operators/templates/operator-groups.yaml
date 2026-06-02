@@ -14,9 +14,8 @@ metadata:
   namespace: openshift-cluster-observability-operator
   annotations:
     argocd.argoproj.io/sync-wave: "0"
-spec:
-  targetNamespaces:
-    - openshift-cluster-observability-operator
+# COO CSV only supports AllNamespaces (not OwnNamespace/SingleNamespace).
+spec: {}
 {{- if ne .Values.clusterRole "hub" }}
 ---
 apiVersion: operators.coreos.com/v1

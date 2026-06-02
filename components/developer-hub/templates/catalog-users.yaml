@@ -8,6 +8,7 @@ metadata:
     rhdh.redhat.com/ext-config-sync: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+    developer-hub.redhat.com/user-count: {{ $count | quote }}
 data:
   users.yaml: |
     ---

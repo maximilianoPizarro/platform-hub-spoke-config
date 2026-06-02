@@ -1,8 +1,10 @@
 {{/*
-  Kairos Community logo (from kairos-operator OLM icon, maximilianoPizarro/kairos).
-  Used for all Platform Hub-Spoke ConsoleLink menu icons for a unified look.
+  Per-component ConsoleLink icon as data:image/svg+xml;base64 (OpenShift ApplicationMenu).
+  Icons live under files/icons/<name>.svg — regenerate with scripts/generate-console-icons.sh
 */}}
-{{- define "console-links.kairosIconURL" -}}
-{{- $svg := .Files.Get "files/kairos-community-icon.svg" | trim -}}
+{{- define "console-links.iconURL" -}}
+{{- $ctx := .root -}}
+{{- $file := .icon -}}
+{{- $svg := $ctx.Files.Get (printf "files/icons/%s" $file) | trim -}}
 data:image/svg+xml;base64,{{ $svg | b64enc }}
 {{- end -}}

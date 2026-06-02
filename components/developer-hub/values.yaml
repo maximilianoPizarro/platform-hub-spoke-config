@@ -28,4 +28,7 @@ plugins:
   quay:
     enabled: true
   acsSecurityInsights:
+    # Package not in RHDH 1.9 dynamic-plugins/dist (enable when image includes it)
+    enabled: false
+  argocd:
     enabled: true

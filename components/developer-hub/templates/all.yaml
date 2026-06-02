@@ -69,6 +69,51 @@ rules:
   - apiGroups: ["networking.k8s.io"]
     resources:
       - ingresses
+      - networkpolicies
+    verbs: [get, list, watch]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - gateways
+      - gatewayclasses
+      - httproutes
+      - grpcroutes
+      - tlsroutes
+      - referencegrants
+      - backendtlspolicies
+    verbs: [get, list, watch]
+  - apiGroups: ["kafka.strimzi.io"]
+    resources:
+      - kafkas
+      - kafkatopics
+      - kafkausers
+      - kafkaconnects
+      - kafkamirrormaker2s
+      - kafkabridges
+      - kafkarebalances
+    verbs: [get, list, watch]
+  - apiGroups: ["operators.coreos.com"]
+    resources:
+      - clusterserviceversions
+      - subscriptions
+      - installplans
+      - operatorgroups
+    verbs: [get, list, watch]
+  - apiGroups: ["packages.operators.coreos.com"]
+    resources:
+      - packagemanifests
+    verbs: [get, list, watch]
+  - apiGroups: ["networking.istio.io", "security.istio.io"]
+    resources:
+      - virtualservices
+      - destinationrules
+      - gateways
+      - serviceentries
+      - authorizationpolicies
+      - peerauthentications
+    verbs: [get, list, watch]
+  - apiGroups: ["sailoperator.io"]
+    resources:
+      - istios
     verbs: [get, list, watch]
   - apiGroups: ["autoscaling"]
     resources:
@@ -183,20 +228,55 @@ data:
         - group: route.openshift.io
           apiVersion: v1
           plural: routes
+        - group: gateway.networking.k8s.io
+          apiVersion: v1
+          plural: gateways
+        - group: gateway.networking.k8s.io
+          apiVersion: v1
+          plural: httproutes
+        - group: gateway.networking.k8s.io
+          apiVersion: v1
+          plural: grpcroutes
+        - group: gateway.networking.k8s.io
+          apiVersion: v1
+          plural: tlsroutes
+        - group: gateway.networking.k8s.io
+          apiVersion: v1
+          plural: gatewayclasses
+        - group: kafka.strimzi.io
+          apiVersion: v1beta2
+          plural: kafkas
+        - group: kafka.strimzi.io
+          apiVersion: v1beta2
+          plural: kafkatopics
+        - group: kafka.strimzi.io
+          apiVersion: v1beta2
+          plural: kafkausers
+        - group: kafka.strimzi.io
+          apiVersion: v1beta2
+          plural: kafkaconnects
+        - group: operators.coreos.com
+          apiVersion: v1alpha1
+          plural: subscriptions
+        - group: argoproj.io
+          apiVersion: v1alpha1
+          plural: applications
     catalog:
       import:
         entityFilename: catalog-info.yaml
+      rules:
+        - allow: [Component, System, API, Resource, Location, Template, User, Group, Domain]
       locations:
         - type: file
-          target: /opt/app-root/src/users.yaml
+          target: /opt/app-root/src/catalog-data/users.yaml
           rules:
             - allow: [User, Group]
         - type: file
-          target: /opt/app-root/src/catalog-ie/industrial-edge-system.yaml
+          target: /opt/app-root/src/catalog-data/ie/industrial-edge-system.yaml
           rules:
             - allow: [System, Domain, Component, API, Resource]
         - type: url
-          target: https://github.com/maximilianopizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/software-templates/templates-catalog.yaml
+          target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
             - allow: [Template, Location]
         - type: url
@@ -230,7 +310,9 @@ data:
               frequency: { minutes: 30 }
               timeout: { minutes: 3 }
     techdocs:
-      builder: external
+      builder: local
+      generator:
+        runIn: local
       publisher:
         type: local
     permission:
@@ -351,12 +433,13 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-topology
         disabled: false
-      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-scaffolder-backend-module-kubernetes-dynamic
+        disabled: false
+      # Kafka/Kuadrant packages not bundled in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka-backend-dynamic
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka
         disabled: true
-      # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-backend-dynamic
         disabled: true
       - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-frontend
@@ -372,17 +455,18 @@ data:
                     importName: EntityTektonPipelinesContent
       # Disabled: package missing in RHDH 1.9 image (npm pack ENOENT)
       - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
-        disabled: true
+        disabled: false
       - package: ./dynamic-plugins/dist/backstage-community-plugin-redhat-argocd
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-quay
         disabled: {{ not (.Values.plugins.quay.enabled | default true) }}
+      # quay-backend-dynamic not in RHDH 1.9 image; frontend quay plugin is sufficient
       - package: ./dynamic-plugins/dist/backstage-community-plugin-quay-backend-dynamic
-        disabled: {{ not (.Values.plugins.quay.enabled | default true) }}
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-plugin-security-insights
-        disabled: {{ not (.Values.plugins.acsSecurityInsights.enabled | default true) }}
+        disabled: {{ not (.Values.plugins.acsSecurityInsights.enabled | default false) }}
         pluginConfig:
           dynamicPlugins:
             frontend:
@@ -434,12 +518,12 @@ spec:
       configMaps:
         - name: developer-hub-catalog-users
           key: users.yaml
-          mountPath: /opt/app-root/src
+          mountPath: /opt/app-root/src/catalog-data
           containers:
             - "*"
         - name: developer-hub-catalog-ie
           key: industrial-edge-system.yaml
-          mountPath: /opt/app-root/src/catalog-ie
+          mountPath: /opt/app-root/src/catalog-data/ie
           containers:
             - "*"
     route:
@@ -449,6 +533,9 @@ spec:
     patch:
       spec:
         template:
+          metadata:
+            annotations:
+              developer-hub.redhat.com/catalog-users: {{ .Values.userCount | default 50 | quote }}
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub

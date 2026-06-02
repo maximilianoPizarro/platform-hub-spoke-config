@@ -1,7 +1,6 @@
 {{- $domain := .Values.clusterDomain -}}
 {{- $hubDomain := .Values.hubClusterDomain | default $domain -}}
 {{- $role := .Values.clusterRole | default "hub" -}}
-{{- $icon := include "console-links.kairosIconURL" . -}}
 ---
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
@@ -11,7 +10,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "industrial-edge.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://industrial-edge.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -25,7 +24,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "grafana.svg") | quote }}
     section: "Platform Hub-Spoke"
   {{- if eq $role "hub" }}
   href: "https://grafana.{{ $hubDomain }}"
@@ -43,7 +42,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "kiali.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kiali-openshift-cluster-observability-operator.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -58,7 +57,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "kairos.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kairos-console-kairos-system.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -72,7 +71,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "acm.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://console-openshift-console.{{ $hubDomain }}/multicloud/infrastructure/clusters"
   location: ApplicationMenu
@@ -86,7 +85,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "acs.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://central-stackrox.{{ $domain }}"
   location: ApplicationMenu
@@ -100,7 +99,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "developer-hub.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://developer-hub.{{ $domain }}"
   location: ApplicationMenu
@@ -114,7 +113,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "gitea.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://gitea-gitea.{{ $domain }}"
   location: ApplicationMenu
@@ -128,7 +127,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "minio.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://minio-console-industrial-edge-ml-workspace.{{ $domain }}"
   location: ApplicationMenu
@@ -142,7 +141,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "mailpit.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://mailpit.{{ $domain }}"
   location: ApplicationMenu
@@ -156,7 +155,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "kafka-console.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kafka-console.{{ $domain }}"
   location: ApplicationMenu
@@ -170,7 +169,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "kubecost.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://kubecost.{{ $hubDomain }}"
   location: ApplicationMenu
@@ -184,7 +183,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "quay.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://quay-registry.{{ $domain }}"
   location: ApplicationMenu
@@ -198,7 +197,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "10"
 spec:
   applicationMenu:
-    imageURL: {{ $icon | quote }}
+    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "skupper.svg") | quote }}
     section: "Platform Hub-Spoke"
   href: "https://field-content-skupper-network-observer-service-interconnect.{{ $domain }}"
   location: ApplicationMenu

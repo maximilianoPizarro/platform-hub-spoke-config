@@ -7,6 +7,9 @@ nav_order: 3
 
 # Kairos Community Operator
 
+![Kairos Community]({{ site.baseurl }}/assets/images/kairos-community-logo.svg)
+{: .mb-2 }
+
 AI-assisted Kubernetes optimization from the **Community Operators** catalog (`kairos-operator` v2.0.1). The platform deploys it on **hub, east, and west** via GitOps (`components/kairos/`).
 
 ## Role in this platform
@@ -20,6 +23,286 @@ AI-assisted Kubernetes optimization from the **Community Operators** catalog (`k
 | Events | `KairosEvent` (optional) |
 
 Industrial Edge software templates create namespaces ending in `-dev`, `-qa`, or `-prod` so environment agents and Kairos scan tiers align with Developer Hub scaffolds.
+
+```mermaid
+flowchart TB
+  subgraph hub [Hub cluster]
+    Console[KairosConsole]
+    HubAgent[hub-agent]
+  end
+  subgraph east [East spoke]
+    SSP1[SmartScalingPolicy sensor-1/2]
+    EastAgent[east-agent]
+    EnvAgents[agent-dev/qa/prod]
+    Sensors[machine-sensor Deployments]
+  end
+  Console -->|hubReporting| EastAgent
+  Console -->|hubReporting| WestAgent[west-agent]
+  SSP1 --> Sensors
+  EnvAgents -->|label kairos.io/managed| Sensors
+  HubAgent --> Console
+```
+
+## Kairos Console (screenshots)
+
+Open from the hub: **Application menu → Platform Hub-Spoke → Kairos Console**, or route `https://kairos-console-kairos-system.<hub-apps-domain>`.
+
+![Kairos — AI agents and recommendations]({{ site.baseurl }}/assets/images/kairos-ia-agents.png)
+{: .mb-4 }
+*Agents and AI-assisted workload analysis.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kairos — observability integration]({{ site.baseurl }}/assets/images/kairos-observability.png)
+{: .mb-4 }
+*Metrics and observability context for scaling decisions.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kairos — scaling history]({{ site.baseurl }}/assets/images/kairos-history.png)
+{: .mb-4 }
+*History of policy evaluations and corrections.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kairos — events]({{ site.baseurl }}/assets/images/kairos-events.png)
+{: .mb-4 }
+*Kairos events stream.*
+{: .fs-2 .text-grey-dk-000 }
+
+![Kairos — human in the loop]({{ site.baseurl }}/assets/images/kairos-human-in-the-loop.png)
+{: .mb-4 }
+*Supervised mode: proposals before apply (qa/prod tiers).*
+{: .fs-2 .text-grey-dk-000 }
+
+---
+
+## How workloads are enrolled (labels vs annotations vs CRs)
+
+Kairos does **not** use a single magic annotation on Deployments for scan policies. There are **three** integration paths:
+
+| Path | Mechanism | What it scales |
+| ---- | --------- | -------------- |
+| **A — Platform sensors** | `SmartScalingPolicy` CR (GitOps on spokes) | Fixed targets `machine-sensor-1/2` in `industrial-edge-tst-all` |
+| **B — Scaffolded IE apps** | Labels on Deployment + pod template | Any deployment in `*-dev`, `*-qa`, `*-prod` with `kairos.io/managed=true` |
+| **C — Catalog / DevHub** | Annotation on `catalog-info.yaml` (metadata) | Documents environment for humans; agents use **labels** on manifests |
+
+### Labels (required for path B)
+
+Set on **Deployment metadata** and **pod template** (both must match):
+
+```yaml
+metadata:
+  labels:
+    kairos.io/managed: "true"
+    kairos.io/environment: dev   # or qa, prod — matches scaffold parameter
+```
+
+`KairosAgent` `agent-dev-environments` watches namespaces ending in `-dev` with `labelSelector: kairos.io/managed=true`. QA and prod agents use `-qa` and `-prod` suffixes.
+
+### Annotations (Developer Hub catalog only)
+
+On the **Component** entity (not on the Deployment) — from the Industrial Edge template skeleton:
+
+```yaml
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: user1-factory-1-east-dev
+  annotations:
+    backstage.io/kubernetes-id: user1-factory-1-east-dev
+    backstage.io/kubernetes-namespace: ie-factory-1-east-dev
+    backstage.io/kubernetes-cluster: east
+    kairos.io/environment: dev
+```
+
+These annotations power **Developer Hub** (Topology, Kubernetes tab, links). They do **not** replace `kairos.io/managed` on the Deployment.
+
+### CRs (platform GitOps)
+
+| CR | Cluster | Purpose |
+| -- | ------- | ------- |
+| `SmartScalingPolicy` | Spokes only | OTel/Prometheus rules on baseline sensors |
+| `KairosAgent` | Hub + spokes | AI analysis and optional corrections |
+| `KairosConsole` | Hub | UI |
+
+See also [Annotations & Labels Reference — Kairos](../annotations-reference.html#kairos-labels-and-catalog-annotations).
+
+---
+
+## SmartScalingPolicy — platform baseline (2 policies) {#smartscalingpolicy-sizing}
+
+On **each spoke**, Git deploys **two** policies (one per baseline sensor). The Kairos Console on the hub may **aggregate** them and show fewer rows if names are identical across clusters — verify on the spoke:
+
+```bash
+oc config use-context east   # or west
+oc get smartscalingpolicy -n kairos-system
+```
+
+Expected:
+
+- `scan-policy-machine-sensor-1` → Deployment `machine-sensor-1` in `industrial-edge-tst-all`
+- `scan-policy-machine-sensor-2` → Deployment `machine-sensor-2` in `industrial-edge-tst-all`
+
+### Full example (as deployed by GitOps)
+
+Source: `components/kairos/templates/sensor-scan-policies.yaml`
+
+```yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: SmartScalingPolicy
+metadata:
+  name: scan-policy-machine-sensor-1
+  namespace: kairos-system
+  labels:
+    kairos.io/policy-type: sensor-scan
+spec:
+  scope: cluster
+  target:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: machine-sensor-1
+    namespace: industrial-edge-tst-all
+  otelEndpoint: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local:4317
+  prometheusEndpoint: prometheus-k8s.openshift-monitoring.svc.cluster.local:9090
+  rules:
+    - name: sensor-cpu-hot
+      when:
+        metric: container_cpu_usage_seconds_total
+        operator: GreaterThan
+        threshold: "70"      # % of limit — tune for workshop load
+        for: 2m
+      action:
+        type: IncreaseResources
+        increaseCPUPercent: 25
+        maxCPU: "1"
+        cooldown: 5m
+    - name: sensor-memory-hot
+      when:
+        metric: container_memory_working_set_bytes
+        operator: GreaterThan
+        threshold: "80"
+        for: 2m
+      action:
+        type: IncreaseResources
+        increaseMemoryPercent: 20
+        maxMemory: 1Gi
+        cooldown: 5m
+  ai:
+    enabled: true
+  paused: false
+```
+
+Duplicate the manifest with `machine-sensor-2` as the target name for the second policy.
+
+### Sizing effort — what to tune
+
+Use this table to **dimension** workshop or production policies (CPU/memory baselines come from the sensor Deployment requests/limits):
+
+| Field | Workshop default | Increase effort when… | Decrease effort when… |
+| ----- | ---------------- | --------------------- | --------------------- |
+| `threshold` (CPU %) | `70` | Sensors stay hot under demo MQTT load | Too many false-positive scale-ups |
+| `threshold` (memory %) | `80` | OOMKills or working set near limit | Memory flat, only CPU spikes |
+| `for` | `2m` | Noisy metrics cause flapping | You need faster reaction to bursts |
+| `increaseCPUPercent` | `25` | Single step too small vs limit | Overshoots node quota |
+| `maxCPU` | `1` | Sensors need >1 core sustained | Cost / quota sensitive |
+| `increaseMemoryPercent` | `20` | Memory pressure after CPU fix | Memory already over-provisioned |
+| `maxMemory` | `1Gi` | Working set grows with message rate | Stay within namespace quota |
+| `cooldown` | `5m` | Repeated bumps in same window | Stuck under-provisioned between cooldowns |
+| `spec.ai.enabled` | `true` | Want LLM rationale in console | Offline/lab without OpenShift AI |
+| `paused` | `false` | Freeze cluster for debugging | — |
+
+**Baseline sensor resources** (scaffolder skeleton — tune together with policy thresholds):
+
+```yaml
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+```
+
+If limits are low, a `70%` CPU rule fires at ~350m; raising limits without raising `maxCPU` in the policy caps how far Kairos can grow.
+
+### Custom SmartScalingPolicy (extra workload)
+
+To monitor another Deployment (e.g. a Camel integration):
+
+```yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: SmartScalingPolicy
+metadata:
+  name: scan-policy-my-integration
+  namespace: kairos-system
+spec:
+  scope: cluster
+  target:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: camel-integration
+    namespace: ie-my-factory-east-qa
+  otelEndpoint: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local:4317
+  prometheusEndpoint: prometheus-k8s.openshift-monitoring.svc.cluster.local:9090
+  rules:
+    - name: cpu-sustain
+      when:
+        metric: container_cpu_usage_seconds_total
+        operator: GreaterThan
+        threshold: "60"
+        for: 5m
+      action:
+        type: IncreaseResources
+        increaseCPUPercent: 15
+        maxCPU: "2"
+        cooldown: 10m
+  ai:
+    enabled: true
+  paused: false
+```
+
+Also add `kairos.io/managed: "true"` if the workload should appear under the **environment agents** (`-qa` suffix above).
+
+---
+
+## KairosAgent tiers (scaffolded namespaces)
+
+Git deploys these agents in `kairos-system`:
+
+| Agent | Namespace suffix | Mode | dryRun | maxActions/hour | Effort |
+| ----- | ---------------- | ---- | ------ | --------------- | ------ |
+| `agent-dev-environments` | `-dev` | autopilot | false | 50 | Highest — auto-apply |
+| `agent-qa-environments` | `-qa` | supervised | false | 20 | Review in console |
+| `agent-prod-environments` | `-prod` | supervised | true | 10 | Safest — dry-run only |
+| `hub-agent` / `east-agent` / `west-agent` | cluster | supervised | true | 10 | Cluster-wide, dry-run on hub |
+
+Example fragment (`components/kairos/templates/kairos-agents.yaml` pattern):
+
+```yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: KairosAgent
+metadata:
+  name: agent-qa-environments
+  namespace: kairos-system
+spec:
+  mode: supervised
+  watch:
+    namespaceSuffix: "-qa"
+    resourceTypes:
+      - Deployment
+      - StatefulSet
+    labelSelector: kairos.io/managed=true
+  correctionPolicy:
+    dryRun: false
+    maxActionsPerHour: 20
+    rollbackOnFailure: true
+  aiModel:
+    apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+    model: granite-31-8b
+    apiKeySecret:
+      name: kairos-ai-credentials
+      key: api-key
+```
+
+---
 
 ## AI model credentials (do not lose on reinstall)
 
@@ -67,30 +350,29 @@ oc get csv -n kairos-system | grep kairos
 oc get kairosagent,smartscalingpolicy -n kairos-system
 ```
 
-Console route: `https://kairos-console-kairos-system.<hub-apps-domain>`
+### Console shows “Kairos Operator — N projects failed”
+
+Usually **not** N broken workloads. OLM marks the CSV as failed in every namespace when:
+
+1. **Two OperatorGroups** exist in `kairos-system` (leftover `operator-sdk-og` from a manual `operator-sdk` run + GitOps `kairos-operator`).
+2. The GitOps OperatorGroup used `spec: {}` (AllNamespaces), so the console lists ~66 namespace rows.
+
+Fix:
+
+```bash
+# Remove manual leftover (hub and spokes)
+oc delete operatorgroup operator-sdk-og -n kairos-system --ignore-not-found
+
+# After Git sync: kairos-operator OG must use targetNamespaces: [kairos-system]
+oc get operatorgroup -n kairos-system
+oc get csv kairos-operator.v2.0.1 -n kairos-system
+```
+
+Controller/console pods can be **Running** while the CSV still shows `Failed` / `TooManyOperatorGroups` until the above is cleaned up.
 
 ## OpenShift Console menu
 
-Hub **ConsoleLink** `platform-kairos-console` opens the Kairos governance UI. All **Platform Hub-Spoke** menu icons use the [Kairos Community logo](https://github.com/maximilianoPizarro/kairos) (`components/console-links/files/kairos-community-icon.svg`). To regenerate via NanoBanana 2 API: `NANOBANANA_API_KEY=... ./scripts/generate-kairos-console-icon.sh`
-
-## Scan policies for machine sensors
-
-On **spokes**, Git deploys `SmartScalingPolicy` resources:
-
-- `scan-policy-machine-sensor-1`
-- `scan-policy-machine-sensor-2`
-
-Targets: `machine-sensor-1` / `machine-sensor-2` in `industrial-edge-tst-all` (platform baseline). AI-assisted rules use CPU/memory thresholds; OTel/Prometheus endpoints match the observability stack.
-
-Scaffolded apps add **labeled** `machine-sensor-*` deployments in namespaces like `ie-factory-1-east-dev`. **KairosAgents** watch:
-
-| Agent | Namespace suffix | Mode |
-| ----- | ---------------- | ---- |
-| `agent-dev-environments` | `-dev` | autopilot |
-| `agent-qa-environments` | `-qa` | supervised |
-| `agent-prod-environments` | `-prod` | supervised (dry-run corrections on hub cluster agent config) |
-
-Label required: `kairos.io/managed=true`
+Hub **ConsoleLink** `platform-kairos-console` opens the Kairos governance UI with the [Kairos Community](https://github.com/maximilianoPizarro/kairos) icon (`components/console-links/files/icons/kairos.svg`). Regenerate menu icons: `NANOBANANA_API_KEY=... ./scripts/generate-console-icons.sh`
 
 ## Developer Hub templates
 

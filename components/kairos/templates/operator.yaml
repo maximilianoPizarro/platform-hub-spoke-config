@@ -12,7 +12,10 @@ metadata:
   namespace: kairos-system
   annotations:
     argocd.argoproj.io/sync-wave: "1"
-spec: {}
+spec:
+  # SingleNamespace — avoids AllNamespaces CSV copies (66× "project failed" in console).
+  targetNamespaces:
+    - kairos-system
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription

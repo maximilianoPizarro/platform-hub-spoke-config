@@ -224,6 +224,8 @@ Always reference with `{{ site.baseurl }}` prefix:
 | `service-interconnect-console-topology-process.png` | `service-interconnect.md` (process topology) |
 | `service-interconnect-console-process.png` | `service-interconnect.md` (process detail) |
 | `service-interconnect-console-metrics.png` | `service-interconnect.md` (built-in metrics) |
+| `kairos-community-logo.svg` | `community/kairos.md` (header logo) |
+| `kairos-ia-agents.png`, `kairos-observability.png`, `kairos-history.png`, `kairos-events.png`, `kairos-human-in-the-loop.png` | `community/kairos.md` (console gallery) |
 | `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
 
 **Operator discovery:** Each `docs/products/*.md` page includes an **Operator discovery** subsection; `products/index.md` has a summary table (annotations vs CRDs).
@@ -252,6 +254,7 @@ When documenting platform-specific topics, include these sections where relevant
 - Kubecost multicluster, federated ETL, MinIO, SCC → `docs/community/kubecost.md`
 - Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
 - Mailpit SMTP testing → `docs/community/mailpit.md`
+- Kairos labels, SmartScalingPolicy, agent tiers, console screenshots → `docs/community/kairos.md`
 - Namespace labels, pod selectors, annotations for feature activation → `docs/annotations-reference.md`
 
 ### Diagram conventions

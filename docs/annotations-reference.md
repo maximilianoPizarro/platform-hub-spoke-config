@@ -123,6 +123,7 @@ Applied on `catalog-info.yaml` entities (static catalog or scaffolder-generated)
 | `backstage.io/source-location` | `url:https://gitea-gitea.../owner/repo` | Links entity to Gitea repository |
 | `quay.io/repository-slug` | `maximilianopizarro/my-app` | Public Quay repo reference for catalog |
 | `argocd/app-name` | `field-content-industrial-edge-tst` | Argo CD application hint (when ArgoCD plugin enabled) |
+| `kairos.io/environment` | `dev`, `qa`, or `prod` | Documents scaffold tier on the catalog entity (see [Kairos](community/kairos.html)) |
 
 **Scaffolder-generated links** (in `metadata.links`, not annotations):
 
@@ -131,6 +132,48 @@ Applied on `catalog-info.yaml` entities (static catalog or scaffolder-generated)
 | Source Code (Gitea) | Repository browser |
 | Documentation | Raw `README.md` on Gitea |
 | Open in DevSpaces | `https://devspaces.<domain>/#<gitea-repo-url>` |
+
+---
+
+## Kairos labels and catalog annotations {#kairos-labels-and-catalog-annotations}
+
+Kairos enrollment uses **labels on workloads** and optional **catalog annotations** on Developer Hub entities. Scan policies use a **CR**, not Deployment annotations.
+
+### Deployment / pod labels (required for environment agents)
+
+| Label | Example | Resource | Effect |
+| ----- | ------- | -------- | ------ |
+| `kairos.io/managed` | `"true"` | `Deployment` metadata **and** pod template | `KairosAgent` with `labelSelector: kairos.io/managed=true` includes the workload |
+| `kairos.io/environment` | `dev`, `qa`, `prod` | `Deployment` metadata **and** pod template | Matches scaffold parameter; pairs with namespace suffix `-dev`, `-qa`, `-prod` |
+
+Source: `docs/assets/backstage/software-templates/industrial-edge/skeleton/manifests/machine-sensor.yaml`
+
+```yaml
+metadata:
+  labels:
+    kairos.io/managed: "true"
+    kairos.io/environment: dev
+spec:
+  template:
+    metadata:
+      labels:
+        kairos.io/managed: "true"
+        kairos.io/environment: dev
+```
+
+### Catalog annotation (Developer Hub only)
+
+| Annotation | Example | Resource | Effect |
+| ---------- | ------- | -------- | ------ |
+| `kairos.io/environment` | `dev` | `Component` in `catalog-info.yaml` | Shown on entity metadata; **does not** enroll the workload without `kairos.io/managed` on Deployments |
+
+### SmartScalingPolicy CR (platform baseline sensors)
+
+Not an annotation — GitOps on **spokes** creates `SmartScalingPolicy` in `kairos-system` targeting `machine-sensor-1` and `machine-sensor-2` in `industrial-edge-tst-all`. See [Kairos — SmartScalingPolicy sizing](community/kairos.html#smartscalingpolicy-sizing).
+
+| CR label | Value | Effect |
+| -------- | ----- | ------ |
+| `kairos.io/policy-type` | `sensor-scan` | Identifies platform scan policies in `components/kairos/templates/sensor-scan-policies.yaml` |
 
 ---
 
@@ -223,6 +266,7 @@ Several products in this platform do **not** use namespace or deployment annotat
 | **Connectivity Link** | `Gateway`, `HTTPRoute`, Kuadrant policy CRs |
 | **Developer Hub** | `Backstage` CR + `app-config-*` ConfigMaps |
 | **Kafka Console** | `Console` CR with `kafkaClusters[]` references |
+| **Kairos** | `kairos.io/managed` label + `KairosAgent` / `SmartScalingPolicy` CRs |
 
 ---
 
