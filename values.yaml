@@ -84,7 +84,7 @@ connectivityLink:
     # Core platform
     - id: platform-users
       enabled: true
-      path: components/platform-users
+      path: platform-users
       destinationNamespace: openshift-gitops
       syncWave: "0"
       prune: true
