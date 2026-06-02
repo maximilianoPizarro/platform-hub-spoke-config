@@ -422,7 +422,9 @@ spec:
       selfHeal: {{ .selfHeal }}
     syncOptions:
       - CreateNamespace=true
+      {{- if ne .path "kairos" }}
       - ServerSideApply=true
+      {{- end }}
       - RespectIgnoreDifferences=true
       {{- if .skipDryRunOnMissingResource }}
       - SkipDryRunOnMissingResource=true

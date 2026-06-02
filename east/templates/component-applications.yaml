@@ -237,7 +237,9 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      {{- if ne .id "kairos" }}
       - ServerSideApply=true
+      {{- end }}
       - RespectIgnoreDifferences=true
       - SkipDryRunOnMissingResource=true
 {{- end }}
