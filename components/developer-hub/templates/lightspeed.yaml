@@ -236,19 +236,4 @@ spec:
                 -p "{\"stringData\":{\"VLLM_API_KEY\":\"${API_KEY}\"}}"
               echo "Synced VLLM_API_KEY from Kairos credentials."
 {{- end }}
----
-{{- if .Values.plugins.rbac.enabled | default false }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: rhdh-rbac-policy
-  namespace: developer-hub
-  labels:
-    rhdh.redhat.com/ext-config-sync: "true"
-  annotations:
-    argocd.argoproj.io/sync-wave: "3"
-data:
-  rbac-policy.csv: |
-{{ .Files.Get "files/lightspeed/rbac-policy.csv" | indent 4 }}
-{{- end }}
 {{- end }}

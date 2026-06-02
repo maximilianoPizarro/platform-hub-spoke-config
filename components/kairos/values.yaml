@@ -21,7 +21,7 @@ aiModel:
 console:
   enabled: true
   name: kairos
-  image: quay.io/maximilianopizarro/kairos-console:v2.0.1-fix1
+  image: quay.io/maximilianopizarro/kairos-console:v2.0.2
 
 # Cluster-local agent (reports to hub console from spokes).
 clusterAgent:

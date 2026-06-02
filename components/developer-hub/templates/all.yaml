@@ -330,7 +330,7 @@ data:
 {{- if include "developer-hub.lightspeedEnabled" . }}
           - lightspeed
 {{- end }}
-{{- if and (.Values.plugins.rbac.enabled | default false) (include "developer-hub.lightspeedEnabled" .) }}
+{{- if .Values.plugins.rbac.enabled | default false }}
         policies-csv-file: /opt/app-root/src/rbac-policy.csv
         policyFileReload: true
 {{- end }}
@@ -647,7 +647,7 @@ spec:
           containers:
             - "*"
 {{- end }}
-{{- if and (.Values.plugins.rbac.enabled | default false) (include "developer-hub.lightspeedEnabled" .) }}
+{{- if .Values.plugins.rbac.enabled | default false }}
         - name: rhdh-rbac-policy
           key: rbac-policy.csv
           mountPath: /opt/app-root/src/rbac-policy.csv
