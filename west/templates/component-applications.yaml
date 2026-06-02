@@ -15,8 +15,7 @@ metadata:
 spec:
   project: {{ $.Values.argocd.project }}
   ignoreDifferences:
-    - group: ""
-      kind: Service
+    - kind: Service
       jsonPointers:
         - /spec/clusterIP
         - /spec/clusterIPs
@@ -30,12 +29,10 @@ spec:
       kind: Deployment
       jsonPointers:
         - /spec/template/metadata/annotations
-    - group: ""
-      kind: Secret
+    - kind: Secret
       jsonPointers:
         - /data
-    - group: ""
-      kind: Namespace
+    - kind: Namespace
       jsonPointers:
         - /metadata/annotations
     - group: kafka.strimzi.io
@@ -99,8 +96,7 @@ spec:
       kind: ConsoleLink
       jsonPointers:
         - /metadata/annotations
-    - group: ""
-      kind: ConfigMap
+    - kind: ConfigMap
       name: kiali-hub-export
       jsonPointers:
         - /data

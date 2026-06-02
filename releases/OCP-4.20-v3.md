@@ -55,4 +55,4 @@ git checkout ocp-420-v3
 # or set Argo CD targetRevision to tag ocp-420-v3
 ```
 
-See [Troubleshooting](troubleshooting.md) for Kafka auth routes, Kiali tokens, Camel registry, and `industrial-edge-tst` Degraded states.
+See [Troubleshooting](../docs/troubleshooting.md) for Kafka auth routes, Kiali tokens, Camel registry, and `industrial-edge-tst` Degraded states.

@@ -14,7 +14,7 @@ Snapshot extending **v3** with **Camel Dashboard** on east and west spokes (Open
 
 - **Camel Dashboard (spokes only):** GitOps via Argo CD app `camel-dashboard-openshift-all-{east,west}`; vendored wrapper `components/camel-dashboard-openshift` (umbrella **4.20.2** in `charts/*.tgz`); namespace `camel-dashboard`; Hawtio plugin disabled by default.
 - **Spoke templates:** `east/` and `west/` charts support external Helm repos (same pattern as hub `skupper-network-observer`).
-- **Console:** Enable the Camel Dashboard plugin under **Cluster settings → Console** after sync (see [Troubleshooting](troubleshooting.md#camel-dashboard-spoke-console-plugin)).
+- **Console:** Enable the Camel Dashboard plugin under **Cluster settings → Console** after sync (see [Troubleshooting](../docs/troubleshooting.md#camel-dashboard-spoke-console-plugin)).
 - **Industrial Edge:** unchanged Camel K `Integration` workloads; dashboard lists `CamelApp` CRs primarily.
 
 ## GitOps entry points
@@ -55,4 +55,4 @@ git checkout ocp-420-v4
 # or set Argo CD targetRevision to tag ocp-420-v4
 ```
 
-See [Troubleshooting](troubleshooting.md) for Camel Dashboard, Kafka auth, Kiali, and IE Degraded states.
+See [Troubleshooting](../docs/troubleshooting.md) for Camel Dashboard, Kafka auth, Kiali, and IE Degraded states.

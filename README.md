@@ -243,10 +243,12 @@ Key doc: [GitOps deployment chain](docs/gitops-deployment-chain.md) — hub Appl
 
 ## Releases (OpenShift 4.20)
 
+Release notes are in [`releases/`](releases/README.md) (not on GitHub Pages).
+
 | Tag | Notes |
 |-----|--------|
-| [`ocp-420-v4`](docs/RELEASE-OCP-4.20-v4.md) | Current — Camel Dashboard on east/west spokes (Helm 4.20.2) |
-| [`ocp-420-v3`](docs/RELEASE-OCP-4.20-v3.md) | Skupper token sync, Kafka/Kiali fixes, Camel K registry, IE route hosts |
+| [`ocp-420-v4`](releases/OCP-4.20-v4.md) | Current — Camel Dashboard on east/west spokes (Helm 4.20.2) |
+| [`ocp-420-v3`](releases/OCP-4.20-v3.md) | Skupper token sync, Kafka/Kiali fixes, Camel K registry, IE route hosts |
 | `ocp-420-v2` | RHDH Topology + Scaffolder |
 | `ocp-420` | Initial OCP 4.20 baseline |
 
