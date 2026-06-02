@@ -273,8 +273,8 @@ data:
           target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
             - allow: [Template, Location]
-        - type: url
-          target: https://github.com/maximilianoPizarro/platform-hub-spoke-config/blob/main/docs/assets/backstage/onboarding/catalog-info.yaml
+        - type: file
+          target: /opt/app-root/src/catalog-data/onboarding/catalog-info.yaml
           rules:
             - allow: [Component]
       providers:
@@ -284,6 +284,10 @@ data:
             kubernetesPluginRef: hub
             url: https://kubernetes.default.svc.cluster.local:443
             skipTLSVerify: true
+            owner: group:platform-engineering
+            schedule:
+              frequency: { minutes: 15 }
+              timeout: { minutes: 10 }
         keycloakOrg:
           default:
             baseUrl: https://sso.{{ .Values.clusterDomain }}
@@ -311,7 +315,25 @@ data:
       publisher:
         type: local
     permission:
-      enabled: false
+      enabled: {{ .Values.plugins.rbac.enabled | default false }}
+      rbac:
+        admin:
+          users:
+            - name: user:default/{{ .Values.plugins.rbac.policyAdminUser | default "platformadmin" }}
+        pluginsWithPermission:
+          - catalog
+          - scaffolder
+          - permission
+          - kubernetes
+          - ocm
+          - techdocs
+{{- if include "developer-hub.lightspeedEnabled" . }}
+          - lightspeed
+{{- end }}
+{{- if .Values.plugins.rbac.enabled | default false }}
+        policies-csv-file: /opt/app-root/src/rbac-policy.csv
+        policyFileReload: true
+{{- end }}
     signInPage: oidc
     proxy:
       endpoints:
@@ -412,15 +434,54 @@ data:
                   kubernetesPluginRef: hub
                   url: https://kubernetes.default.svc.cluster.local:443
                   skipTLSVerify: true
+                  owner: group:platform-engineering
+                  schedule:
+                    frequency: { minutes: 15 }
+                    timeout: { minutes: 10 }
       - package: ./dynamic-plugins/dist/backstage-community-plugin-ocm
         disabled: false
         pluginConfig:
           dynamicPlugins:
             frontend:
               backstage-community.plugin-ocm:
+                appIcons:
+                  - name: ocmIcon
+                    importName: OcmIcon
+                dynamicRoutes:
+                  - path: /ocm
+                    importName: OcmPage
+                    menuItem:
+                      icon: ocmIcon
+                      text: Clusters
                 mountPoints:
+                  - mountPoint: entity.page.overview/context
+                    importName: ClusterContextProvider
                   - mountPoint: entity.page.overview/cards
-                    importName: OcmClusterOverviewCard
+                    importName: ClusterAvailableResourceCard
+                    config:
+                      layout:
+                        gridColumnEnd:
+                          lg: span 4
+                          md: span 6
+                          xs: span 12
+                      if:
+                        allOf:
+                          - isKind: resource
+                          - isType: kubernetes-cluster
+                  - mountPoint: entity.page.overview/cards
+                    importName: ClusterInfoCard
+                    config:
+                      layout:
+                        gridColumnEnd:
+                          lg: span 4
+                          md: span 6
+                          xs: span 12
+                      if:
+                        allOf:
+                          - isKind: resource
+                          - isType: kubernetes-cluster
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-rbac
+        disabled: {{ not (.Values.plugins.rbac.enabled | default false) }}
       - package: ./dynamic-plugins/dist/backstage-plugin-kubernetes-backend-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-kubernetes
@@ -517,6 +578,38 @@ data:
                     importName: EntityAzurePullRequestsContent
                   - mountPoint: entity.page.ci/cards
                     importName: EntityAzurePipelinesContent
+{{- if include "developer-hub.lightspeedEnabled" . }}
+      {{- $lsTag := .Values.plugins.lightspeed.pluginTag | default "bs_1.45.3__1.2.3" }}
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed:{{ $lsTag }}
+        disabled: false
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              red-hat-developer-hub.backstage-plugin-lightspeed:
+                translationResources:
+                  - importName: lightspeedTranslations
+                    module: Alpha
+                    ref: lightspeedTranslationRef
+                dynamicRoutes:
+                  - path: /lightspeed
+                    importName: LightspeedPage
+                mountPoints:
+                  - mountPoint: application/listener
+                    importName: LightspeedFAB
+                  - mountPoint: application/provider
+                    importName: LightspeedDrawerProvider
+                  - mountPoint: application/internal/drawer-state
+                    importName: LightspeedDrawerStateExposer
+                    config:
+                      id: lightspeed
+                  - mountPoint: application/internal/drawer-content
+                    importName: LightspeedChatContainer
+                    config:
+                      id: lightspeed
+                      priority: 100
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-lightspeed-backend:{{ $lsTag }}
+        disabled: false
+{{- end }}
 ---
 apiVersion: rhdh.redhat.com/v1alpha5
 kind: Backstage
@@ -531,6 +624,9 @@ spec:
       configMaps:
         - name: app-config-rhdh
         - name: app-config-auth-rhdh
+{{- if include "developer-hub.lightspeedEnabled" . }}
+        - name: lightspeed-app-config
+{{- end }}
     dynamicPluginsConfigMapName: dynamic-plugins-rhdh
     extraFiles:
       configMaps:
@@ -544,9 +640,29 @@ spec:
           mountPath: /opt/app-root/src/catalog-data/ie
           containers:
             - "*"
+{{- range $path, $_ := .Files.Glob "files/onboarding/**" }}
+        - name: developer-hub-catalog-onboarding
+          key: {{ base $path }}
+          mountPath: /opt/app-root/src/catalog-data/onboarding/{{ base $path }}
+          containers:
+            - "*"
+{{- end }}
+{{- if .Values.plugins.rbac.enabled | default false }}
+        - name: rhdh-rbac-policy
+          key: rbac-policy.csv
+          mountPath: /opt/app-root/src/rbac-policy.csv
+          containers:
+            - "*"
+{{- end }}
     route:
       enabled: true
       host: developer-hub.{{ .Values.clusterDomain }}
+{{- if include "developer-hub.lightspeedEnabled" . }}
+    extraEnvs:
+      secrets:
+        - name: llama-stack-secrets
+        - name: lightspeed-secrets
+{{- end }}
   deployment:
     patch:
       spec:
@@ -560,6 +676,19 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
+{{- if include "developer-hub.lightspeedEnabled" . }}
+            volumes:
+              - name: lightspeed-stack
+                configMap:
+                  name: lightspeed-stack
+              - name: llama-stack-config
+                configMap:
+                  name: llama-stack-config
+              - name: shared-storage
+                emptyDir: {}
+              - name: rag-data-volume
+                emptyDir: {}
+{{- end }}
             initContainers:
               - name: wait-for-postgres
                 image: registry.redhat.io/openshift4/ose-cli:latest
@@ -574,6 +703,21 @@ spec:
                       sleep 5
                     done
                     echo "PostgreSQL timed out — proceeding anyway."
+{{- if include "developer-hub.lightspeedEnabled" . }}
+              - name: init-rag-data
+                image: {{ .Values.plugins.lightspeed.ragContentImage | default "quay.io/redhat-ai-dev/rag-content:release-1.9-lcs" | quote }}
+                command:
+                  - sh
+                  - -c
+                  - |
+                    echo 'Copying RAG data...'
+                    cp -r /rag/vector_db/rhdh_product_docs /data/ && \
+                    cp -r /rag/embeddings_model /data/ && \
+                    echo 'Copy complete.'
+                volumeMounts:
+                  - name: rag-data-volume
+                    mountPath: /data
+{{- end }}
             containers:
               - name: backstage-backend
                 env:
@@ -592,3 +736,34 @@ spec:
                   - secretRef:
                       name: developer-hub-spoke-tokens
                       optional: true
+{{- if include "developer-hub.lightspeedEnabled" . }}
+              - name: llama-stack
+                image: {{ .Values.plugins.lightspeed.llamaStackImage | default "quay.io/redhat-ai-dev/llama-stack:0.1.4" | quote }}
+                envFrom:
+                  - secretRef:
+                      name: llama-stack-secrets
+                volumeMounts:
+                  - name: shared-storage
+                    mountPath: /app-root/.llama
+                  - name: rag-data-volume
+                    mountPath: /rag-content/embeddings_model
+                    subPath: embeddings_model
+                  - name: rag-data-volume
+                    mountPath: /rag-content/vector_db/rhdh_product_docs
+                    subPath: rhdh_product_docs
+                  - name: llama-stack-config
+                    mountPath: /app-root/config/run.yaml
+                    subPath: run.yaml
+              - name: lightspeed-core
+                image: {{ .Values.plugins.lightspeed.lightspeedCoreImage | default "quay.io/lightspeed-core/lightspeed-stack:0.4.0" | quote }}
+                volumeMounts:
+                  - name: lightspeed-stack
+                    mountPath: /app-root/lightspeed-stack.yaml
+                    subPath: lightspeed-stack.yaml
+                  - name: shared-storage
+                    mountPath: /tmp/data/feedback
+                  - name: shared-storage
+                    mountPath: /tmp/data/transcripts
+                  - name: shared-storage
+                    mountPath: /tmp/data/conversations
+{{- end }}

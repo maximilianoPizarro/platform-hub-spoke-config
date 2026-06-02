@@ -277,6 +277,23 @@ spec:
         clusterDomain: {{ $domain }}
         userCount: {{ $.Values.userCount | default 50 }}
         defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
+        aiModel:
+          apiURL: {{ $.Values.kairos.aiModel.apiURL | quote }}
+          model: {{ $.Values.kairos.aiModel.model | quote }}
+        plugins:
+          rbac:
+            enabled: true
+            policyAdminUser: platformadmin
+          lightspeed:
+            enabled: true
+            aiModel:
+              apiURL: {{ $.Values.kairos.aiModel.apiURL | quote }}
+              model: {{ $.Values.kairos.aiModel.model | quote }}
+              credentialsSecretName: {{ $.Values.kairos.aiCredentials.secretName | quote }}
+              credentialsSecretNamespace: kairos-system
+              credentialsSecretKey: {{ $.Values.kairos.aiCredentials.secretKey | quote }}
+          techdocs:
+            enabled: true
         kubernetesSpokes:
           enabled: true
           east:

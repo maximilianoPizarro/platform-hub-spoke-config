@@ -1,0 +1,28 @@
+# Workshop: full read/use for all authenticated Developer Hub users (OIDC / Keycloak).
+# Catalog
+p, role:default/authenticated, catalog-entity, read, allow
+p, role:default/authenticated, catalog.location, read, allow
+p, role:default/authenticated, catalog.location.create, create, allow
+p, role:default/authenticated, catalog.entity.create, create, allow
+# Scaffolder
+p, role:default/authenticated, scaffolder-template, read, allow
+p, role:default/authenticated, scaffolder.task.read, read, allow
+p, role:default/authenticated, scaffolder.task.create, create, allow
+p, role:default/authenticated, scaffolder.action.execute, use, allow
+# Kubernetes + Topology
+p, role:default/authenticated, kubernetes.clusters.read, read, allow
+p, role:default/authenticated, kubernetes.resources.read, read, allow
+p, role:default/authenticated, kubernetes.proxy, use, allow
+# OCM
+p, role:default/authenticated, ocm.entity.read, read, allow
+p, role:default/authenticated, ocm.cluster.read, read, allow
+# ArgoCD
+p, role:default/authenticated, argocd.view.read, read, allow
+# Adoption Insights
+p, role:default/authenticated, adoption-insights.events.read, read, allow
+# TechDocs
+p, role:default/authenticated, techdocs.entity.read, read, allow
+# Lightspeed
+p, role:default/authenticated, lightspeed.chat.read, read, allow
+p, role:default/authenticated, lightspeed.chat.create, create, allow
+p, role:default/authenticated, lightspeed.chat.delete, delete, allow

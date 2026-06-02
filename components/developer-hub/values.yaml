@@ -23,6 +23,9 @@ kubernetesSpokes:
     apiUrl: ""
 # Dynamic plugins — disable if package missing in RHDH image (oc exec ... ls dynamic-plugins/dist)
 plugins:
+  rbac:
+    enabled: true
+    policyAdminUser: platformadmin
   techdocs:
     enabled: true
   quay:
@@ -32,3 +35,15 @@ plugins:
     enabled: false
   argocd:
     enabled: true
+  # Red Hat Developer Lightspeed (LCS + Llama Stack sidecars). Uses same vLLM as Kairos (granite-31-8b).
+  lightspeed:
+    enabled: true
+    pluginTag: "bs_1.45.3__1.2.3"
+    llamaStackImage: "quay.io/redhat-ai-dev/llama-stack:0.1.4"
+    lightspeedCoreImage: "quay.io/lightspeed-core/lightspeed-stack:0.4.0"
+    ragContentImage: "quay.io/redhat-ai-dev/rag-content:release-1.9-lcs"
+    syncApiKeyFromKairos: true
+    vllmTlsVerify: "false"
+    vllmMaxTokens: "4096"
+    # Filled from hub values.kairos via component-applications.yaml
+    aiModel: {}
