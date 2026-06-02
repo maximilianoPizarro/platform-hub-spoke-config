@@ -15,8 +15,7 @@ metadata:
 spec:
   project: {{ $.Values.argocd.project }}
   ignoreDifferences:
-    - group: ""
-      kind: Service
+    - kind: Service
       jsonPointers:
         - /spec/clusterIP
         - /spec/clusterIPs
@@ -33,26 +32,22 @@ spec:
       kind: Deployment
       jsonPointers:
         - /spec/template/metadata/annotations
-    - group: ""
-      kind: Secret
+    - kind: Secret
       jsonPointers:
         - /data
-    - group: ""
-      kind: Secret
+    - kind: Secret
       name: kiali-remote-east
       namespace: openshift-cluster-observability-operator
       jsonPointers:
         - /data
         - /stringData
-    - group: ""
-      kind: Secret
+    - kind: Secret
       name: kiali-remote-west
       namespace: openshift-cluster-observability-operator
       jsonPointers:
         - /data
         - /stringData
-    - group: ""
-      kind: Namespace
+    - kind: Namespace
       jsonPointers:
         - /metadata/annotations
     - group: networking.istio.io
@@ -110,8 +105,7 @@ spec:
       jsonPointers:
         - /metadata/annotations
         - /status
-    - group: ""
-      kind: ConfigMap
+    - kind: ConfigMap
       jsonPointers:
         - /metadata/annotations
     - group: platform.stackrox.io
