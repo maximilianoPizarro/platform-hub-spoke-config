@@ -59,7 +59,7 @@ spec:
   applicationMenu:
     imageURL: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzAwNjZDQyI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTAgMThjLTQuNDEgMC04LTMuNTktOC04czMuNTgtOCA4LTggOCAzLjU5IDggOC0zLjU5IDgtOCA4em0tMS0xMWgxdjZoLTFWOXptMyAwaDFWMTVoLTFWOXoiLz48L3N2Zz4="
     section: "Platform Hub-Spoke"
-  href: "/multicloud/infrastructure/clusters"
+  href: "https://console-openshift-console.{{ $hubDomain }}/multicloud/infrastructure/clusters"
   location: ApplicationMenu
   text: "ACM Clusters"
 ---
