@@ -11,6 +11,15 @@ argocd:
 userCount: 50
 defaultPassword: "Welcome123!"
 
+# Kairos Community operator — AI credentials live in Secret kairos-system/kairos-ai-credentials (not in Git).
+kairos:
+  aiCredentials:
+    secretName: kairos-ai-credentials
+    secretKey: api-key
+  aiModel:
+    apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+    model: granite-31-8b
+
 # Multi-cluster configuration
 clusters:
   hub:
@@ -112,6 +121,14 @@ connectivityLink:
       destinationNamespace: openshift-operators
       syncWave: "0"
       prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: kairos
+      enabled: true
+      path: kairos
+      destinationNamespace: kairos-system
+      syncWave: "3"
+      prune: false
       selfHeal: true
       skipDryRunOnMissingResource: true
     - id: servicemeshoperator3

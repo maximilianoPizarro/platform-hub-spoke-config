@@ -20,6 +20,7 @@ spec:
         - name
         - owner
         - targetCluster
+        - environment
         - clusterDomain
       properties:
         name:
@@ -36,6 +37,12 @@ spec:
           type: string
           enum: [east, west]
           default: east
+        environment:
+          title: Environment (Kairos tier)
+          type: string
+          enum: [dev, qa, prod]
+          enumNames: [Development (-dev), QA (-qa), Production (-prod)]
+          default: dev
         clusterDomain:
           title: Hub apps domain
           type: string
@@ -86,9 +93,10 @@ spec:
         url: ./skeleton
         values:
           name: ${{ parameters.name }}
-          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}"
+          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.environment }}"
           owner: ${{ parameters.owner }}
-          namespace: "${{ parameters.owner }}-apps-${{ parameters.targetCluster }}"
+          environment: ${{ parameters.environment }}
+          namespace: "${{ parameters.owner }}-apps-${{ parameters.targetCluster }}-${{ parameters.environment }}"
           targetCluster: ${{ parameters.targetCluster }}
           clusterDomain: ${{ parameters.clusterDomain }}
           spokeAppsDomain: ${{ parameters.spokeAppsDomain }}
@@ -101,7 +109,7 @@ spec:
       name: Publish to Gitea
       action: publish:github
       input:
-        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}"
+        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
         description: ${{ parameters.name }}
         defaultBranch: main
         repoVisibility: public
@@ -123,12 +131,12 @@ spec:
           apiVersion: argoproj.io/v1alpha1
           kind: Application
           metadata:
-            name: "gen-${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.targetCluster }}"
+            name: "gen-${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
             namespace: openshift-gitops
           spec:
             project: default
             source:
-              repoURL: "https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+              repoURL: "https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
               targetRevision: main
               path: manifests
             destination:
@@ -166,4 +174,4 @@ spec:
         entityRef: ${{ steps['register'].output.entityRef }}
       - title: Open in DevSpaces (Kaoto)
         icon: chat
-        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"

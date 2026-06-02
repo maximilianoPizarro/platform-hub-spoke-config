@@ -12,6 +12,7 @@
   "openshift-cluster-observability-operator"
   "developer-hub"
   "devspaces"
+  "kairos-system"
 }}
 {{- /* RHCL dns-operator: no ambient — CrashLoopBackOff on spokes when meshed */ -}}
 {{- $noMeshNamespaces := list

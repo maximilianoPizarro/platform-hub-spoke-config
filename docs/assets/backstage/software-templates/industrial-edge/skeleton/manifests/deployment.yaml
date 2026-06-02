@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${{ values.uniqueName }}
+  labels:
+    kairos.io/managed: "true"
+    kairos.io/environment: ${{ values.environment }}
   annotations:
     argocd.argoproj.io/sync-wave: "4"
 spec:
@@ -14,6 +17,8 @@ spec:
       labels:
         app: ${{ values.uniqueName }}
         backstage.io/kubernetes-id: ${{ values.uniqueName }}
+        kairos.io/managed: "true"
+        kairos.io/environment: ${{ values.environment }}
     spec:
       containers:
         - name: app

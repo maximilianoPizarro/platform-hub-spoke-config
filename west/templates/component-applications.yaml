@@ -140,6 +140,28 @@ spec:
         userCount: {{ $.Values.userCount | default 50 }}
         defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
         grantClusterReader: false
+    {{- else if eq .id "kairos" }}
+    helm:
+      valuesObject:
+        clusterRole: spoke
+        clusterName: {{ $.Values.clusterName | quote }}
+        clusterDomain: {{ $domain }}
+        aiCredentials:
+          secretName: kairos-ai-credentials
+          secretKey: api-key
+        aiModel:
+          apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
+          model: granite-31-8b
+        console:
+          enabled: false
+        clusterAgent:
+          enabled: true
+          hubReporting:
+            enabled: true
+            endpoint: "https://kairos-console-kairos-system.{{ $hubDomain }}"
+        sensorScanPolicies:
+          enabled: true
+          baselineNamespace: industrial-edge-tst-all
     {{- else if eq .id "operators" }}
     helm:
       valuesObject:

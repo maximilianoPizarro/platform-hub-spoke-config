@@ -69,6 +69,10 @@ apps:
     path: components/operators
     destinationNamespace: openshift-operators
     syncWave: "2"
+  - id: kairos
+    path: components/kairos
+    destinationNamespace: kairos-system
+    syncWave: "3"
   - id: camel-dashboard-openshift-all
     path: components/camel-dashboard-openshift
     destinationNamespace: camel-dashboard

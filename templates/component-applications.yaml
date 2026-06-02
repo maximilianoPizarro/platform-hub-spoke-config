@@ -36,6 +36,12 @@ spec:
       jsonPointers:
         - /data
     - kind: Secret
+      name: kairos-ai-credentials
+      namespace: kairos-system
+      jsonPointers:
+        - /data
+        - /stringData
+    - kind: Secret
       name: kiali-remote-east
       namespace: openshift-cluster-observability-operator
       jsonPointers:
@@ -249,6 +255,22 @@ spec:
         userCount: {{ $.Values.userCount | default 50 }}
         defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
         grantClusterReader: true
+    {{- else if eq .path "kairos" }}
+    helm:
+      valuesObject:
+        clusterRole: hub
+        clusterName: hub
+        clusterDomain: {{ $domain }}
+        aiCredentials: {{ $.Values.kairos.aiCredentials | default dict | toJson }}
+        aiModel: {{ $.Values.kairos.aiModel | default dict | toJson }}
+        console:
+          enabled: true
+        clusterAgent:
+          enabled: true
+          hubReporting:
+            enabled: false
+        sensorScanPolicies:
+          enabled: false
     {{- else if eq .path "developer-hub" }}
     helm:
       valuesObject:

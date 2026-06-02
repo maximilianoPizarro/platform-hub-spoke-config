@@ -21,6 +21,7 @@ spec:
         - name
         - owner
         - targetCluster
+        - environment
         - clusterDomain
       properties:
         name:
@@ -44,6 +45,13 @@ spec:
           type: integer
           default: 2
           enum: [1, 2]
+        environment:
+          title: Environment (Kairos scan policy tier)
+          type: string
+          enum: [dev, qa, prod]
+          enumNames: [Development (-dev), QA (-qa), Production (-prod)]
+          default: dev
+          description: Namespace suffix for Kairos agents and scan policies (e.g. ie-factory-east-dev).
         clusterDomain:
           title: Hub cluster apps domain
           type: string
@@ -74,9 +82,10 @@ spec:
         url: ./skeleton
         values:
           name: ${{ parameters.name }}
-          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}"
+          environment: ${{ parameters.environment }}
+          uniqueName: "${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.environment }}"
           owner: ${{ parameters.owner }}
-          namespace: "ie-${{ parameters.name }}-${{ parameters.targetCluster }}"
+          namespace: "ie-${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
           targetCluster: ${{ parameters.targetCluster }}
           sensorCount: ${{ parameters.sensorCount }}
           clusterDomain: ${{ parameters.clusterDomain }}
@@ -85,8 +94,8 @@ spec:
       name: Publish to Gitea
       action: publish:github
       input:
-        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}"
-        description: "Industrial Edge ${{ parameters.name }} on ${{ parameters.targetCluster }}"
+        repoUrl: "gitea-gitea.${{ parameters.clusterDomain }}?owner=ws-${{ parameters.owner }}&repo=${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
+        description: "Industrial Edge ${{ parameters.name }} (${{ parameters.environment }}) on ${{ parameters.targetCluster }}"
         defaultBranch: main
         repoVisibility: public
     - id: register
@@ -107,12 +116,12 @@ spec:
           apiVersion: argoproj.io/v1alpha1
           kind: Application
           metadata:
-            name: "gen-${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.targetCluster }}"
+            name: "gen-${{ parameters.owner }}-${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
             namespace: openshift-gitops
           spec:
             project: default
             source:
-              repoURL: "https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+              repoURL: "https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
               targetRevision: main
               path: manifests
             destination:
@@ -137,7 +146,7 @@ spec:
             type: entity
             entityRef: "user:default/${{ parameters.owner }}"
           payload:
-            title: "Industrial Edge '${{ parameters.name }}' deployed on ${{ parameters.targetCluster }}"
+            title: "Industrial Edge '${{ parameters.name }}' (${{ parameters.environment }}) on ${{ parameters.targetCluster }}"
             description: "Your IoT edge instance is deploying via ArgoCD."
             link: ${{ steps['register'].output.entityRef }}
             severity: normal
@@ -150,4 +159,4 @@ spec:
         entityRef: ${{ steps['register'].output.entityRef }}
       - title: Open in DevSpaces
         icon: chat
-        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}"
+        url: "https://devspaces.${{ parameters.spokeAppsDomain }}/#https://gitea-gitea.${{ parameters.clusterDomain }}/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}"
