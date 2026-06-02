@@ -74,59 +74,69 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
 data:
   setup.py: |
-    import base64, json, os, sys, time
-    import requests
-
+    import base64, json, os, ssl, sys, time, urllib.error, urllib.parse, urllib.request
     base = "https://" + os.environ["QUAY_HOST"]
-    org = os.environ["QUAY_ORG"]
-    robot = os.environ["ROBOT_NAME"]
-    user = os.environ["QUAY_ADMIN_USER"]
-    password = os.environ["QUAY_ADMIN_PASSWORD"]
-    session = requests.Session()
-    session.verify = False
-
+    org, robot = os.environ["QUAY_ORG"], os.environ["ROBOT_NAME"]
+    user, password = os.environ["QUAY_ADMIN_USER"], os.environ["QUAY_ADMIN_PASSWORD"]
+    ctx = ssl.create_default_context()
+    ctx.check_hostname, ctx.verify_mode = False, ssl.CERT_NONE
+    def call(method, path, headers=None, data=None, json_body=None):
+        url = base + "/api/v1" + path
+        hdrs = dict(headers or {})
+        body = None
+        if json_body is not None:
+            body = json.dumps(json_body).encode()
+            hdrs["Content-Type"] = "application/json"
+        elif data is not None:
+            body = urllib.parse.urlencode(data).encode()
+            hdrs["Content-Type"] = "application/x-www-form-urlencoded"
+        req = urllib.request.Request(url, data=body, headers=hdrs, method=method)
+        with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+            raw = resp.read()
+            return resp.status, json.loads(raw) if raw else {}
     for _ in range(90):
         try:
-            if session.get(base + "/api/v1/version", timeout=10).ok:
+            if 200 <= call("GET", "/version")[0] < 300:
                 break
-        except requests.RequestException:
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
             pass
         time.sleep(10)
     else:
-        print("Quay API not ready", file=sys.stderr)
-        sys.exit(1)
-
-    def api(method, path, **kwargs):
-        return session.request(method, base + "/api/v1" + path, timeout=60, **kwargs)
-
+        print("Quay API not ready", file=sys.stderr); sys.exit(1)
     token = None
-    r = api("POST", "/signin", data={"username": user, "password": password})
-    if r.ok:
-        token = r.json().get("access_token")
+    try:
+        st, body = call("POST", "/signin", data={"username": user, "password": password})
+        if 200 <= st < 300:
+            token = body.get("access_token")
+    except urllib.error.HTTPError:
+        pass
     if not token:
-        r = api("GET", "/user/initialize")
-        if r.status_code == 404:
-            r = api("POST", "/user/initialize", json={
-                "username": user, "password": password,
-                "email": user + "@quay.local", "access_token": True,
-            })
-        if r.ok:
-            token = r.json().get("access_token")
+        try:
+            st, _ = call("GET", "/user/initialize")
+            if st == 404:
+                st, body = call("POST", "/user/initialize", json_body={
+                    "username": user, "password": password,
+                    "email": user + "@quay.local", "access_token": True})
+                if 200 <= st < 300:
+                    token = body.get("access_token")
+        except urllib.error.HTTPError as e:
+            print("initialize:", e.code, file=sys.stderr); sys.exit(1)
     if not token:
-        print("Failed to obtain Quay API token", file=sys.stderr)
-        sys.exit(1)
-
-    headers = {"Authorization": "Bearer " + token}
-    api("POST", "/organization/", headers=headers, json={"name": org})
-    r = api("PUT", "/organization/" + org + "/robots/" + robot, headers=headers)
-    if not r.ok:
-        print("create robot:", r.status_code, r.text, file=sys.stderr)
-        sys.exit(1)
-    robot_user = r.json().get("name") or (org + "+" + robot)
-    robot_token = r.json().get("token")
-    auth = base64.b64encode((robot_user + ":" + robot_token).encode()).decode()
-    host = os.environ["QUAY_HOST"]
-    print(json.dumps({"auths": {host: {"auth": auth, "email": robot_user + "@quay.local"}}}))
+        print("Failed to obtain Quay API token", file=sys.stderr); sys.exit(1)
+    hdrs = {"Authorization": "Bearer " + token}
+    try:
+        call("POST", "/organization/", headers=hdrs, json_body={"name": org})
+    except urllib.error.HTTPError:
+        pass
+    try:
+        st, body = call("PUT", "/organization/" + org + "/robots/" + robot, headers=hdrs)
+    except urllib.error.HTTPError as e:
+        print("create robot:", e.code, file=sys.stderr); sys.exit(1)
+    if not (200 <= st < 300):
+        print("create robot:", st, body, file=sys.stderr); sys.exit(1)
+    robot_user = body.get("name") or (org + "+" + robot)
+    auth = base64.b64encode((robot_user + ":" + body.get("token")).encode()).decode()
+    print(json.dumps({"auths": {os.environ["QUAY_HOST"]: {"auth": auth, "email": robot_user + "@quay.local"}}}))
 ---
 apiVersion: batch/v1
 kind: Job
@@ -165,7 +175,6 @@ spec:
             - -ec
             - |
               set -euo pipefail
-              microdnf install -y python3 python3-requests >/dev/null 2>&1 || yum install -y python3-requests >/dev/null 2>&1
               DOCKERCFG=$(python3 /scripts/setup.py)
               apply_secret() {
                 NS="$1"
