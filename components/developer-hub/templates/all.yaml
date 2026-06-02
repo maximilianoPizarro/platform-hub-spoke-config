@@ -556,6 +556,9 @@ spec:
   deployment:
     patch:
       spec:
+        replicas: 1
+        strategy:
+          type: Recreate
         template:
           metadata:
             annotations:
