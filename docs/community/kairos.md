@@ -10,7 +10,7 @@ nav_order: 3
 ![Kairos Community]({{ site.baseurl }}/assets/images/kairos-community-logo.svg)
 {: .page-brand-logo }
 
-AI-assisted Kubernetes optimization from the **Community Operators** catalog (`kairos-operator` v2.0.1). The platform deploys it on **hub, east, and west** via GitOps (`components/kairos/`).
+AI-assisted Kubernetes optimization from the **Community Operators** catalog (`kairos-operator` v2.0.1 CSV; console image **v2.0.3**). The platform deploys it on **hub, east, and west** via GitOps (`components/kairos/`).
 
 ## Role in this platform
 
@@ -48,7 +48,7 @@ flowchart TB
 Open from the **hub only**: **Application menu → Platform Hub-Spoke → Kairos Console**, or route `https://kairos-console-kairos-system.<hub-apps-domain>` (for example `cluster-xqg4c` in this workshop — not the east/west apps domain).
 
 {: .warning }
-**Console URL:** Use the hub route for Approvals and writes. Spoke-hosted console routes (leftover installs) may return **404** on approve actions. **Scaling Policies** in the UI list `SmartScalingPolicy` CRs on the **local** cluster only — Git deploys those CRs on **east/west**, not on the hub. **Approvals** and **Change History** may show demo/sample data until the console is wired to the operator API (see [kairos console](https://github.com/maximilianoPizarro/kairos/tree/main/console)).
+**Console URL:** Use the **hub** route for Approvals and writes. Spoke-hosted console routes (leftover `KairosConsole` installs) may return **404** on approve actions. **Scaling Policies** (console **v2.0.2+**) lists `SmartScalingPolicy` CRs on the cluster where the console pod runs: on the hub, Git deploys **paused mirror** policies (`displayOnHub: true`) so east/west sensor policies appear with `kairos.io/display-cluster` labels; enforcement remains on the spokes. **Approvals** and **Change History** may still show demo/sample data until wired to the operator API (see [kairos console](https://github.com/maximilianoPizarro/kairos/tree/main/console)).
 
 ![Kairos — AI agents and recommendations]({{ site.baseurl }}/assets/images/kairos-ia-agents.png)
 {: .mb-4 }
@@ -130,19 +130,33 @@ See also [Annotations & Labels Reference — Kairos](../annotations-reference.ht
 
 ---
 
-## SmartScalingPolicy — platform baseline (2 policies) {#smartscalingpolicy-sizing}
+## SmartScalingPolicy — platform baseline (2 policies per spoke) {#smartscalingpolicy-sizing}
 
-On **each spoke**, Git deploys **two** policies (one per baseline sensor). The Kairos Console on the hub may **aggregate** them and show fewer rows if names are identical across clusters — verify on the spoke:
+On **each spoke**, Git deploys **two** active policies (one per baseline sensor). On the **hub**, when `sensorScanPolicies.displayOnHub` is true, Git also deploys **four paused mirrors** (`east-scan-policy-machine-sensor-*`, `west-scan-policy-machine-sensor-*`) so the hub **Kairos Console** Scaling Policies tab lists all spokes without federating the API.
+
+| Cluster | CR names (examples) | `spec.paused` | Enforces scaling |
+| ------- | ------------------- | ------------- | ---------------- |
+| East / West | `scan-policy-machine-sensor-1/2` | `false` | Yes |
+| Hub (display only) | `east-scan-policy-machine-sensor-1`, … | `true` | No — UI only |
+
+Verify on spokes:
 
 ```bash
 oc config use-context east   # or west
 oc get smartscalingpolicy -n kairos-system
 ```
 
-Expected:
+Expected on spokes:
 
 - `scan-policy-machine-sensor-1` → Deployment `machine-sensor-1` in `industrial-edge-tst-all`
 - `scan-policy-machine-sensor-2` → Deployment `machine-sensor-2` in `industrial-edge-tst-all`
+
+Verify hub mirrors (console pod reads these via in-cluster API; console SA needs `smartscalingpolicies` list/watch — `templates/console-rbac.yaml`):
+
+```bash
+oc config use-context hub
+oc get smartscalingpolicy -n kairos-system -l kairos.io/policy-type=sensor-scan
+```
 
 ### Full example (as deployed by GitOps)
 

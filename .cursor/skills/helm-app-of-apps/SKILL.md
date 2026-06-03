@@ -595,3 +595,20 @@ The `servicemeshoperator3` component creates Istio waypoint `Gateway` resources 
 ```
 
 Pass `clusterRole: hub` from the hub's `component-applications.yaml` to `servicemeshoperator3`. Spoke charts pass `clusterRole: spoke` via their catch-all valuesObject.
+
+## Kairos component (`components/kairos/`)
+
+Same chart, different `values.yaml` per cluster role:
+
+| Value | Hub | Spoke |
+| ----- | --- | ----- |
+| `clusterRole` | `hub` | `spoke` (or east/west name) |
+| `console.enabled` | `true` | `false` |
+| `sensorScanPolicies.enabled` | `true` (hub app sets explicitly) | `true` |
+| `sensorScanPolicies.displayOnHub` | `true` — renders `hub-spoke-policy-display.yaml` | N/A |
+
+Hub `component-applications.yaml` block for `field-content-kairos` should pass `displayOnHub: true` and pin `console.image` tag (e.g. `v2.0.3`).
+
+**Argo:** Kairos Applications may omit `ServerSideApply` to avoid operator SSA conflicts — see existing `component-applications.yaml` conditional.
+
+See **kairos-hub-spoke** skill for console RBAC, mirror SSP, and release tagging.

@@ -16,15 +16,20 @@ Red Hat **Developer Hub** (RHDH) is the enterprise distribution of [Backstage](h
 
 | Plugin | Tab / area | Purpose |
 | ------ | ---------- | ------- |
-| **OCM** | Overview cards | Managed cluster health (east/west) |
+| **OCM** | **Clusters** menu, `/ocm` | Managed cluster health (east/west) |
 | **Kubernetes** | Kubernetes | Pods, deployments, events per cluster |
 | **Topology** | Topology | Workload graph (requires `kubernetes-cluster` annotation) |
 | **Tekton** | CI | PipelineRuns (`janus-idp.io/tekton` annotation) |
-| **Scaffolder** | Create | Software templates from GitHub Pages |
+| **Scaffolder** | Create | Software templates (GitHub `blob` catalog URL) |
 | **Notifications** | Bell icon | In-app alerts after scaffold/delete |
+| **TechDocs** | Docs | Onboarding mkdocs mounted in-pod (`catalog-onboarding.yaml`) |
+| **Argo CD** | Argo CD | Read-only app view when `plugins.argocd.enabled` |
+| **Adoption Insights** | Insights | Events read (RBAC CSV) |
+| **Lightspeed** | `/lightspeed` | Granite vLLM via Llama Stack + LCS sidecars (same model as Kairos) |
+| **RBAC** | Permission framework | CSV at `files/lightspeed/rbac-policy.csv` — **not** tied to Lightspeed enable |
 | **Keycloak catalog** | Users/Groups | Sync from Keycloak `backstage` realm |
 
-Disabled in RHDH 1.9 (ENOENT in image): ArgoCD, Kafka, Kuadrant, TechDocs (no pre-built docs).
+Disabled or optional: Kafka, Kuadrant, ACS security-insights (package missing in RHDH 1.9 image).
 
 ## Authentication (Keycloak OIDC)
 
@@ -167,11 +172,23 @@ Gitea route: `https://gitea-gitea.<hub-apps-domain>`. Integration token: `GITEA_
 
 Route: `https://developer-hub.<hub-apps-domain>`
 
+## RBAC and Lightspeed (workshop)
+
+With `plugins.rbac.enabled: true`, Backstage uses **deny-by-default**. The platform mounts `rbac-policy.csv` for all authenticated users (catalog, scaffolder, kubernetes, ocm, argocd, adoption-insights, techdocs, lightspeed). Admin policy user: `platformadmin`.
+
+**Lightspeed** (`plugins.lightspeed.enabled`): OCI plugins `bs_1.45.3__1.2.3`, sidecars for Llama Stack + LCS, vLLM model aligned with Kairos (`granite-31-8b`). API key can sync from `kairos-system/kairos-ai-credentials` when `syncApiKeyFromKairos: true`.
+
+**TechDocs:** onboarding entity uses `backstage.io/techdocs-ref: dir:.` with mkdocs under `files/onboarding/` (in-cluster builder — not GitHub Pages fetch).
+
+Rollout DevHub after Git merge: sync Argo app `field-content-developer-hub` on the hub.
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Action |
 | ------- | ------------- | ------ |
-| No templates / empty catalog | Permissions or mount paths | `permission.enabled: false` for demo; fix `extraFiles` mountPath; sync ArgoCD |
+| `/ocm` 404 or “permission denied” | RBAC on; CSV missing OCM rules | Ensure `rbac-policy.csv` includes `ocm.*`; sync `rhdh-rbac-policy` ConfigMap |
+| Topology / Adoption Insights denied | Same | Add `kubernetes.*`, `adoption-insights.*` to CSV (see skill) |
+| No templates / empty catalog | Permissions or mount paths | Fix CSV + `extraFiles` mountPath; sync ArgoCD |
 | `No integration found` for github.io | Missing integration host | Add `maximilianopizarro.github.io` under `integrations.github` |
 | Topology shows hub only | Missing cluster annotation | Set `backstage.io/kubernetes-cluster: east\|west` |
 | K8s plugin TLS errors | Self-signed API certs | `skipTLSVerify` + `NODE_TLS_REJECT_UNAUTHORIZED=0` |

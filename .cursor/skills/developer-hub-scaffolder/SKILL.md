@@ -268,9 +268,43 @@ Tekton: use `tekton.dev/v1` Pipeline with `taskRef.kind: ClusterTask` (git-clone
 
 Requires notifications plugins enabled. No Mailpit/email processor in this platform — in-app only.
 
-## Permission framework
+## Permission framework (workshop default: RBAC on)
 
-For demos, `permission.enabled: false` in app-config avoids empty catalog for non-admin users. Re-enable for production RBAC.
+`plugins.rbac.enabled: true` in `values.yaml` sets `permission.enabled: true` and mounts **`files/lightspeed/rbac-policy.csv`** via `templates/rbac-policy.yaml`. The CSV is **decoupled from Lightspeed** — do not gate the ConfigMap on `lightspeedEnabled`.
+
+Grant `role:default/authenticated` at minimum:
+
+| Area | Permission names |
+| ---- | ------------------ |
+| Catalog / scaffolder | `catalog-entity`, `catalog.location`, `scaffolder-*` |
+| Kubernetes / Topology | `kubernetes.clusters.read`, `kubernetes.resources.read`, `kubernetes.proxy` |
+| OCM | `ocm.entity.read`, `ocm.cluster.read` — required for `/ocm` and **Clusters** menu |
+| Argo CD | `argocd.view.read` |
+| Adoption Insights | `adoption-insights.events.read` |
+| TechDocs | `techdocs.entity.read` |
+| Lightspeed | `lightspeed.chat.*` |
+
+`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, and `lightspeed` when enabled.
+
+For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off (empty catalog risk remains if partial CSV).
+
+## Lightspeed (Granite, same stack as Kairos)
+
+- Enable: `plugins.lightspeed.enabled: true`, OCI tag `bs_1.45.3__1.2.3`
+- Sidecars: `llama-stack`, `lightspeed-core`, optional `rag-content`
+- vLLM: `developer-hub.lightspeedAiModel` helper — hub `component-applications.yaml` passes Kairos `aiModel` URL/model
+- Routes: `/lightspeed` page + FAB; secrets `lightspeed-secrets`, ConfigMaps `lightspeed-stack`, `lightspeed-app-config`
+- Optional: `syncApiKeyFromKairos` Job copies `kairos-ai-credentials` API key
+
+## TechDocs (in-pod, not GitHub Pages)
+
+- `plugins.techdocs.enabled: true` with local builder/publisher in app-config
+- `templates/catalog-onboarding.yaml` + `files/onboarding/` (mkdocs, `techdocs-ref: dir:.`)
+- Do **not** rely on `FetchUrlReader` to github.io for workshop onboarding — that caused `readTree` errors
+
+## OCM plugin routes
+
+Dynamic plugin config registers **`/ocm`** and sidebar **Clusters** (`OcmPage`). Backend needs `catalog.providers.ocm` under `catalog:` (YAML indent trap) and ClusterRole `backstage-ocm-plugin` for `ManagedCluster`.
 
 ## Mesh exclusions affecting Developer Hub views
 
@@ -303,7 +337,9 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 | Topology/Kubernetes tabs disappear after plugin edits | Remove custom topology mount override; keep default dynamic plugin wiring |
 | `ENOENT` SA token | `automountServiceAccountToken: true` |
 | Self-signed cert in K8s plugin | `NODE_TLS_REJECT_UNAUTHORIZED=0` + skipTLSVerify |
-| TechDocs `FetchUrlReader does not implement readTree` | Disable techdocs plugins or use local builder with pre-generated docs |
+| TechDocs `FetchUrlReader does not implement readTree` | Use in-pod mkdocs (`catalog-onboarding.yaml`, `dir:.`) not remote github.io tree |
+| `/ocm` 404 or permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy` |
+| Lightspeed works but catalog empty | CSV only had `lightspeed.*`; expand full workshop CSV |
 | Scaffolder 503 on industrial-edge URL | Spoke gateway / mesh — see mesh exclusions above |
 | `publish:github` fails: `user redirect does not exist [name: ws-<owner>]` | Ensure Gitea bootstrap created org/user; hook job must be recreatable (`BeforeHookCreation,HookSucceeded,HookFailed`) |
 
@@ -321,4 +357,4 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 
 ## Tag / release
 
-Platform snapshot tag: **`ocp-420`** — scaffolder enhancement + multi-cluster topology baseline.
+Platform snapshot tags: **`ocp-420-v4`** (Camel Dashboard spokes), **`ocp-420-v5`** (Developer Hub RBAC/Lightspeed/TechDocs, Kairos hub policy mirrors, console **v2.0.3**). Pin Argo `targetRevision` to the tag for reproducible workshops.

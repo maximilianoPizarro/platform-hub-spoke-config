@@ -224,7 +224,7 @@ Always reference with `{{ site.baseurl }}` prefix:
 | `service-interconnect-console-topology-process.png` | `service-interconnect.md` (process topology) |
 | `service-interconnect-console-process.png` | `service-interconnect.md` (process detail) |
 | `service-interconnect-console-metrics.png` | `service-interconnect.md` (built-in metrics) |
-| `kairos-community-logo.svg` | `community/kairos.md` (header logo) |
+| `kairos-community-logo.svg` | `community/kairos.md` (header logo — use `{: .page-brand-logo }` so `custom.css` caps at 48px; lightbox excludes this class in `head_custom.html`) |
 | `kairos-ia-agents.png`, `kairos-observability.png`, `kairos-history.png`, `kairos-events.png`, `kairos-human-in-the-loop.png` | `community/kairos.md` (console gallery) |
 | `ACM.png`, `product-argocd-openshift-gitops.png`, `product-developer-hub.png`, … | respective product pages |
 
@@ -254,7 +254,8 @@ When documenting platform-specific topics, include these sections where relevant
 - Kubecost multicluster, federated ETL, MinIO, SCC → `docs/community/kubecost.md`
 - Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
 - Mailpit SMTP testing → `docs/community/mailpit.md`
-- Kairos labels, SmartScalingPolicy, agent tiers, console screenshots → `docs/community/kairos.md`
+- Kairos labels, SmartScalingPolicy, hub mirror policies, console v2.0.3, agent tiers → `docs/community/kairos.md` (skill: **kairos-hub-spoke**)
+- Developer Hub RBAC CSV, Lightspeed, OCM `/ocm`, in-pod TechDocs → `docs/products/developer-hub.md`
 - Namespace labels, pod selectors, annotations for feature activation → `docs/annotations-reference.md`
 
 ### Diagram conventions
