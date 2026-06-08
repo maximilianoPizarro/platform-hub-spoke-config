@@ -42,6 +42,8 @@ p, role:default/authenticated, kuadrant.planpolicy.list, read, allow
 p, role:default/authenticated, kuadrant.planpolicy.read.all, read, allow
 # Platform Admin — explicit full access (supplements policyAdminUser bypass)
 g, user:default/platformadmin, role:default/admin
+# Admin inherits all authenticated permissions (role inheritance)
+g, role:default/admin, role:default/authenticated
 p, role:default/admin, policy-entity, read, allow
 p, role:default/admin, policy-entity, create, allow
 p, role:default/admin, policy-entity, update, allow
