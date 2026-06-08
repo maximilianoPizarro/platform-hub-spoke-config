@@ -305,7 +305,7 @@ spec:
           argocd:
             enabled: true
           kafka:
-            enabled: true
+            enabled: false
           notificationsEmail:
             enabled: true
           techRadar:

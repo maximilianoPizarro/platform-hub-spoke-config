@@ -628,7 +628,7 @@ data:
       {{- $mcpTag := .Values.plugins.mcp.pluginTag | default "bs_1.45.3__0.1.5" }}
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-plugin-mcp-actions-backend:{{ $mcpTag }}
         disabled: false
-      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-software-catalog-mcp-tool:{{ .Values.plugins.mcp.catalogToolTag | default "bs_1.45.3__0.2.3" }}
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-software-catalog-mcp-tool:{{ .Values.plugins.mcp.catalogToolTag | default "bs_1.45.3__0.4.1" }}
         disabled: false
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-techdocs-mcp-tool:{{ .Values.plugins.mcp.techdocsToolTag | default "bs_1.45.3__0.3.2" }}
         disabled: false

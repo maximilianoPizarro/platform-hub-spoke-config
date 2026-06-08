@@ -111,7 +111,7 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 | `backstage-plugin-techdocs` | enabled (`plugins.techdocs.enabled`) | Docs tab (local builder/publisher) |
 | `@kuadrant/kuadrant-backstage-plugin-*` | enabled (`plugins.kuadrant.enabled`) | Kuadrant page `/kuadrant` — external npm |
 | `roadiehq-backstage-plugin-argo-cd-backend-dynamic` | enabled (`plugins.argocd.enabled`) | Argo CD entity tab |
-| `backstage-community-plugin-kafka` | enabled (`plugins.kafka.enabled`) | Kafka entity tab |
+| `backstage-community-plugin-kafka` | **disabled** (`plugins.kafka.enabled: false`) | Not in RHDH 1.9 image; no ghcr.io OCI |
 | `backstage-community-plugin-quay` | enabled (`plugins.quay.enabled`) | Quay entity tab |
 | kiali, grafana, tech-insights | disabled | Not in RHDH 1.9 image or ghcr.io overlays |
 | `quay-backend-dynamic`, `security-insights` | disabled | ENOENT in RHDH 1.9 image |

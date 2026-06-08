@@ -33,7 +33,7 @@ plugins:
   mcp:
     enabled: true
     pluginTag: "bs_1.45.3__0.1.5"
-    catalogToolTag: "bs_1.45.3__0.2.3"
+    catalogToolTag: "bs_1.45.3__0.4.1"
     techdocsToolTag: "bs_1.45.3__0.3.2"
   # Not in RHDH 1.9 bundled image or ghcr.io export overlays — enable when OCI packages exist
   kiali:
@@ -51,7 +51,7 @@ plugins:
   kuadrant:
     enabled: true
   kafka:
-    enabled: true
+    enabled: false
   notificationsEmail:
     enabled: true
   # Red Hat Developer Lightspeed (LCS + Llama Stack sidecars). Uses same vLLM as Kairos (granite-31-8b).
