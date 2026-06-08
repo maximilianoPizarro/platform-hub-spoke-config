@@ -18,6 +18,9 @@ spec:
     metrics:
       enableMetrics: true
   config:
+    extensions:
+      bearertokenauth:
+        filename: "/var/run/secrets/kubernetes.io/serviceaccount/token"
     receivers:
       otlp:
         protocols:
@@ -34,12 +37,16 @@ spec:
         spike_limit_percentage: 30
     exporters:
       otlp:
-        endpoint: "tempo-simplest-distributor.distributed-tracing.svc:4317"
-        tls:
-          insecure: true
+        endpoint: "tempo-simplest-gateway.distributed-tracing.svc:8090"
+        auth:
+          authenticator: bearertokenauth
         headers:
           x-scope-orgid: platform
+        tls:
+          ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
+          insecure_skip_verify: true
     service:
+      extensions: [bearertokenauth]
       pipelines:
         traces:
           receivers: [otlp]
