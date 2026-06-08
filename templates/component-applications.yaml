@@ -291,7 +291,7 @@ spec:
             enabled: true
             policyAdminUser: platformadmin
           lightspeed:
-            enabled: true
+            enabled: false
             aiModel:
               apiURL: {{ $.Values.kairos.aiModel.apiURL | quote }}
               model: {{ $.Values.kairos.aiModel.model | quote }}
