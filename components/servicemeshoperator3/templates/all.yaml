@@ -95,7 +95,7 @@ spec:
   tracing:
     - providers:
         - name: otel-tracing
-      randomSamplingPercentage: 1
+      randomSamplingPercentage: 100
   {{- end }}
 {{- /*
   Ambient labels are applied AFTER Istio, IstioCNI, and ZTunnel CRs (wave 1)
