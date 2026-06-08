@@ -122,7 +122,4 @@ spec:
               echo "Patched ${OIDC_SECRET} with new GITEA_TOKEN."
 
               oc rollout restart "deployment/${RHDH_DEPLOYMENT}" -n "${RHDH_NAMESPACE}"
-              echo "Restarted ${RHDH_DEPLOYMENT}; waiting for rollout (up to 300s)..."
-              oc rollout status "deployment/${RHDH_DEPLOYMENT}" -n "${RHDH_NAMESPACE}" --timeout=300s || \
-                echo "Rollout status timed out — check pods manually."
-              echo "gitea-token-setup complete."
+              echo "Restarted ${RHDH_DEPLOYMENT}. gitea-token-setup complete."
