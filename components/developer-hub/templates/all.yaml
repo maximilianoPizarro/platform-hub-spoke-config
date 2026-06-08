@@ -221,6 +221,7 @@ data:
             - name: hub
               url: https://kubernetes.default.svc.cluster.local:443
               authProvider: serviceAccount
+              serviceAccountToken: ${K8S_SA_TOKEN}
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 {{- if .Values.kubernetesSpokes.enabled }}
@@ -516,10 +517,11 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka
         disabled: true
-      - package: oci://quay.io/kuadrant/backstage-plugin-kuadrant-backend-dynamic:v0.1.0
+      # OCI images on quay.io/kuadrant are not publicly pullable; use npm packages instead
+      - package: "@kuadrant/kuadrant-backstage-plugin-backend-dynamic@v0.1.0"
         disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
         integrity: sha512-+iz5a/38ZB/phehlHMcbM79S/bMZwslcxi+lnG5Tb2InlWtumloFK7OzZk11s0/CjJPytF3CipOz4QpFHQ09qw==
-      - package: oci://quay.io/kuadrant/backstage-plugin-kuadrant-frontend:v0.1.0
+      - package: "@kuadrant/kuadrant-backstage-plugin-frontend@v0.1.0"
         disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
         integrity: sha512-3RLpjskJX4UqUQrc3gqg2TJL60cRKT+4mpnHH5OTi8leUxHgbyx2RnOmdRXivgXB1DwHK/oY7BsnPPft4Up2NQ==
         pluginConfig:
@@ -666,20 +668,7 @@ spec:
           mountPath: /opt/app-root/src/catalog-data/ie
           containers:
             - "*"
-{{- range $path, $_ := .Files.Glob "files/onboarding/**" }}
-        - name: developer-hub-catalog-onboarding
-          key: {{ base $path }}
-          mountPath: /opt/app-root/src/catalog-data/onboarding
-          containers:
-            - "*"
-{{- end }}
-{{- if .Values.plugins.rbac.enabled | default false }}
-        - name: rhdh-rbac-policy
-          key: rbac-policy.csv
-          mountPath: /opt/app-root/src/rbac-policy.csv
-          containers:
-            - "*"
-{{- end }}
+        # Onboarding + rbac-policy mounts are in deployment.patch (extraFiles duplicates volumes)
     route:
       enabled: true
       host: developer-hub.{{ .Values.clusterDomain }}
@@ -693,8 +682,6 @@ spec:
     patch:
       spec:
         replicas: 1
-        strategy:
-          type: Recreate
         template:
           metadata:
             annotations:
@@ -702,8 +689,10 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
-{{- if or (include "developer-hub.lightspeedEnabled" .) (.Values.plugins.rbac.enabled | default false) }}
             volumes:
+              - name: developer-hub-catalog-onboarding
+                configMap:
+                  name: developer-hub-catalog-onboarding
 {{- if include "developer-hub.lightspeedEnabled" . }}
               - name: lightspeed-stack
                 configMap:
@@ -720,7 +709,6 @@ spec:
               - name: rhdh-rbac-policy
                 configMap:
                   name: rhdh-rbac-policy
-{{- end }}
 {{- end }}
             initContainers:
               - name: wait-for-postgres
@@ -769,8 +757,11 @@ spec:
                   - secretRef:
                       name: developer-hub-spoke-tokens
                       optional: true
-{{- if .Values.plugins.rbac.enabled | default false }}
                 volumeMounts:
+                  - name: developer-hub-catalog-onboarding
+                    mountPath: /opt/app-root/src/catalog-data/onboarding
+                    readOnly: true
+{{- if .Values.plugins.rbac.enabled | default false }}
                   - name: rhdh-rbac-policy
                     mountPath: /opt/app-root/src/rbac-policy.csv
                     subPath: rbac-policy.csv

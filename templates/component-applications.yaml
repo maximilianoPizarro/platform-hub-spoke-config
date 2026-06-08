@@ -300,6 +300,8 @@ spec:
               credentialsSecretKey: {{ $.Values.kairos.aiCredentials.secretKey | quote }}
           techdocs:
             enabled: true
+          kuadrant:
+            enabled: true
         kubernetesSpokes:
           enabled: true
           east:
