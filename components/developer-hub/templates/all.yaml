@@ -348,9 +348,7 @@ data:
       allowedRepositories: ['workshop/*']
       allowedTags: ['latest', 'stable']
     techdocs:
-      builder: local
-      generator:
-        runIn: local
+      builder: external
       publisher:
         type: local
 {{- if .Values.plugins.techRadar.enabled | default true }}
@@ -380,8 +378,6 @@ data:
           - kubernetes
           - ocm
           - techdocs
-          - argocd
-          - kuadrant
           - notifications
 {{- if include "developer-hub.lightspeedEnabled" . }}
           - lightspeed
@@ -632,9 +628,9 @@ data:
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-techdocs-mcp-tool:{{ .Values.plugins.mcp.techdocsToolTag | default "bs_1.45.3__0.3.2" }}
         disabled: false
 {{- end }}
-      # ArgoCD backend — NOT bundled in this RHDH 1.9 image; use ghcr.io OCI
+      # ArgoCD backend — disabled per user request (caused init crashes + space issues)
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-argo-cd-backend:bs_1.45.3__4.6.0
-        disabled: {{ not (.Values.plugins.argocd.enabled | default true) }}
+        disabled: true
         pluginConfig:
           argocd:
             appLocatorMethods:
@@ -643,9 +639,9 @@ data:
                   - name: default
                     url: https://openshift-gitops-server-openshift-gitops.{{ .Values.clusterDomain }}
                     token: ${K8S_SA_TOKEN}
-      # ArgoCD frontend — migrated to ghcr.io in RHDH 1.9
+      # ArgoCD frontend — disabled per user request
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-redhat-argocd:bs_1.45.3__2.3.0
-        disabled: {{ not (.Values.plugins.argocd.enabled | default true) }}
+        disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-quay
