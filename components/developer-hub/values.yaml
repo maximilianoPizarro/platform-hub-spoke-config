@@ -28,6 +28,20 @@ plugins:
     policyAdminUser: platformadmin
   techdocs:
     enabled: true
+  techRadar:
+    enabled: true
+  mcp:
+    enabled: true
+    pluginTag: "bs_1.45.3__0.1.5"
+    catalogToolTag: "bs_1.45.3__0.2.3"
+    techdocsToolTag: "bs_1.45.3__0.3.2"
+  # Not in RHDH 1.9 bundled image or ghcr.io export overlays — enable when OCI packages exist
+  kiali:
+    enabled: false
+  grafana:
+    enabled: false
+  techInsights:
+    enabled: false
   quay:
     enabled: true
   acsSecurityInsights:

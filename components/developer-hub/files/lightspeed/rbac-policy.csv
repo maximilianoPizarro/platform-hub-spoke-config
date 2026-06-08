@@ -33,5 +33,31 @@ p, role:default/authenticated, lightspeed.chat.create, create, allow
 p, role:default/authenticated, lightspeed.chat.delete, delete, allow
 # Notifications
 p, role:default/authenticated, notification.entity.read, read, allow
-# Kuadrant
-p, role:default/authenticated, kuadrant.api-product.read, read, allow
+# Kuadrant (permission names per docs.kuadrant.io — no hyphen in apiproduct)
+p, role:default/authenticated, kuadrant.apiproduct.list, read, allow
+p, role:default/authenticated, kuadrant.apiproduct.read.all, read, allow
+p, role:default/authenticated, kuadrant.apikey.create, create, allow
+p, role:default/authenticated, kuadrant.apikey.read.own, read, allow
+p, role:default/authenticated, kuadrant.planpolicy.list, read, allow
+p, role:default/authenticated, kuadrant.planpolicy.read.all, read, allow
+# Platform Admin — explicit full access (supplements policyAdminUser bypass)
+g, user:default/platformadmin, role:default/admin
+p, role:default/admin, policy-entity, read, allow
+p, role:default/admin, policy-entity, create, allow
+p, role:default/admin, policy-entity, update, allow
+p, role:default/admin, policy-entity, delete, allow
+p, role:default/admin, kuadrant.apiproduct.create, create, allow
+p, role:default/admin, kuadrant.apiproduct.read.all, read, allow
+p, role:default/admin, kuadrant.apiproduct.update.all, update, allow
+p, role:default/admin, kuadrant.apiproduct.delete.all, delete, allow
+p, role:default/admin, kuadrant.apiproduct.list, read, allow
+p, role:default/admin, kuadrant.apikey.create, create, allow
+p, role:default/admin, kuadrant.apikey.read.all, read, allow
+p, role:default/admin, kuadrant.apikey.update.all, update, allow
+p, role:default/admin, kuadrant.apikey.approve, update, allow
+p, role:default/admin, kuadrant.apikey.delete.all, delete, allow
+p, role:default/admin, kuadrant.planpolicy.create, create, allow
+p, role:default/admin, kuadrant.planpolicy.read.all, read, allow
+p, role:default/admin, kuadrant.planpolicy.update.all, update, allow
+p, role:default/admin, kuadrant.planpolicy.delete.all, delete, allow
+p, role:default/admin, kuadrant.planpolicy.list, read, allow

@@ -208,6 +208,17 @@ data:
           - host: "*.github.io"
           - host: raw.githubusercontent.com
           - host: github.com
+          - host: petstore3.swagger.io
+          - host: httpbin.org
+          - host: catfact.ninja
+          - host: restcountries.com
+          - host: jsonplaceholder.typicode.com
+{{- if .Values.plugins.mcp.enabled | default true }}
+      actions:
+        pluginSources:
+          - software-catalog-mcp-tool
+          - techdocs-mcp-tool
+{{- end }}
     enabled:
       kubernetes: true
       argocd: true
@@ -290,6 +301,14 @@ data:
           target: /opt/app-root/src/catalog-data/onboarding/catalog-info.yaml
           rules:
             - allow: [Component]
+        - type: file
+          target: /opt/app-root/src/catalog-data/public-apis/public-apis.yaml
+          rules:
+            - allow: [API, System]
+        - type: url
+          target: https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/backstage/software-templates/templates-catalog.yaml
+          rules:
+            - allow: [Template, Location]
       providers:
         ocm:
           default:
@@ -334,6 +353,20 @@ data:
         runIn: local
       publisher:
         type: local
+{{- if .Values.plugins.techRadar.enabled | default true }}
+    techRadar:
+      url: https://raw.githubusercontent.com/backstage/community/master/plugins/tech-radar-common/src/sampleTechRadarResponse.json
+{{- end }}
+{{- if .Values.plugins.mcp.enabled | default true }}
+    mcpActions:
+      servers:
+        catalog:
+          pluginSources:
+            - software-catalog-mcp-tool
+        techdocs:
+          pluginSources:
+            - techdocs-mcp-tool
+{{- end }}
     permission:
       enabled: {{ .Values.plugins.rbac.enabled | default false }}
       rbac:
@@ -349,6 +382,8 @@ data:
           - techdocs
           - argocd
           - kafka
+          - kuadrant
+          - notifications
 {{- if include "developer-hub.lightspeedEnabled" . }}
           - lightspeed
 {{- end }}
@@ -574,6 +609,30 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.ci/content
                     importName: EntityTektonPipelinesContent
+{{- if .Values.plugins.techRadar.enabled | default true }}
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-tech-radar-backend-dynamic
+        disabled: false
+      - package: ./dynamic-plugins/dist/backstage-community-plugin-tech-radar
+        disabled: false
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-tech-radar:
+                dynamicRoutes:
+                  - path: /tech-radar
+                    importName: TechRadarPage
+                    menuItem:
+                      text: Tech Radar
+{{- end }}
+{{- if .Values.plugins.mcp.enabled | default true }}
+      {{- $mcpTag := .Values.plugins.mcp.pluginTag | default "bs_1.45.3__0.1.5" }}
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-plugin-mcp-actions-backend:{{ $mcpTag }}
+        disabled: false
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-software-catalog-mcp-tool:{{ .Values.plugins.mcp.catalogToolTag | default "bs_1.45.3__0.2.3" }}
+        disabled: false
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-techdocs-mcp-tool:{{ .Values.plugins.mcp.techdocsToolTag | default "bs_1.45.3__0.3.2" }}
+        disabled: false
+{{- end }}
       # ArgoCD backend — provides CD tab on entity pages
       - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend-dynamic
         disabled: {{ not (.Values.plugins.argocd.enabled | default true) }}
@@ -722,6 +781,11 @@ spec:
             - "*"
         - name: developer-hub-catalog-onboarding
           mountPath: /opt/app-root/src/catalog-data/onboarding
+          containers:
+            - "*"
+        - name: developer-hub-catalog-public-apis
+          key: public-apis.yaml
+          mountPath: /opt/app-root/src/catalog-data/public-apis
           containers:
             - "*"
     route:

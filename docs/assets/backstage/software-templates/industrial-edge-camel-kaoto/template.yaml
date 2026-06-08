@@ -31,7 +31,10 @@ spec:
         owner:
           title: Owner
           type: string
-          default: ${{ user.entity.metadata.name }}
+          ui:field: OwnerPicker
+          ui:options:
+            allowedKinds:
+              - User
         targetCluster:
           title: Target spoke cluster
           type: string

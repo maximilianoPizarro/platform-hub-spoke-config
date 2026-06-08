@@ -308,6 +308,10 @@ spec:
             enabled: true
           notificationsEmail:
             enabled: true
+          techRadar:
+            enabled: true
+          mcp:
+            enabled: true
         kubernetesSpokes:
           enabled: true
           east:

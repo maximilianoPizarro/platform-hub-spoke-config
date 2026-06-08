@@ -99,16 +99,22 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 
 | Plugin | Status | Purpose |
 | ------ | ------ | ------- |
-| `backstage-community-plugin-ocm` | enabled | Cluster overview cards |
+| `backstage-community-plugin-ocm` | enabled | Cluster overview cards, `/ocm` sidebar |
 | `backstage-plugin-kubernetes` | enabled | Workloads tab |
 | `backstage-community-plugin-topology` | enabled | Topology graph |
 | `backstage-community-plugin-tekton` | enabled | CI tab (`entity.page.ci/content`) |
+| `backstage-community-plugin-tech-radar` | enabled (`plugins.techRadar.enabled`) | Tech Radar page `/tech-radar` |
+| `backstage-plugin-mcp-actions-backend` | enabled (`plugins.mcp.enabled`) | MCP tools (catalog + techdocs) via OCI |
 | `roadiehq-scaffolder-backend-module-http-request-dynamic` | enabled | `http:backstage:request` |
 | `backstage-plugin-scaffolder-backend-module-github-dynamic` | enabled | `publish:github` → Gitea |
 | `backstage-plugin-notifications` + backend | enabled | In-app notifications |
 | `backstage-plugin-techdocs` | enabled (`plugins.techdocs.enabled`) | Docs tab (local builder/publisher) |
-| `roadiehq-backstage-plugin-argo-cd-backend-dynamic` | disabled | Needs `argocd.appLocatorMethods`; scaffolder uses `k8s-api` proxy |
-| kafka, kuadrant, quay-backend, security-insights | disabled | ENOENT or missing packages in RHDH 1.9 image |
+| `@kuadrant/kuadrant-backstage-plugin-*` | enabled (`plugins.kuadrant.enabled`) | Kuadrant page `/kuadrant` — external npm |
+| `roadiehq-backstage-plugin-argo-cd-backend-dynamic` | enabled (`plugins.argocd.enabled`) | Argo CD entity tab |
+| `backstage-community-plugin-kafka` | enabled (`plugins.kafka.enabled`) | Kafka entity tab |
+| `backstage-community-plugin-quay` | enabled (`plugins.quay.enabled`) | Quay entity tab |
+| kiali, grafana, tech-insights | disabled | Not in RHDH 1.9 image or ghcr.io overlays |
+| `quay-backend-dynamic`, `security-insights` | disabled | ENOENT in RHDH 1.9 image |
 
 **YAML trap:** `catalog.providers` (ocm, keycloakOrg) must be indented under `catalog:`, not under `quay:`.
 
@@ -172,6 +178,14 @@ oc get managedserviceaccount -n west
 # Entity line-dashboard-east → Topology should show deployments in industrial-edge-tst-all on cluster east
 ```
 
+## Public API catalog (Try It Out)
+
+Bundled at `files/catalog/public-apis.yaml` → ConfigMap `developer-hub-catalog-public-apis` → `/opt/app-root/src/catalog-data/public-apis/public-apis.yaml`.
+
+Includes Petstore, httpbin, REST Countries, JSONPlaceholder, Cat Facts. External specs use `$text:`; inline specs must include `servers:` for Swagger UI Try It Out (otherwise requests go to Developer Hub host).
+
+Add hosts to `backend.reading.allow`: `petstore3.swagger.io`, `httpbin.org`, `restcountries.com`, `jsonplaceholder.typicode.com`, `catfact.ninja`.
+
 ## Software template scaffolding flow
 
 ### Templates shipped
@@ -181,6 +195,8 @@ oc get managedserviceaccount -n west
 | `industrial-edge` | IoT edge instance on east/west |
 | `industrial-edge-camel-kaoto` | Camel routes + DevSpaces/Kaoto |
 | `industrial-edge-delete` | Delete ArgoCD app + Gitea repo + notify |
+
+Template `owner` parameter: use `ui:field: OwnerPicker` (not `${{ user.entity.metadata.name }}` default — breaks form when user entity missing). Catalog locations: GitHub blob (scaffolder skeleton) + raw GitHub fallback for template ingestion.
 
 ### Skeleton catalog-info.yaml annotations
 
@@ -284,9 +300,13 @@ Grant `role:default/authenticated` at minimum:
 | Argo CD | `argocd.view.read` |
 | Adoption Insights | `adoption-insights.events.read` |
 | TechDocs | `techdocs.entity.read` |
+| Kuadrant | `kuadrant.apiproduct.list`, `kuadrant.apiproduct.read.all`, `kuadrant.apikey.*`, `kuadrant.planpolicy.*` — **not** `kuadrant.api-product.read` |
+| Notifications | `notification.entity.read` |
 | Lightspeed | `lightspeed.chat.*` |
 
-`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, and `lightspeed` when enabled.
+`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, `argocd`, `kafka`, `kuadrant`, `notifications`, and `lightspeed` when enabled.
+
+`platformadmin` is assigned `role:default/admin` in CSV for explicit full Kuadrant + policy admin access.
 
 For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off (empty catalog risk remains if partial CSV).
 
@@ -343,6 +363,8 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 | Self-signed cert in K8s plugin | `NODE_TLS_REJECT_UNAUTHORIZED=0` + skipTLSVerify |
 | TechDocs `FetchUrlReader does not implement readTree` | Use in-pod mkdocs (`catalog-onboarding.yaml`, `dir:.`) not remote github.io tree |
 | `/ocm` 404 or permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy` |
+| Kuadrant permission denied | Use `kuadrant.apiproduct.list` not `kuadrant.api-product.read`; add `kuadrant` to `pluginsWithPermission` |
+| Empty scaffolder form / Review only | Stale catalog entity or `${{ user.entity... }}` owner default — use OwnerPicker; refresh catalog |
 | Lightspeed works but catalog empty | CSV only had `lightspeed.*`; expand full workshop CSV |
 | Scaffolder 503 on industrial-edge URL | Spoke gateway / mesh — see mesh exclusions above |
 | `publish:github` fails: `user redirect does not exist [name: ws-<owner>]` | Ensure Gitea bootstrap created org/user; hook job must be recreatable (`BeforeHookCreation,HookSucceeded,HookFailed`) |
