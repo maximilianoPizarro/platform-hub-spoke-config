@@ -65,6 +65,14 @@ spec:
         protocol: openid-connect
         fullScopeAllowed: true
     users:
+      # Service account for KeycloakOrgEntityProvider — needs realm-management roles to list users/groups
+      - username: service-account-developer-hub-catalog
+        enabled: true
+        serviceAccountClientId: developer-hub-catalog
+        clientRoles:
+          realm-management:
+            - view-users
+            - view-realm
       - username: platformadmin
         enabled: true
         emailVerified: true

@@ -142,6 +142,17 @@ rules:
     resources:
       - applications
     verbs: [get, list, watch, create, update, patch, delete]
+  - apiGroups: ["kuadrant.io"]
+    resources:
+      - authpolicies
+      - ratelimitpolicies
+      - dnspolicies
+      - tlspolicies
+    verbs: [get, list, watch]
+  - apiGroups: ["extensions.kuadrant.io"]
+    resources:
+      - planpolicies
+    verbs: [get, list, watch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -505,10 +516,25 @@ data:
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka
         disabled: true
-      - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-backend-dynamic
-        disabled: true
-      - package: ./dynamic-plugins/dist/kuadrant-backstage-plugin-frontend
-        disabled: true
+      - package: oci://quay.io/kuadrant/backstage-plugin-kuadrant-backend-dynamic:v0.1.0
+        disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
+        integrity: sha512-+iz5a/38ZB/phehlHMcbM79S/bMZwslcxi+lnG5Tb2InlWtumloFK7OzZk11s0/CjJPytF3CipOz4QpFHQ09qw==
+      - package: oci://quay.io/kuadrant/backstage-plugin-kuadrant-frontend:v0.1.0
+        disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
+        integrity: sha512-3RLpjskJX4UqUQrc3gqg2TJL60cRKT+4mpnHH5OTi8leUxHgbyx2RnOmdRXivgXB1DwHK/oY7BsnPPft4Up2NQ==
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              internal.plugin-kuadrant:
+                appIcons:
+                  - name: kuadrantIcon
+                    importName: KuadrantIcon
+                dynamicRoutes:
+                  - path: /kuadrant
+                    importName: KuadrantPage
+                    menuItem:
+                      icon: kuadrantIcon
+                      text: Kuadrant
       - package: ./dynamic-plugins/dist/backstage-community-plugin-tekton
         disabled: false
         pluginConfig:
@@ -643,7 +669,7 @@ spec:
 {{- range $path, $_ := .Files.Glob "files/onboarding/**" }}
         - name: developer-hub-catalog-onboarding
           key: {{ base $path }}
-          mountPath: /opt/app-root/src/catalog-data/onboarding/{{ base $path }}
+          mountPath: /opt/app-root/src/catalog-data/onboarding
           containers:
             - "*"
 {{- end }}

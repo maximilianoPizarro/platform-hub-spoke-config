@@ -35,6 +35,8 @@ plugins:
     enabled: false
   argocd:
     enabled: true
+  kuadrant:
+    enabled: true
   # Red Hat Developer Lightspeed (LCS + Llama Stack sidecars). Uses same vLLM as Kairos (granite-31-8b).
   lightspeed:
     enabled: true
