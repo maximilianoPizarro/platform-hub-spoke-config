@@ -221,7 +221,7 @@ data:
             - name: hub
               url: https://kubernetes.default.svc.cluster.local:443
               authProvider: serviceAccount
-              serviceAccountToken: ${K8S_SA_TOKEN}
+              serviceAccountToken: "${K8S_SA_TOKEN}"
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 {{- if .Values.kubernetesSpokes.enabled }}
@@ -668,7 +668,11 @@ spec:
           mountPath: /opt/app-root/src/catalog-data/ie
           containers:
             - "*"
-        # Onboarding + rbac-policy mounts are in deployment.patch (extraFiles duplicates volumes)
+        - name: developer-hub-catalog-onboarding
+          key: catalog-info.yaml
+          mountPath: /opt/app-root/src/catalog-data/onboarding
+          containers:
+            - "*"
     route:
       enabled: true
       host: developer-hub.{{ .Values.clusterDomain }}
@@ -689,10 +693,8 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
+{{- if or (include "developer-hub.lightspeedEnabled" .) (.Values.plugins.rbac.enabled | default false) }}
             volumes:
-              - name: developer-hub-catalog-onboarding
-                configMap:
-                  name: developer-hub-catalog-onboarding
 {{- if include "developer-hub.lightspeedEnabled" . }}
               - name: lightspeed-stack
                 configMap:
@@ -757,11 +759,8 @@ spec:
                   - secretRef:
                       name: developer-hub-spoke-tokens
                       optional: true
-                volumeMounts:
-                  - name: developer-hub-catalog-onboarding
-                    mountPath: /opt/app-root/src/catalog-data/onboarding
-                    readOnly: true
 {{- if .Values.plugins.rbac.enabled | default false }}
+                volumeMounts:
                   - name: rhdh-rbac-policy
                     mountPath: /opt/app-root/src/rbac-policy.csv
                     subPath: rbac-policy.csv
