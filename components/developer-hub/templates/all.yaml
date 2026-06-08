@@ -632,8 +632,8 @@ data:
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-techdocs-mcp-tool:{{ .Values.plugins.mcp.techdocsToolTag | default "bs_1.45.3__0.3.2" }}
         disabled: false
 {{- end }}
-      # ArgoCD backend — bundled in RHDH 1.9 (path WITHOUT -dynamic suffix)
-      - package: ./dynamic-plugins/dist/roadiehq-backstage-plugin-argo-cd-backend
+      # ArgoCD backend — NOT bundled in this RHDH 1.9 image; use ghcr.io OCI
+      - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-argo-cd-backend:bs_1.45.3__4.6.0
         disabled: {{ not (.Values.plugins.argocd.enabled | default true) }}
         pluginConfig:
           argocd:
