@@ -19,14 +19,12 @@ spec:
       multiCluster:
         clusterName: {{ .Values.clusterName }}
       {{- end }}
-    {{- if eq (.Values.clusterRole | default "") "hub" }}
     meshConfig:
       extensionProviders:
         - name: otel-tracing
           opentelemetry:
             service: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local
             port: 4317
-    {{- end }}
 ---
 apiVersion: v1
 kind: Namespace
@@ -91,12 +89,10 @@ spec:
   metrics:
     - providers:
         - name: prometheus
-  {{- if eq (.Values.clusterRole | default "") "hub" }}
   tracing:
     - providers:
         - name: otel-tracing
       randomSamplingPercentage: 100
-  {{- end }}
 {{- /*
   Ambient labels are applied AFTER Istio, IstioCNI, and ZTunnel CRs (wave 1)
   so the ztunnel can configure HBONE listeners before application pods start.
@@ -119,6 +115,7 @@ spec:
 {{- end }}
 {{- if ne .Values.clusterRole "hub" }}
 {{- $ambientNamespaces = concat $ambientNamespaces $ieAmbientNamespaces }}
+{{- $ambientNamespaces = append $ambientNamespaces "spoke-gateway-system" }}
 {{- end }}
 {{- range $ambientNamespaces }}
 ---

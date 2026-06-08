@@ -97,6 +97,10 @@ apps:
     path: components/istio-monitoring
     destinationNamespace: istio-system
     syncWave: "4"
+  - id: opentelemetry
+    path: components/opentelemetry
+    destinationNamespace: openshift-opentelemetry
+    syncWave: "4"
   - id: rhcl-operator
     path: components/rhcl-operator
     destinationNamespace: redhat-connectivity-link-operator

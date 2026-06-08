@@ -18,9 +18,11 @@ spec:
     metrics:
       enableMetrics: true
   config:
+    {{- if eq (.Values.clusterRole | default "hub") "hub" }}
     extensions:
       bearertokenauth:
         filename: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    {{- end }}
     receivers:
       otlp:
         protocols:
@@ -36,6 +38,7 @@ spec:
         limit_percentage: 50
         spike_limit_percentage: 30
     exporters:
+      {{- if eq (.Values.clusterRole | default "hub") "hub" }}
       otlp:
         endpoint: "tempo-simplest-gateway.distributed-tracing.svc:8090"
         auth:
@@ -45,8 +48,16 @@ spec:
         tls:
           ca_file: "/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt"
           insecure_skip_verify: true
+      {{- else }}
+      otlp:
+        endpoint: "otel-hub.service-interconnect.svc.cluster.local:4317"
+        tls:
+          insecure: true
+      {{- end }}
     service:
+      {{- if eq (.Values.clusterRole | default "hub") "hub" }}
       extensions: [bearertokenauth]
+      {{- end }}
       pipelines:
         traces:
           receivers: [otlp]
