@@ -5,7 +5,6 @@ metadata:
   title: Workshop Onboarding
   description: Getting started with Hybrid Mesh Platform — login, scaffolder, DevSpaces, Quay, observability
   annotations:
-    backstage.io/techdocs-ref: url:https://github.com/maximilianoPizarro/platform-hub-spoke-config/tree/main/components/developer-hub/files/onboarding
   links:
     - url: https://maximilianopizarro.github.io/platform-hub-spoke-config/
       title: Platform docs (GitHub Pages)

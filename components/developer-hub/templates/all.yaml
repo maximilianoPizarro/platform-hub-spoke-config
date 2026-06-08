@@ -348,9 +348,7 @@ data:
       allowedRepositories: ['workshop/*']
       allowedTags: ['latest', 'stable']
     techdocs:
-      builder: local
-      generator:
-        runIn: local
+      builder: external
       publisher:
         type: local
 {{- if .Values.plugins.techRadar.enabled | default true }}
