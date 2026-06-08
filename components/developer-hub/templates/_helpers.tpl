@@ -11,7 +11,7 @@
 {{- end -}}
 
 {{- define "developer-hub.lightspeedEnabled" -}}
-{{- and (.Values.plugins.lightspeed.enabled | default false) -}}
+{{- if .Values.plugins.lightspeed.enabled -}}true{{- end -}}
 {{- end -}}
 
 {{- define "developer-hub.lightspeedAiModel" -}}
