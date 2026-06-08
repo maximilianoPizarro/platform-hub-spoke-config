@@ -686,7 +686,7 @@ data:
       - package: ./dynamic-plugins/dist/backstage-plugin-notifications-backend-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-notifications-backend-module-email-dynamic
-        disabled: {{ not (.Values.plugins.notificationsEmail.enabled | default true) }}
+        disabled: true
         pluginConfig:
           notifications:
             processors:
