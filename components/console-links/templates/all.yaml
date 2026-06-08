@@ -59,7 +59,7 @@ spec:
   applicationMenu:
     imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "jaeger.svg") | quote }}
     section: "Platform Hub-Spoke"
-  href: "https://tempo-simplest-jaegerui-distributed-tracing.{{ $hubDomain }}"
+  href: "https://tempo-simplest-gateway-distributed-tracing.{{ $hubDomain }}/api/traces/v1/platform/search"
   location: ApplicationMenu
   text: "Jaeger UI (Distributed Tracing)"
 ---

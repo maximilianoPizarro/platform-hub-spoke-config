@@ -20,7 +20,6 @@ stringData:
   endpoint: {{ .Values.minio.endpoint | quote }}
   access_key_id: {{ .Values.minio.accessKey | quote }}
   access_key_secret: {{ .Values.minio.secretKey | quote }}
-  region: {{ .Values.minio.region | quote }}
 ---
 apiVersion: batch/v1
 kind: Job
@@ -39,12 +38,15 @@ spec:
       containers:
         - name: mc
           image: quay.io/minio/mc:latest
+          env:
+            - name: HOME
+              value: /tmp
           command:
             - /bin/sh
             - -c
             - |
-              mc alias set hub {{ .Values.minio.endpoint }} {{ .Values.minio.accessKey }} {{ .Values.minio.secretKey }}
-              mc mb --ignore-existing hub/{{ .Values.minio.bucket }}
+              mc --config-dir /tmp/.mc alias set hub {{ .Values.minio.endpoint }} {{ .Values.minio.accessKey }} {{ .Values.minio.secretKey }}
+              mc --config-dir /tmp/.mc mb --ignore-existing hub/{{ .Values.minio.bucket }}
 ---
 apiVersion: tempo.grafana.com/v1alpha1
 kind: TempoStack
@@ -76,10 +78,6 @@ spec:
     queryFrontend:
       jaegerQuery:
         enabled: true
-        ingress:
-          type: route
-          route:
-            termination: edge
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
