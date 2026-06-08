@@ -1,14 +1,15 @@
 {{- /*
   Headless Services + EndpointSlices for Kafka broker DNS on the hub.
   Maps broker advertised hostnames to Skupper listener ClusterIPs.
-  IPs passed from parent chart valuesObject (parent-level lookup).
+  Lookup runs in this chart at Argo sync time (hub cluster); values.brokerDns.*
+  remains an optional override from the parent Application.
 */ -}}
-{{- $eastTstIP := .Values.brokerDns.eastTst | default "" }}
-{{- $westTstIP := .Values.brokerDns.westTst | default "" }}
-{{- $eastStormshiftIP := .Values.brokerDns.eastStormshift | default "" }}
-{{- $westStormshiftIP := .Values.brokerDns.westStormshift | default "" }}
-{{- $eastDatalakeIP := .Values.brokerDns.eastDatalake | default "" }}
-{{- $westDatalakeIP := .Values.brokerDns.westDatalake | default "" }}
+{{- $eastTstIP := .Values.brokerDns.eastTst | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-east-tst")) }}
+{{- $westTstIP := .Values.brokerDns.westTst | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-west-tst")) }}
+{{- $eastStormshiftIP := .Values.brokerDns.eastStormshift | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-east-stormshift")) }}
+{{- $westStormshiftIP := .Values.brokerDns.westStormshift | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-west-stormshift")) }}
+{{- $eastDatalakeIP := .Values.brokerDns.eastDatalake | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-east-datalake")) }}
+{{- $westDatalakeIP := .Values.brokerDns.westDatalake | default (dig "spec" "clusterIP" "" (lookup "v1" "Service" "service-interconnect" "kafka-west-datalake")) }}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -53,7 +54,7 @@ metadata:
   labels:
     kubernetes.io/service-name: dev-cluster-kafka-brokers
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
 addressType: IPv4
 ports:
   - name: tcp
@@ -98,7 +99,7 @@ metadata:
   labels:
     kubernetes.io/service-name: factory-cluster-kafka-brokers
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
 addressType: IPv4
 ports:
   - name: tcp
@@ -143,7 +144,7 @@ metadata:
   labels:
     kubernetes.io/service-name: prod-cluster-kafka-brokers
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "4"
 addressType: IPv4
 ports:
   - name: tcp

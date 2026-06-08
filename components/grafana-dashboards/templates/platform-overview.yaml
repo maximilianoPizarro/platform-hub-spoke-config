@@ -24,9 +24,9 @@ spec:
           "id": 1,
           "options": {"colorMode": "value", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
           "targets": [
-            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{source_workload=\"hub-gateway-istio\"}[5m])) or sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "Hub", "refId": "A"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "East", "refId": "B"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "West", "refId": "C"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{source_workload=\"hub-gateway-istio\"}[15m])) or sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "Hub", "refId": "A"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) or sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "East", "refId": "B"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) or sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "West", "refId": "C"}
           ],
           "title": "Mesh rate",
           "type": "stat"
@@ -38,9 +38,9 @@ spec:
           "id": 2,
           "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
           "targets": [
-            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[5m]))", "legendFormat": "Hub HTTP", "refId": "A"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m])) or sum(rate(istio_requests_total{reporter=\"source\"}[5m]))", "legendFormat": "East L4/HTTP", "refId": "B"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m])) or sum(rate(istio_requests_total{reporter=\"source\"}[5m]))", "legendFormat": "West L4/HTTP", "refId": "C"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{reporter=\"source\"}[15m]))", "legendFormat": "Hub HTTP", "refId": "A"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) or sum(rate(istio_requests_total{reporter=\"source\",job=~\".*/istio-mesh-metrics\"}[15m]))", "legendFormat": "East L4/HTTP", "refId": "B"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) or sum(rate(istio_requests_total{reporter=\"source\",job=~\".*/istio-mesh-metrics\"}[15m]))", "legendFormat": "West L4/HTTP", "refId": "C"}
           ],
           "title": "Mesh traffic per cluster (L4 ztunnel + HTTP)",
           "type": "timeseries"
@@ -52,12 +52,12 @@ spec:
           "id": 3,
           "options": {"displayMode": "lcd", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "sizing": "auto", "valueMode": "color"},
           "targets": [
-            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "Hub L4", "refId": "A"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "East L4", "refId": "B"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_opened_total[5m]))", "legendFormat": "West L4", "refId": "C"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total[5m]))", "legendFormat": "Hub bytes/s", "refId": "D"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total[5m]))", "legendFormat": "East bytes/s", "refId": "E"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total[5m]))", "legendFormat": "West bytes/s", "refId": "F"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "Hub L4", "refId": "A"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "East L4", "refId": "B"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "West L4", "refId": "C"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "Hub bytes/s", "refId": "D"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "East bytes/s", "refId": "E"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\"}[15m]))", "legendFormat": "West bytes/s", "refId": "F"}
           ],
           "title": "ztunnel L4 throughput (connections & bytes)",
           "type": "bargauge"
@@ -71,8 +71,8 @@ spec:
           "targets": [
             {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))", "legendFormat": "Hub 5xx", "refId": "A"},
             {"datasource": {"type": "prometheus", "uid": "${ds_hub}"}, "expr": "sum(rate(istio_requests_total{reporter=\"source\", response_code=~\"4..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\"}[5m]))", "legendFormat": "Hub 4xx", "refId": "B"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_closed_total[5m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total[5m])), 1)", "legendFormat": "East TCP close ratio", "refId": "C"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_closed_total[5m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total[5m])), 1)", "legendFormat": "West TCP close ratio", "refId": "D"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_connections_closed_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m])), 1)", "legendFormat": "East TCP close ratio", "refId": "C"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_connections_closed_total{job=\"ztunnel/ztunnel-metrics\"}[15m])) / clamp_min(sum(rate(istio_tcp_connections_opened_total{job=\"ztunnel/ztunnel-metrics\"}[15m])), 1)", "legendFormat": "West TCP close ratio", "refId": "D"}
           ],
           "title": "Error rates per cluster (5xx / 4xx / TCP close ratio)",
           "type": "timeseries"
@@ -175,10 +175,10 @@ spec:
           "id": 15,
           "options": {"legend": {"calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
           "targets": [
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{source_workload_namespace=\"industrial-edge-stormshift-messaging\"}[5m]))", "legendFormat": "East tx", "refId": "A"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_received_bytes_total{source_workload_namespace=\"industrial-edge-stormshift-messaging\"}[5m]))", "legendFormat": "East rx", "refId": "B"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{source_workload_namespace=\"industrial-edge-stormshift-messaging\"}[5m]))", "legendFormat": "West tx", "refId": "C"},
-            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_received_bytes_total{source_workload_namespace=\"industrial-edge-stormshift-messaging\"}[5m]))", "legendFormat": "West rx", "refId": "D"}
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\",source_workload_namespace=~\"industrial-edge.*\"}[15m]))", "legendFormat": "East tx", "refId": "A"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_east}"}, "expr": "sum(rate(istio_tcp_received_bytes_total{job=\"ztunnel/ztunnel-metrics\",source_workload_namespace=~\"industrial-edge.*\"}[15m]))", "legendFormat": "East rx", "refId": "B"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_sent_bytes_total{job=\"ztunnel/ztunnel-metrics\",source_workload_namespace=~\"industrial-edge.*\"}[15m]))", "legendFormat": "West tx", "refId": "C"},
+            {"datasource": {"type": "prometheus", "uid": "${ds_west}"}, "expr": "sum(rate(istio_tcp_received_bytes_total{job=\"ztunnel/ztunnel-metrics\",source_workload_namespace=~\"industrial-edge.*\"}[15m]))", "legendFormat": "West rx", "refId": "D"}
           ],
           "title": "Kafka namespace mesh bytes (East + West)",
           "type": "timeseries"
@@ -212,5 +212,5 @@ spec:
       "timezone": "browser",
       "title": "Platform Overview — Multi-Cluster Mesh & Kafka",
       "uid": "platform-overview",
-      "version": 1
+      "version": 2
     }

@@ -300,7 +300,7 @@ connectivityLink:
       enabled: true
       path: kafka-console
       destinationNamespace: kafka-console
-      syncWave: "0"
+      syncWave: "4"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
