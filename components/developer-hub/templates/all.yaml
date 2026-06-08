@@ -576,15 +576,15 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.kafka/content
                     importName: EntityKafkaContent
-      # Kuadrant backend — API Product provider for Kuadrant policies
+      # Kuadrant backend — disabled: npm deps exceed ephemeral storage; re-enable with larger volume
       - package: "@kuadrant/kuadrant-backstage-plugin-backend-dynamic@v0.1.0"
-        disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
+        disabled: true
         integrity: sha512-+iz5a/38ZB/phehlHMcbM79S/bMZwslcxi+lnG5Tb2InlWtumloFK7OzZk11s0/CjJPytF3CipOz4QpFHQ09qw==
         pluginConfig:
           kuadrant:
             dev: true
       - package: "@kuadrant/kuadrant-backstage-plugin-frontend@v0.1.0"
-        disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
+        disabled: true
         integrity: sha512-3RLpjskJX4UqUQrc3gqg2TJL60cRKT+4mpnHH5OTi8leUxHgbyx2RnOmdRXivgXB1DwHK/oY7BsnPPft4Up2NQ==
         pluginConfig:
           dynamicPlugins:
