@@ -221,7 +221,6 @@ data:
             - name: hub
               url: https://kubernetes.default.svc.cluster.local:443
               authProvider: serviceAccount
-              serviceAccountToken: "${K8S_SA_TOKEN}"
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 {{- if .Values.kubernetesSpokes.enabled }}
@@ -518,8 +517,10 @@ data:
       - package: ./dynamic-plugins/dist/backstage-community-plugin-kafka
         disabled: true
       # OCI images on quay.io/kuadrant are not publicly pullable; use npm packages instead
+      # Backend registers kuadrant-apiproduct-provider and requires full k8s token config;
+      # frontend + kubernetes plugin CRDs cover RateLimitPolicy/AuthPolicy entity views.
       - package: "@kuadrant/kuadrant-backstage-plugin-backend-dynamic@v0.1.0"
-        disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}
+        disabled: true
         integrity: sha512-+iz5a/38ZB/phehlHMcbM79S/bMZwslcxi+lnG5Tb2InlWtumloFK7OzZk11s0/CjJPytF3CipOz4QpFHQ09qw==
       - package: "@kuadrant/kuadrant-backstage-plugin-frontend@v0.1.0"
         disabled: {{ not (.Values.plugins.kuadrant.enabled | default true) }}

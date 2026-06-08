@@ -57,7 +57,7 @@ metadata:
     argocd.argoproj.io/sync-wave: "3"
     rhdh.redhat.com/backstage-name: developer-hub
 data:
-  app-config.yaml: |
+  app-config-lightspeed.yaml: |
     backend:
       csp:
         upgrade-insecure-requests: false
