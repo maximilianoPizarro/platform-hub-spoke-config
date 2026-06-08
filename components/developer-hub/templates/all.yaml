@@ -712,6 +712,7 @@ spec:
                 configMap:
                   name: rhdh-rbac-policy
 {{- end }}
+{{- end }}
             initContainers:
               - name: wait-for-postgres
                 image: registry.redhat.io/openshift4/ose-cli:latest
