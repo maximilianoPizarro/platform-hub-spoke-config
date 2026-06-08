@@ -52,20 +52,6 @@ spec:
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
-  name: platform-jaeger-tracing
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "jaeger.svg") | quote }}
-    section: "Platform Hub-Spoke"
-  href: "https://tempo-simplest-gateway-distributed-tracing.{{ $hubDomain }}/api/traces/v1/platform/search"
-  location: ApplicationMenu
-  text: "Jaeger UI (Distributed Tracing)"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
   name: platform-kairos-console
   annotations:
     argocd.argoproj.io/sync-wave: "10"
