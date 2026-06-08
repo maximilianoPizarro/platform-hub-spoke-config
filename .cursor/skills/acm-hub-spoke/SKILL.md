@@ -455,6 +455,35 @@ spec:
   port: 8080
 ```
 
+### ReferenceGrant — required for cross-namespace HTTPRoute (install + restart)
+
+`components/spoke-gateway/templates/all.yaml` deploys `HTTPRoute/ie-frontend` in `spoke-gateway-system` with `backendRefs` to `line-dashboard` in `industrial-edge-tst-all` (and stormshift messaging). Gateway API **requires** `ReferenceGrant` in the **target** namespace **before** the route resolves.
+
+| Resource | Namespace | sync-wave |
+| -------- | --------- | --------- |
+| `ReferenceGrant/allow-spoke-gateway` | `industrial-edge-tst-all` | **2** |
+| `ReferenceGrant/allow-spoke-gateway-messaging` | `industrial-edge-stormshift-messaging` | **2** |
+| `HTTPRoute/ie-frontend` | `spoke-gateway-system` | **3** |
+
+**Symptom after restart:** `https://industrial-edge.<hub-apps>/` returns **500** (empty body, `istio-envoy`) while direct spoke URL may work. On the spoke:
+
+```bash
+oc get httproute ie-frontend -n spoke-gateway-system -o jsonpath='{.status.parents[0].conditions[?(@.type=="ResolvedRefs")].message}{"\n"}'
+# → backendRef line-dashboard/... not accessible (missing a ReferenceGrant?)
+```
+
+**Prevention:** Ensure `spoke-gateway` Argo app on **each spoke** (`spoke-gateway-east`, `spoke-gateway-west`) syncs **before** or **with** `industrial-edge-tst-*` and that ReferenceGrants are not pruned. Do **not** rely on manual `helm apply` in production GitOps — fix Argo sync instead.
+
+**Verify after cold start:**
+
+```bash
+oc get referencegrant -n industrial-edge-tst-all allow-spoke-gateway
+oc get httproute ie-frontend -n spoke-gateway-system -o jsonpath='ResolvedRefs={.status.parents[0].conditions[?(@.type=="ResolvedRefs")].status}{"\n"}'
+curl -sk -o /dev/null -w '%{http_code}\n' https://industrial-edge.<hub-apps-domain>/
+```
+
+Hub path: `HTTPRoute/industrial-edge-lb` → `ExternalName` `industrial-edge-*-front` → Skupper `ie-gateway-east|west` → spoke `spoke-gateway-istio` → `ie-frontend` → `line-dashboard`.
+
 ### AccessToken for link establishment
 
 Sensitive grant data (**code**, **url**, **ca**) must **not** be committed to Git. The hub chart deploys **`accesstoken-sync`** (PostSync Job + CronJob) that:

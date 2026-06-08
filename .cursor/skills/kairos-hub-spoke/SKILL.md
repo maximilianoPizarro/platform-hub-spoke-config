@@ -58,8 +58,14 @@ oc get deployment -n kairos-system -l app=kairos-console -o jsonpath='{.items[0]
 oc auth can-i list smartscalingpolicies --as=system:serviceaccount:kairos-system:$(oc get deploy -n kairos-system -l app=kairos-console -o jsonpath='{.items[0].spec.template.spec.serviceAccountName}')
 ```
 
+## Post-restart notes
+
+- Argo `kairos-east|west` may show **Degraded** on `Subscription/kairos-operator` while CSV is **Succeeded** and pods are **Running** — refresh the Application before chasing OLM.
+- Hub `field-content-kairos` should sync after spokes have operator + `kairos-system` namespace; console image tag is independent of CSV version.
+- Do **not** leave stray `KairosConsole` on spokes — hub URL only (approve 404 on spoke routes).
+
 ## Related skills
 
-- **developer-hub-scaffolder** — IE labels `kairos.io/managed`, environment agents
-- **helm-app-of-apps** — `component-applications.yaml` hub valuesObject for kairos
-- **github-pages-docs** — `docs/community/kairos.md`, logo `.page-brand-logo` 48px CSS
+- **developer-hub-scaffolder** — IE labels `kairos.io/managed`, environment agents, Lightspeed shares `kairos-ai-credentials`
+- **helm-app-of-apps** — cold start sync order and Argo recovery
+- **acm-hub-spoke** — Skupper + spoke-gateway path to Industrial Edge UI

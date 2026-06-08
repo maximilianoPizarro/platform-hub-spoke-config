@@ -272,6 +272,8 @@ Requires notifications plugins enabled. No Mailpit/email processor in this platf
 
 `plugins.rbac.enabled: true` in `values.yaml` sets `permission.enabled: true` and mounts **`files/lightspeed/rbac-policy.csv`** via `templates/rbac-policy.yaml`. The CSV is **decoupled from Lightspeed** — do not gate the ConfigMap on `lightspeedEnabled`.
 
+**Install-time requirement (post-restart lesson):** `Backstage` CR `extraFiles` alone does **not** reliably mount `rbac-policy.csv` on `backstage-backend`. Also add an explicit **volume + volumeMount** in `templates/all.yaml` `deployment.patch` when `plugins.rbac.enabled` (ConfigMap `rhdh-rbac-policy`, `subPath: rbac-policy.csv`). Without it, readiness stays **503** with `ENOENT ... rbac-policy.csv` and the permission plugin never starts.
+
 Grant `role:default/authenticated` at minimum:
 
 | Area | Permission names |
@@ -294,7 +296,9 @@ For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off 
 - Sidecars: `llama-stack`, `lightspeed-core`, optional `rag-content`
 - vLLM: `developer-hub.lightspeedAiModel` helper — hub `component-applications.yaml` passes Kairos `aiModel` URL/model
 - Routes: `/lightspeed` page + FAB; secrets `lightspeed-secrets`, ConfigMaps `lightspeed-stack`, `lightspeed-app-config`
-- Optional: `syncApiKeyFromKairos` Job copies `kairos-ai-credentials` API key
+- Optional: `syncApiKeyFromKairos` Job copies `kairos-ai-credentials` API key via PostSync Job `developer-hub-lightspeed-ai-sync`
+
+**Lightspeed kairos Role trap:** In `templates/lightspeed.yaml`, `Role` `developer-hub-lightspeed-ai-sync-kairos-read` must use `resourceNames: ["{{ $credName }}"]` where `$credName` defaults to `kairos-ai-credentials`. Using `$ai.credentialsSecretName` directly renders **empty** `resourceNames: [""]` when `aiModel` is unset → Job gets `Forbidden` on `kairos-system/kairos-ai-credentials` and **blocks** `field-content-developer-hub` sync on the PostSync hook.
 
 ## TechDocs (in-pod, not GitHub Pages)
 
@@ -342,12 +346,35 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 | Lightspeed works but catalog empty | CSV only had `lightspeed.*`; expand full workshop CSV |
 | Scaffolder 503 on industrial-edge URL | Spoke gateway / mesh — see mesh exclusions above |
 | `publish:github` fails: `user redirect does not exist [name: ws-<owner>]` | Ensure Gitea bootstrap created org/user; hook job must be recreatable (`BeforeHookCreation,HookSucceeded,HookFailed`) |
+| Readiness **503**, `ENOENT rbac-policy.csv` | Add deployment.patch volumeMount (not only `extraFiles`); sync `field-content-developer-hub`; delete backstage pod |
+| Argo stuck on `developer-hub-lightspeed-ai-sync` | Fix kairos Role `resourceNames`; delete Job; clear `/operation`; resync with `SkipHooks=true` if hook already ran |
+| Keycloak catalog `HTTP 403` after restart | Keycloak still starting — non-fatal; catalog users.yaml still works |
+
+## Cold start / post-restart (hub DevHub)
+
+After hub reboot or first install, verify in order:
+
+1. `field-content-developer-hub` — not blocked on PostSync hook; `rhdh-rbac-policy` ConfigMap exists.
+2. `backstage-developer-hub` deployment has volume `rhdh-rbac-policy` on `backstage-backend`.
+3. Readiness: `curl -sk -o /dev/null -w '%{http_code}' https://developer-hub.<hub-apps>/.backstage/health/v1/readiness` → **200**.
+4. `developer-hub-spoke-tokens` Secret populated (CronJob or PostSync hook).
+
+Recovery when sync is wedged:
+
+```bash
+oc patch application field-content-developer-hub -n openshift-gitops --type json \
+  -p '[{"op":"remove","path":"/operation"}]'
+oc delete job developer-hub-lightspeed-ai-sync -n developer-hub --ignore-not-found
+# sync with SkipHooks if PostSync already succeeded once
+```
 
 ## Files map
 
 | File | Purpose |
 | ---- | ------- |
-| `components/developer-hub/templates/all.yaml` | Namespace, RBAC, app-config, plugins, Backstage CR |
+| `components/developer-hub/templates/all.yaml` | Namespace, RBAC, app-config, plugins, Backstage CR, **deployment.patch** (RBAC CSV mount) |
+| `components/developer-hub/templates/lightspeed.yaml` | LCS sidecars config, PostSync kairos API key Job, kairos-system Role |
+| `components/developer-hub/templates/rbac-policy.yaml` | ConfigMap `rhdh-rbac-policy` |
 | `managed-service-accounts.yaml` | MSA + ClusterPermission east/west |
 | `spoke-token-sync.yaml` | CronJob → developer-hub-spoke-tokens |
 | `hub-sa-token-secret.yaml` | K8S_SA_TOKEN for scaffolder |

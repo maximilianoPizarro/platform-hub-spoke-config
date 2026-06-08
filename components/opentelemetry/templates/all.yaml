@@ -34,9 +34,11 @@ spec:
         spike_limit_percentage: 30
     exporters:
       otlp:
-        endpoint: "tempo-simplest-distributor.openshift-tempo-operator.svc:4317"
+        endpoint: "tempo-simplest-distributor.distributed-tracing.svc:4317"
         tls:
           insecure: true
+        headers:
+          x-scope-orgid: platform
     service:
       pipelines:
         traces:

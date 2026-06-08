@@ -76,6 +76,10 @@ connectivityLink:
         namespace: openshift-operators
         channel: stable
         source: redhat-operators
+      - name: tempo-product
+        namespace: openshift-tempo-operator
+        channel: stable
+        source: redhat-operators
       - name: rhdh
         namespace: openshift-operators
         channel: fast-1.9
@@ -201,6 +205,14 @@ connectivityLink:
       path: opentelemetry
       destinationNamespace: openshift-opentelemetry
       syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: distributed-tracing
+      enabled: true
+      path: distributed-tracing
+      destinationNamespace: distributed-tracing
+      syncWave: "5"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true

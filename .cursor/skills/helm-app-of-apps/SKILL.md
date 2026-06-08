@@ -539,7 +539,9 @@ Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, 
 
 Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component.
 
-See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for Topology, scaffolder, and troubleshooting.
+See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for Topology, scaffolder, RBAC CSV deployment mount, Lightspeed PostSync hook, and troubleshooting.
+
+**Install pitfall:** `field-content-developer-hub` PostSync Job `developer-hub-lightspeed-ai-sync` can block the entire app sync; ReferenceGrants for `spoke-gateway-*` must exist on spokes before hub `industrial-edge.<hub-apps>` works (see **Workshop cold start** below).
 
 ### ArgoCD sync stuck or not applying changes
 
@@ -612,3 +614,72 @@ Hub `component-applications.yaml` block for `field-content-kairos` should pass `
 **Argo:** Kairos Applications may omit `ServerSideApply` to avoid operator SSA conflicts — see existing `component-applications.yaml` conditional.
 
 See **kairos-hub-spoke** skill for console RBAC, mirror SSP, and release tagging.
+
+## Workshop cold start / post-restart recovery
+
+Cluster reboots expose ordering gaps and Argo health quirks. Use this checklist on **next install** and after maintenance.
+
+### Recommended sync order (spokes)
+
+| Wave | Spoke Argo apps | Why |
+| ---- | ----------------- | --- |
+| 1 | `operators-*`, `namespaces-*`, `servicemeshoperator3-*` | CRDs / mesh baseline |
+| 2 | `spoke-interconnect-*` (Skupper Site + Connectors) | VAN must be Ready before hub listeners work |
+| 3 | `spoke-gateway-*` | **ReferenceGrants** (wave 2) before HTTPRoute (wave 3) |
+| 4 | `industrial-edge-tst-*`, `industrial-edge-stormshift-*`, … | Kafka + workloads behind gateway |
+| 5 | `kairos-*`, `observability-*`, rest | |
+
+Hub: `service-interconnect` (listeners) + `hub-gateway` after spokes expose `ie-gateway-*` connectors.
+
+### Failure signatures (restart)
+
+| Symptom | Likely cause | Fix |
+| ------- | ------------ | --- |
+| `industrial-edge.<hub-apps>` **500** | Missing `ReferenceGrant` on spoke; `ie-frontend` `RefNotPermitted` | Sync or apply `components/spoke-gateway/` on east/west — see **acm-hub-spoke** |
+| DevHub readiness **503**, `ENOENT rbac-policy.csv` | RBAC CSV not mounted on pod | deployment.patch in `developer-hub/all.yaml`; sync `field-content-developer-hub` — see **developer-hub-scaffolder** |
+| Argo `field-content-developer-hub` stuck on PostSync hook | `developer-hub-lightspeed-ai-sync` Failed (empty Role `resourceNames`) | Fix `lightspeed.yaml` `$credName`; delete Job; `SkipHooks=true` on resync |
+| `industrial-edge-tst-east` **Missing**, sync waits on `kafka-metrics-config` | Argo SSA health loop on ConfigMap; IE wiped on spoke | Clear `/operation`; resync; fallback: `helm template` + `oc apply` chart on spoke |
+| `operators-*` **Degraded**, CSVs **Succeeded** | Stale Argo Subscription health | Often cosmetic after restart; refresh app |
+| Skupper `sitesInNetwork` &lt; 3 | AccessToken / Link not Ready | Run `accesstoken-sync` CronJob or manual token — **acm-hub-spoke** |
+
+### Argo recovery commands (all clusters)
+
+```bash
+APP=<name> CTX=<hub-xqg4c|east-2847b|west-5zjkk>
+oc --context=$CTX annotate application $APP -n openshift-gitops argocd.argoproj.io/refresh=hard --overwrite
+oc --context=$CTX patch application $APP -n openshift-gitops --type json -p '[{"op":"remove","path":"/operation"}]'
+oc --context=$CTX patch application $APP -n openshift-gitops --type merge -p '{
+  "operation":{"initiatedBy":{"username":"admin"},"sync":{
+    "prune":true,
+    "syncOptions":["CreateNamespace=true","ServerSideApply=true","SkipDryRunOnMissingResource=true"]
+  }}
+}'
+```
+
+Use **`SkipHooks=true`** only when PostSync Jobs already succeeded (DevHub lightspeed sync, spoke-token-sync) and the hook blocks forward progress.
+
+### industrial-edge-tst Argo stuck fallback
+
+When sync spins on `waiting for healthy state of ... kafka-metrics-config` but workloads are gone:
+
+```bash
+helm template ie-<cluster> components/industrial-edge-tst \
+  --set clusterName=east --set clusterRole=spoke \
+  --set clusterDomain=apps.cluster-<id>.dynamic2.redhatworkshops.io \
+  | oc --context=east-2847b apply -f -
+```
+
+Then hard-refresh the Argo Application. Prefer fixing root sync (clear operation, full resync) on greenfield installs.
+
+### Post-restart smoke tests
+
+```bash
+# Hub menu Industrial Edge (via Skupper + spoke gateway)
+curl -sk -o /dev/null -w '%{http_code}\n' https://industrial-edge.<hub-apps>/
+
+# Direct spoke dashboard
+curl -sk -o /dev/null -w '%{http_code}\n' https://line-dashboard-industrial-edge-tst-all.<east-apps>/
+
+# Developer Hub
+curl -sk -o /dev/null -w '%{http_code}\n' https://developer-hub.<hub-apps>/.backstage/health/v1/readiness
+```
