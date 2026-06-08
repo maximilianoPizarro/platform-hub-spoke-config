@@ -676,8 +676,9 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
-{{- if include "developer-hub.lightspeedEnabled" . }}
+{{- if or (include "developer-hub.lightspeedEnabled" .) (.Values.plugins.rbac.enabled | default false) }}
             volumes:
+{{- if include "developer-hub.lightspeedEnabled" . }}
               - name: lightspeed-stack
                 configMap:
                   name: lightspeed-stack
@@ -688,6 +689,12 @@ spec:
                 emptyDir: {}
               - name: rag-data-volume
                 emptyDir: {}
+{{- end }}
+{{- if .Values.plugins.rbac.enabled | default false }}
+              - name: rhdh-rbac-policy
+                configMap:
+                  name: rhdh-rbac-policy
+{{- end }}
 {{- end }}
             initContainers:
               - name: wait-for-postgres
@@ -736,6 +743,13 @@ spec:
                   - secretRef:
                       name: developer-hub-spoke-tokens
                       optional: true
+{{- if .Values.plugins.rbac.enabled | default false }}
+                volumeMounts:
+                  - name: rhdh-rbac-policy
+                    mountPath: /opt/app-root/src/rbac-policy.csv
+                    subPath: rbac-policy.csv
+                    readOnly: true
+{{- end }}
 {{- if include "developer-hub.lightspeedEnabled" . }}
               - name: llama-stack
                 image: {{ .Values.plugins.lightspeed.llamaStackImage | default "quay.io/redhat-ai-dev/llama-stack:0.1.4" | quote }}
