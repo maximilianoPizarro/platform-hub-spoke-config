@@ -31,11 +31,14 @@ plugins:
   quay:
     enabled: true
   acsSecurityInsights:
-    # Package not in RHDH 1.9 dynamic-plugins/dist (enable when image includes it)
     enabled: false
   argocd:
     enabled: true
   kuadrant:
+    enabled: true
+  kafka:
+    enabled: true
+  notificationsEmail:
     enabled: true
   # Red Hat Developer Lightspeed (LCS + Llama Stack sidecars). Uses same vLLM as Kairos (granite-31-8b).
   lightspeed:

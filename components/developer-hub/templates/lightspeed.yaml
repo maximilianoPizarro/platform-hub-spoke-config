@@ -227,10 +227,18 @@ spec:
               SRC_NS="{{ $ai.credentialsSecretNamespace | default "kairos-system" }}"
               SRC="{{ $credName }}"
               KEY="{{ $ai.credentialsSecretKey | default "api-key" }}"
+
+              if ! oc get secret "$SRC" -n "$SRC_NS" >/dev/null 2>&1; then
+                echo "WARNING: Secret ${SRC_NS}/${SRC} not found — skipping API key sync."
+                echo "Developer Hub will start without Lightspeed vLLM credentials."
+                echo "Re-run this Job after Kairos deploys the credentials secret."
+                exit 0
+              fi
+
               API_KEY="$(oc get secret "$SRC" -n "$SRC_NS" -o json | python3 -c "import sys,json,base64; d=json.load(sys.stdin)['data']; print(base64.b64decode(d['${KEY}']).decode())")"
               if [ -z "$API_KEY" ]; then
-                echo "ERROR: empty api key from ${SRC_NS}/${SRC}"
-                exit 1
+                echo "WARNING: Empty api key from ${SRC_NS}/${SRC} — skipping sync."
+                exit 0
               fi
               oc patch secret llama-stack-secrets -n developer-hub --type merge \
                 -p "{\"stringData\":{\"VLLM_API_KEY\":\"${API_KEY}\"}}"

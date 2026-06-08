@@ -18,6 +18,9 @@ p, role:default/authenticated, ocm.entity.read, read, allow
 p, role:default/authenticated, ocm.cluster.read, read, allow
 # ArgoCD
 p, role:default/authenticated, argocd.view.read, read, allow
+# Kafka
+p, role:default/authenticated, kafka.topic.read, read, allow
+p, role:default/authenticated, kafka.consumer-group.read, read, allow
 # Adoption Insights
 p, role:default/authenticated, adoption-insights.events.read, read, allow
 # TechDocs
@@ -26,3 +29,7 @@ p, role:default/authenticated, techdocs.entity.read, read, allow
 p, role:default/authenticated, lightspeed.chat.read, read, allow
 p, role:default/authenticated, lightspeed.chat.create, create, allow
 p, role:default/authenticated, lightspeed.chat.delete, delete, allow
+# Notifications
+p, role:default/authenticated, notification.entity.read, read, allow
+# Kuadrant
+p, role:default/authenticated, kuadrant.api-product.read, read, allow

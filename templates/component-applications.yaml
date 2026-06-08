@@ -302,6 +302,12 @@ spec:
             enabled: true
           kuadrant:
             enabled: true
+          argocd:
+            enabled: true
+          kafka:
+            enabled: true
+          notificationsEmail:
+            enabled: true
         kubernetesSpokes:
           enabled: true
           east:
