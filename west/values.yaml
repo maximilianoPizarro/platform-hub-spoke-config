@@ -47,6 +47,10 @@ operators:
       namespace: openshift-operators
       channel: v5
       source: community-operators
+    - name: opentelemetry-product
+      namespace: openshift-operators
+      channel: stable
+      source: redhat-operators
     - name: kiali-ossm
       namespace: openshift-operators
       channel: stable
