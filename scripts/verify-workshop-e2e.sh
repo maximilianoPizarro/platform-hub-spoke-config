@@ -26,7 +26,7 @@ helm template cl "$ROOT/components/console-links" \
   --set clusterDomain="$DOMAIN" \
   --set hubClusterDomain="$DOMAIN" \
   --set clusterRole=hub \
-  | rg -q "platform-showroom"
+  | rg -q "platform-hybrid-mesh-workshop"
 
 echo "== component charts =="
 helm template sr "$ROOT/components/showroom" --set deployer.domain="$DOMAIN" >/dev/null

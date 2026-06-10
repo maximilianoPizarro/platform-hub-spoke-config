@@ -42,7 +42,7 @@ Apps in `values.yaml` `connectivityLink.apps[]` (sync waves):
 
 Helm `valuesObject` wiring: `templates/component-applications.yaml`.
 
-ConsoleLinks (hub only): `platform-workshop-registration`, `platform-showroom`, `platform-neuroface` in `components/console-links/templates/all.yaml`.
+ConsoleLinks (hub only): **`platform-hybrid-mesh-workshop`** → registration (post-register redirect to Showroom); `platform-neuroface` for Plan B demo.
 
 ### 2. Runtime secrets (never commit to Git)
 

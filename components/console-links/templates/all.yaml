@@ -236,7 +236,7 @@ spec:
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
 metadata:
-  name: platform-workshop-registration
+  name: platform-hybrid-mesh-workshop
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
@@ -245,21 +245,7 @@ spec:
     section: "Platform Hub-Spoke"
   href: "https://workshop-registration.{{ $hubDomain }}"
   location: ApplicationMenu
-  text: "Workshop Registration"
----
-apiVersion: console.openshift.io/v1
-kind: ConsoleLink
-metadata:
-  name: platform-showroom
-  annotations:
-    argocd.argoproj.io/sync-wave: "10"
-spec:
-  applicationMenu:
-    imageURL: {{ include "console-links.iconURL" (dict "root" . "icon" "developer-hub.svg") | quote }}
-    section: "Platform Hub-Spoke"
-  href: "https://showroom-showroom.{{ $hubDomain }}"
-  location: ApplicationMenu
-  text: "Hybrid Mesh AI Showroom"
+  text: "Hybrid Mesh AI Workshop"
 ---
 apiVersion: console.openshift.io/v1
 kind: ConsoleLink
