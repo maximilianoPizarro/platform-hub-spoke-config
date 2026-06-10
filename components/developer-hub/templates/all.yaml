@@ -232,6 +232,7 @@ data:
             - name: hub
               url: https://kubernetes.default.svc.cluster.local:443
               authProvider: serviceAccount
+              serviceAccountToken: ${K8S_SA_TOKEN}
               skipTLSVerify: true
               caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 {{- if and .Values.kubernetesSpokes.enabled (.Values.kubernetesSpokes.east.apiUrl | default "") }}
