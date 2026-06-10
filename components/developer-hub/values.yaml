@@ -9,6 +9,9 @@ sessionSecret: ""
 # Quay.io dockerconfigjson for pipeline push (set via --set, never commit credentials)
 quayDockerConfigJson: ""
 # Sync ManagedServiceAccount tokens from east/west into developer-hub-spoke-tokens Secret
+pluginReadiness:
+  enabled: true
+  image: registry.redhat.io/ubi9/ubi-minimal:latest
 spokeTokenSync:
   enabled: true
   clusters: "east,west"

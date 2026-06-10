@@ -359,6 +359,13 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: hub
+    {{- else if eq .path "acs-init-bundle-sync" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        initBundleSync:
+          enabled: true
+          clusters: "hub,east,west"
     {{- else if eq .path "acm-operator" }}
     helm:
       valuesObject:

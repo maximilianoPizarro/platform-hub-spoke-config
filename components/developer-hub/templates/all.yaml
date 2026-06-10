@@ -379,6 +379,8 @@ data:
           - ocm
           - techdocs
           - notifications
+          - argocd
+          - kuadrant
 {{- if include "developer-hub.lightspeedEnabled" . }}
           - lightspeed
 {{- end }}
@@ -505,6 +507,8 @@ data:
                     menuItem:
                       icon: ocmIcon
                       text: Clusters
+                  - path: /clusters
+                    importName: OcmPage
                 mountPoints:
                   - mountPoint: entity.page.overview/context
                     importName: ClusterContextProvider
@@ -572,15 +576,14 @@ data:
                 mountPoints:
                   - mountPoint: entity.page.kafka/content
                     importName: EntityKafkaContent
-      # Kuadrant backend — disabled: npm deps exceed ephemeral storage; re-enable with larger volume
       - package: "@kuadrant/kuadrant-backstage-plugin-backend-dynamic@v0.1.0"
-        disabled: true
+        disabled: {{ not (.Values.plugins.kuadrant.enabled | default false) }}
         integrity: sha512-+iz5a/38ZB/phehlHMcbM79S/bMZwslcxi+lnG5Tb2InlWtumloFK7OzZk11s0/CjJPytF3CipOz4QpFHQ09qw==
         pluginConfig:
           kuadrant:
             dev: true
       - package: "@kuadrant/kuadrant-backstage-plugin-frontend@v0.1.0"
-        disabled: true
+        disabled: {{ not (.Values.plugins.kuadrant.enabled | default false) }}
         integrity: sha512-3RLpjskJX4UqUQrc3gqg2TJL60cRKT+4mpnHH5OTi8leUxHgbyx2RnOmdRXivgXB1DwHK/oY7BsnPPft4Up2NQ==
         pluginConfig:
           dynamicPlugins:
@@ -628,9 +631,8 @@ data:
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/red-hat-developer-hub-backstage-plugin-techdocs-mcp-tool:{{ .Values.plugins.mcp.techdocsToolTag | default "bs_1.45.3__0.3.2" }}
         disabled: false
 {{- end }}
-      # ArgoCD backend — disabled per user request (caused init crashes + space issues)
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/roadiehq-backstage-plugin-argo-cd-backend:bs_1.45.3__4.6.0
-        disabled: true
+        disabled: {{ not (.Values.plugins.argocd.enabled | default false) }}
         pluginConfig:
           argocd:
             appLocatorMethods:
@@ -639,9 +641,15 @@ data:
                   - name: default
                     url: https://openshift-gitops-server-openshift-gitops.{{ .Values.clusterDomain }}
                     token: ${K8S_SA_TOKEN}
-      # ArgoCD frontend — disabled per user request
       - package: oci://ghcr.io/redhat-developer/rhdh-plugin-export-overlays/backstage-community-plugin-redhat-argocd:bs_1.45.3__2.3.0
-        disabled: true
+        disabled: {{ not (.Values.plugins.argocd.enabled | default false) }}
+        pluginConfig:
+          dynamicPlugins:
+            frontend:
+              backstage-community.plugin-redhat-argocd:
+                mountPoints:
+                  - mountPoint: entity.page.cd/content
+                    importName: EntityArgoCDOverview
       - package: ./dynamic-plugins/dist/backstage-community-plugin-acr
         disabled: true
       - package: ./dynamic-plugins/dist/backstage-community-plugin-quay
@@ -682,7 +690,7 @@ data:
       - package: ./dynamic-plugins/dist/backstage-plugin-notifications-backend-dynamic
         disabled: false
       - package: ./dynamic-plugins/dist/backstage-plugin-notifications-backend-module-email-dynamic
-        disabled: true
+        disabled: {{ not (.Values.plugins.notificationsEmail.enabled | default false) }}
         pluginConfig:
           notifications:
             processors:
@@ -855,6 +863,11 @@ spec:
 {{- end }}
             containers:
               - name: backstage-backend
+                resources:
+                  requests:
+                    ephemeral-storage: 2Gi
+                  limits:
+                    ephemeral-storage: 5Gi
                 env:
                   - name: NODE_TLS_REJECT_UNAUTHORIZED
                     value: "0"

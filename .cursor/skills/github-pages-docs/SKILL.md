@@ -247,7 +247,8 @@ When documenting platform-specific topics, include these sections where relevant
 
 **Topic routing for this repo:**
 - Mesh install, ztunnel, `IstioCNI` ambient profile, **namespaces on/off ambient** → `docs/products/service-mesh.md`
-- ACS Central, init bundles, **`stackrox` off mesh** → `docs/products/acs.md`
+- ACS Central, Helm init-bundle automation (`acs-init-bundle-sync`), manual `roxctl` fallback, **`stackrox` off mesh** → `docs/products/acs.md`
+- RHDP field-content (hub + spoke orders, `clusters.hub.domain`) → `docs/rhdp-field-content.md`
 - Connectivity Link screenshots and RHCL operator → `docs/products/connectivity-link.md`
 - Grafana dashboards, Kafka metrics queries, Kiali 401, Kafka Console DNS/metrics → `docs/observability.md`
 - Skupper, broker `advertisedHost`, EndpointSlice → `docs/service-interconnect.md` + `docs/products/amq-streams.md`

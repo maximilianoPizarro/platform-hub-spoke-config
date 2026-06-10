@@ -130,7 +130,7 @@ The `AccessToken` on each spoke is created **automatically** by a hub PostSync J
 | Mechanism | Purpose |
 | --------- | ------- |
 | PostSync Job `skupper-accesstoken-sync-hook` | Runs after `field-content-service-interconnect` sync; links spokes when `Site` + grant exist |
-| CronJob `skupper-accesstoken-sync` | Re-reconciles tokens every 6h (grant rotation, link recovery) |
+| CronJob `skupper-accesstoken-sync` | Re-reconciles tokens every 30 minutes (grant rotation, late spoke join) |
 | ManagedClusterAction | Creates `AccessToken` CR on spoke (`namespace: service-interconnect`) |
 | ManagedClusterView | Reads `Link/hub-link` status on spoke before re-applying token |
 

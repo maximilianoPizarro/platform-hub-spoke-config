@@ -1,4 +1,7 @@
 # Workshop: full read/use for all authenticated Developer Hub users (OIDC / Keycloak).
+# Keycloak group backstage-users (synced by catalog-backend-module-keycloak) → authenticated role.
+g, group:default/backstage-users, role:default/authenticated
+g, user:default/platformadmin, role:default/authenticated
 # Catalog
 p, role:default/authenticated, catalog-entity, read, allow
 p, role:default/authenticated, catalog.location, read, allow

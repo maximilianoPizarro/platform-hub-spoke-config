@@ -12,6 +12,7 @@ metadata:
     backstage.io/source-location: url:https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}-${{ values.environment }}
     kairos.io/environment: ${{ values.environment }}
     quay.io/repository-slug: workshop/${{ values.uniqueName }}
+    kuadrant.io/api-product: ${{ values.uniqueName }}
   links:
     - url: https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}-${{ values.environment }}
       title: Source Code (Gitea)

@@ -44,6 +44,38 @@ helm upgrade field-content . -f values.yaml \
 
 Or patch the Argo CD `Application` `field-content` `helm.values` with the same keys.
 
+## Spoke orders — `clusters.hub.domain` (required)
+
+East and west RHDP orders inject `deployer.domain` for the **local** spoke. Cross-cluster features also need the **hub** apps domain:
+
+| Feature | Uses `clusters.hub.domain` |
+|---------|---------------------------|
+| IE anomaly alerter → Mailpit | `https://mailpit.<hub-domain>/api/v1/send` |
+| ACS SecuredCluster → Central | `central-stackrox.<hub-domain>:443` |
+| Kairos hub reporting | `kairos-console-kairos-system.<hub-domain>` |
+| Console links to hub services | Quay, Developer Hub, Mailpit |
+
+Patch **each spoke** `field-content` Application (or set in the second hub upgrade that also lists spoke tokens):
+
+```bash
+# East spoke — after RHDP provision
+oc patch application field-content -n openshift-gitops --type merge -p '
+spec:
+  source:
+    helm:
+      values: |
+        deployer:
+          domain: apps.cluster-<east-id>.dynamic2.redhatworkshops.io
+        clusters:
+          hub:
+            domain: apps.cluster-<hub-id>.dynamic2.redhatworkshops.io
+'
+```
+
+Repeat for west with `apps.cluster-<west-id>...` and the same `clusters.hub.domain`.
+
+Without `clusters.hub.domain`, Mailpit URLs become `https://mailpit./api/v1/send` and ACS spokes cannot reach Central.
+
 ## Verify hub after provision
 
 ```bash

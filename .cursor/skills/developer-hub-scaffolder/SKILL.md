@@ -14,12 +14,16 @@ User → Developer Hub (hub)
   → Software Template (GitHub Pages static assets)
     → fetch:template → publish:github (Gitea) → catalog:register
     → http:backstage:request → ArgoCD Application (k8s-api proxy)
-    → http:backstage:request → /api/notifications
+    → http:backstage:request → Gitea webhook (optional, continueOnError)
+    → http:backstage:request → /api/notifications (in-app + Mailpit email when enabled)
   → ArgoCD (hub) deploys to spoke (east/west)
-  → Entity pages: Topology, Kubernetes, Tekton CI, OCM cluster card
+  → Entity pages: Topology, Kubernetes, Tekton CI, ArgoCD CD, Quay, OCM cluster card, Kuadrant API Products
 ```
 
-Reference pattern: [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg) (Neuralbank scaffolding flow).
+Reference patterns:
+- [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg) (Neuralbank scaffolding flow)
+- [from-3scale-to-connectivity-link](https://github.com/maximilianoPizarro/from-3scale-to-connectivity-link) (Kuadrant, ArgoCD CD tab, Mailpit email, `publish:gitea`)
+- [field-sourced-content-template](https://github.com/maximilianoPizarro/field-sourced-content-template) (RHDP field-content, template catalog import, Gitea webhooks)
 
 ## Workshop users (`userCount`)
 
@@ -109,12 +113,17 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 | `backstage-plugin-scaffolder-backend-module-github-dynamic` | enabled | `publish:github` → Gitea |
 | `backstage-plugin-notifications` + backend | enabled | In-app notifications |
 | `backstage-plugin-techdocs` | enabled (`plugins.techdocs.enabled`) | Docs tab (local builder/publisher) |
-| `@kuadrant/kuadrant-backstage-plugin-*` | enabled (`plugins.kuadrant.enabled`) | Kuadrant page `/kuadrant` — external npm |
-| `roadiehq-backstage-plugin-argo-cd-backend-dynamic` | enabled (`plugins.argocd.enabled`) | Argo CD entity tab |
+| `@kuadrant/kuadrant-backstage-plugin-*` | enabled (`plugins.kuadrant.enabled`) | Kuadrant page `/kuadrant` — external npm; needs `ephemeral-storage` 2Gi/5Gi on backend |
+| `roadiehq-backstage-plugin-argo-cd-backend` + `redhat-argocd` frontend | enabled (`plugins.argocd.enabled`) | Argo CD entity tab `entity.page.cd/content` |
+| `backstage-plugin-notifications-backend-module-email-dynamic` | enabled (`plugins.notificationsEmail.enabled`) | SMTP → `mailpit.mailpit.svc:1025` |
 | `backstage-community-plugin-kafka` | **disabled** (`plugins.kafka.enabled: false`) | Not in RHDH 1.9 image; no ghcr.io OCI |
-| `backstage-community-plugin-quay` | enabled (`plugins.quay.enabled`) | Quay entity tab |
+| `backstage-community-plugin-quay` | enabled (`plugins.quay.enabled`) | Quay entity tab; proxy `/quay` → `quay-registry.<domain>` |
 | kiali, grafana, tech-insights | disabled | Not in RHDH 1.9 image or ghcr.io overlays |
 | `quay-backend-dynamic`, `security-insights` | disabled | ENOENT in RHDH 1.9 image |
+
+**Flag wiring:** `plugins.*.enabled` in `values.yaml` must drive `disabled: {{ not .Values.plugins.*.enabled }}` in `templates/all.yaml` — never hardcode `disabled: true` for argocd/kuadrant/email when values say enabled.
+
+**PostSync:** `developer-hub-plugin-readiness` Job (wave 10) checks `/healthcheck`, RBAC CSV mount, and basic plugin readiness.
 
 **YAML trap:** `catalog.providers` (ocm, keycloakOrg) must be indented under `catalog:`, not under `quay:`.
 
@@ -192,8 +201,9 @@ Add hosts to `backend.reading.allow`: `petstore3.swagger.io`, `httpbin.org`, `re
 
 | Template | Purpose |
 | -------- | ------- |
-| `industrial-edge` | IoT edge instance on east/west |
+| `industrial-edge` | IoT edge instance on east/west (+ Gitea webhook step) |
 | `industrial-edge-camel-kaoto` | Camel routes + DevSpaces/Kaoto |
+| `industrial-edge-api-product` | Kuadrant APIProduct + OpenAPI catalog entity |
 | `industrial-edge-delete` | Delete ArgoCD app + Gitea repo + notify |
 
 Template `owner` parameter: use `ui:field: OwnerPicker` (not `${{ user.entity.metadata.name }}` default — breaks form when user entity missing). Catalog locations: GitHub blob (scaffolder skeleton) + raw GitHub fallback for template ingestion.
@@ -207,7 +217,8 @@ annotations:
   backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
   janus-idp.io/tekton: ${{ values.namespace }}
   backstage.io/source-location: url:https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/...
-  quay.io/repository-slug: maximilianopizarro/${{ values.uniqueName }}
+  quay.io/repository-slug: workshop/${{ values.uniqueName }}
+  kuadrant.io/api-product: ${{ values.uniqueName }}
 links:
   - title: Source Code (Gitea)
   - title: Documentation  # → Gitea raw README.md
@@ -230,7 +241,9 @@ Use **hub apps domain** with `apps.` prefix:
 
 ```yaml
 clusterDomain:
-  default: apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+  default: apps.cluster.example.com   # RHDP injects real hub domain at provision time
+spokeAppsDomain:
+  default: apps.cluster-east.example.com   # or west — per targetCluster oneOf
 ```
 
 Repo URL pattern: `gitea-gitea.${{ parameters.clusterDomain }}` (not bare cluster API domain).
@@ -282,7 +295,7 @@ Tekton: use `tekton.dev/v1` Pipeline with `taskRef.kind: ClusterTask` (git-clone
         severity: normal
 ```
 
-Requires notifications plugins enabled. No Mailpit/email processor in this platform — in-app only.
+Requires notifications plugins enabled. With `plugins.notificationsEmail.enabled: true`, the email processor sends via Mailpit SMTP (`mailpit.mailpit.svc:1025`). In-app notifications always work via `/api/notifications`.
 
 ## Permission framework (workshop default: RBAC on)
 
@@ -304,9 +317,14 @@ Grant `role:default/authenticated` at minimum:
 | Notifications | `notification.entity.read` |
 | Lightspeed | `lightspeed.chat.*` |
 
-`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, `argocd`, `kafka`, `kuadrant`, `notifications`, and `lightspeed` when enabled.
+`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, `argocd`, `kuadrant`, `notifications`, and `lightspeed` when enabled.
 
-`platformadmin` is assigned `role:default/admin` in CSV for explicit full Kuadrant + policy admin access.
+**Group bindings** in `rbac-policy.csv`:
+- `g, group:default/backstage-users, role:default/authenticated` (Keycloak group sync)
+- `g, user:default/platformadmin, role:default/authenticated` (explicit OIDC admin)
+- `g, user:default/platformadmin, role:default/admin`
+
+`platformadmin` gets full Kuadrant + policy admin via `role:default/admin`.
 
 For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off (empty catalog risk remains if partial CSV).
 
@@ -328,7 +346,7 @@ For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off 
 
 ## OCM plugin routes
 
-Dynamic plugin config registers **`/ocm`** and sidebar **Clusters** (`OcmPage`). Backend needs `catalog.providers.ocm` under `catalog:` (YAML indent trap) and ClusterRole `backstage-ocm-plugin` for `ManagedCluster`.
+Dynamic plugin config registers **`/ocm`** and sidebar **Clusters** (`OcmPage`). Alias route **`/clusters`** → same `OcmPage` (bookmarks/old links). Backend needs `catalog.providers.ocm` under `catalog:` (YAML indent trap) and ClusterRole `backstage-ocm-plugin` for `ManagedCluster`.
 
 ## Mesh exclusions affecting Developer Hub views
 
@@ -362,7 +380,10 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 | `ENOENT` SA token | `automountServiceAccountToken: true` |
 | Self-signed cert in K8s plugin | `NODE_TLS_REJECT_UNAUTHORIZED=0` + skipTLSVerify |
 | TechDocs `FetchUrlReader does not implement readTree` | Use in-pod mkdocs (`catalog-onboarding.yaml`, `dir:.`) not remote github.io tree |
-| `/ocm` 404 or permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy` |
+| `/ocm` or `/clusters` 404 | OCM dynamic plugin failed to load (check `install-dynamic-plugins` logs); or navigate to `/ocm` not a stale `/clusters` bookmark before alias was added |
+| `/ocm` permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy`; verify `group:default/backstage-users` binding |
+| Docs tab empty (`workshop-onboarding`) | Missing `backstage.io/techdocs-ref: dir:.` on in-pod `files/onboarding/catalog-info.yaml` |
+| Topology "Missing Permission" | User not in `authenticated` role; verify Keycloak username matches CSV; ensure `kubernetes.clusters.read` in CSV |
 | Kuadrant permission denied | Use `kuadrant.apiproduct.list` not `kuadrant.api-product.read`; add `kuadrant` to `pluginsWithPermission` |
 | Empty scaffolder form / Review only | Stale catalog entity or `${{ user.entity... }}` owner default — use OwnerPicker; refresh catalog |
 | Lightspeed works but catalog empty | CSV only had `lightspeed.*`; expand full workshop CSV |
@@ -380,6 +401,7 @@ After hub reboot or first install, verify in order:
 2. `backstage-developer-hub` deployment has volume `rhdh-rbac-policy` on `backstage-backend`.
 3. Readiness: `curl -sk -o /dev/null -w '%{http_code}' https://developer-hub.<hub-apps>/.backstage/health/v1/readiness` → **200**.
 4. `developer-hub-spoke-tokens` Secret populated (CronJob or PostSync hook).
+5. PostSync `developer-hub-plugin-readiness` Job completed.
 
 Recovery when sync is wedged:
 
@@ -399,6 +421,7 @@ oc delete job developer-hub-lightspeed-ai-sync -n developer-hub --ignore-not-fou
 | `components/developer-hub/templates/rbac-policy.yaml` | ConfigMap `rhdh-rbac-policy` |
 | `managed-service-accounts.yaml` | MSA + ClusterPermission east/west |
 | `spoke-token-sync.yaml` | CronJob → developer-hub-spoke-tokens |
+| `plugin-readiness.yaml` | PostSync health + RBAC CSV check |
 | `hub-sa-token-secret.yaml` | K8S_SA_TOKEN for scaffolder |
 | `quay-push-secret.yaml` | Optional Quay dockerconfig |
 | `files/catalog/industrial-edge-system.yaml` | Static IE system catalog |

@@ -182,7 +182,13 @@ No values are passed from the ApplicationSet to the spoke charts. This makes eac
 
 Store DNS in values (`deployer.domain`, `clusters.*.domain`). ACM import and Argo destinations should reference cluster secrets created by the GitOps integration—not literals committed to the repo.
 
-For hub-specific links (Grafana, Kiali, ACM), always use `hubClusterDomain` so spoke ConsoleLinks point back to hub services.
+For hub-specific links (Grafana, Kiali, ACS Central, Mailpit, Quay), always use `hubClusterDomain` so spoke ConsoleLinks and cross-cluster URLs point back to hub services.
+
+**RHDP spokes:** `deployer.domain` is the **local** spoke apps domain. **`clusters.hub.domain`** must also be injected on east/west `field-content` orders — without it:
+- `ie-anomaly-alerter` → `MAILPIT_URL` becomes `https://mailpit./api/v1/send`
+- `acs-secured-cluster` → `central-stackrox.<hub-domain>:443` is wrong
+
+See `docs/rhdp-field-content.md` § Spoke orders — `clusters.hub.domain`.
 
 ## Service Mesh ambient mode (multi-cluster)
 
@@ -492,7 +498,14 @@ Sensitive grant data (**code**, **url**, **ca**) must **not** be committed to Gi
 2. For each cluster in `accessTokenSync.clusters` (default `east,west`), creates `AccessToken/hub-link` on the spoke via **ManagedClusterAction**.
 3. Skips spokes whose `Link/hub-link` is already **Ready** (checked via **ManagedClusterView**).
 
-Chart: `components/service-interconnect/templates/accesstoken-sync.yaml`. Disable with `accessTokenSync.enabled: false` and apply tokens manually.
+Chart: `components/service-interconnect/templates/accesstoken-sync.yaml`. CronJob schedule: **`*/30 * * * *`** (every 30 minutes; was 6h). Disable with `accessTokenSync.enabled: false` and apply tokens manually.
+
+**Force sync** when a spoke joins late:
+
+```bash
+oc create job skupper-accesstoken-sync-manual \
+  --from=cronjob/skupper-accesstoken-sync -n service-interconnect
+```
 
 **Manual fallback** (same shape as runtime apply — do not commit files like `.tmp/accesstoken-*.yaml`):
 
@@ -1030,7 +1043,29 @@ subjects:
 
 ### Plugins (RHDH 1.9)
 
-Enabled: OCM, Kubernetes, Topology, Tekton, notifications. Disabled (ENOENT): argocd, kafka, kuadrant, techdocs.
+Enabled via `plugins.*.enabled` flags: OCM (`/ocm` + `/clusters` alias), Kubernetes, Topology, Tekton, TechDocs, Quay, notifications (+ Mailpit email), ArgoCD CD tab, Kuadrant (`/kuadrant`), MCP. Disabled: kafka (ENOENT), kiali/grafana (no OCI). Hub `component-applications.yaml` sets `lightspeed.enabled: false` by default.
+
+See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for RBAC CSV, plugin-readiness PostSync, and scaffolder templates.
+
+### ACS cluster registration (init bundles)
+
+Charts: `acs-operator` (hub Central), `acs-secured-cluster` (hub + spokes), **`acs-init-bundle-sync`** (hub automation).
+
+1. `SecuredCluster` CR alone is insufficient — needs TLS secrets from `roxctl central init-bundles generate`.
+2. PostSync Job `acs-init-bundle-sync-hook` + CronJob (12h) reads `ROX_ADMIN_PASSWORD` from Secret `acs-init-credentials` in `stackrox` (runtime only).
+3. Hub: apply bundle locally; spokes: **ManagedClusterAction** Job on each cluster (`hub`, `east`, `west`).
+4. Manual fallback: `docs/products/acs.md` § Helm chart registration.
+
+```bash
+oc create secret generic acs-init-credentials -n stackrox \
+  --from-literal=ROX_ADMIN_PASSWORD='<central-admin-password>'
+```
+
+Keep `stackrox` off Istio ambient — breaks Central ↔ PostgreSQL TLS.
+
+### Quay + MinIO (hub)
+
+Quay uses MinIO bucket `quay` at `minio.industrial-edge-ml-workspace.svc`. PostSync Job `minio-bucket-init` creates `quay` and `kubecost` buckets before `QuayRegistry` (sync wave 4). PostSync `quay-readiness` polls `/api/v1/discovery`. If Quay route returns 503, check MinIO bucket + Quay pod logs in `quay-registry`.
 
 ## ArgoCD resourceCustomizations → resourceHealthChecks migration
 

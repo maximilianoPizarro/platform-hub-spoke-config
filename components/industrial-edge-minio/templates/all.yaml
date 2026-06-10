@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: minio
   namespace: industrial-edge-ml-workspace
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   labels:
     app: minio
 spec:

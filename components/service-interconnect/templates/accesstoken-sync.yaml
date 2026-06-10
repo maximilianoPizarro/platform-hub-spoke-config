@@ -290,7 +290,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "5"
 spec:
-  schedule: {{ .Values.accessTokenSync.schedule | default "0 */6 * * *" | quote }}
+  schedule: {{ .Values.accessTokenSync.schedule | default "*/30 * * * *" | quote }}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
   jobTemplate:

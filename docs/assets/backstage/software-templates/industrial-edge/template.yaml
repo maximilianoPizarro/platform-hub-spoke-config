@@ -58,8 +58,8 @@ spec:
         clusterDomain:
           title: Hub cluster apps domain
           type: string
-          description: "Gitea and hub services (e.g. apps.cluster-xxxxx.redhatworkshops.io)"
-          default: apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+          description: "Hub RHDP apps domain for Gitea, Quay, Developer Hub (e.g. apps.cluster-r7964.dynamic2.redhatworkshops.io)"
+          default: apps.cluster.example.com
       dependencies:
         targetCluster:
           oneOf:
@@ -69,14 +69,16 @@ spec:
                 spokeAppsDomain:
                   title: East spoke apps domain
                   type: string
-                  default: apps.cluster-2847b.dynamic2.redhatworkshops.io
+                  default: apps.cluster-east.example.com
+                  description: "East spoke RHDP apps domain"
             - properties:
                 targetCluster:
                   const: west
                 spokeAppsDomain:
                   title: West spoke apps domain
                   type: string
-                  default: apps.cluster-5zjkk.dynamic2.redhatworkshops.io
+                  default: apps.cluster-west.example.com
+                  description: "West spoke RHDP apps domain"
   steps:
     - id: fetch-skeleton
       name: Generate Skeleton
@@ -136,6 +138,23 @@ spec:
                 prune: true
               syncOptions:
                 - CreateNamespace=true
+    - id: create-gitea-webhook
+      name: Create Gitea Webhook
+      action: http:backstage:request
+      input:
+        method: POST
+        path: /api/proxy/gitea/repos/ws-${{ parameters.owner }}/${{ parameters.name }}-${{ parameters.targetCluster }}-${{ parameters.environment }}/hooks
+        headers:
+          Content-Type: application/json
+        body:
+          type: gitea
+          active: true
+          config:
+            content_type: json
+            url: https://developer-hub.${{ parameters.clusterDomain }}/api/events/gitea
+          events:
+            - push
+      continueOnError: true
     - id: notify
       name: Notify Owner
       action: http:backstage:request

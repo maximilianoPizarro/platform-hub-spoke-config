@@ -7,5 +7,5 @@ accessTokenSync:
   grantName: spoke-link
   tokenName: hub-link
   clusters: "east,west"
-  schedule: "0 */6 * * *"
+  schedule: "*/30 * * * *"
   image: registry.redhat.io/ubi9/python-311:latest

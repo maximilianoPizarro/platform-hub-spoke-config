@@ -148,7 +148,9 @@ Hub `templates/component-applications.yaml` and spoke `east|west/templates/compo
 
 **Prefer vendoring** third-party charts under `components/<wrapper>/` with `charts/*.tgz` committed (see `components/camel-dashboard-openshift/`) when spokes have slow egress or Argo `DeadlineExceeded` on public Helm repos. Re-vendor with `scripts/vendor-camel-dashboard-chart.sh`.
 
-Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`.
+Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `acs-init-bundle-sync`, `quay-registry`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`.
+
+**Quay dependency chain:** `industrial-edge-minio` (wave 2) → PostSync `minio-bucket-init` (bucket `quay`) → `quay-registry` QuayRegistry (wave 4) → PostSync `quay-readiness`.
 
 ### Spoke cluster registration in Argo CD
 
@@ -534,8 +536,11 @@ Key sub-templates (not separate Argo apps — same chart):
 | `spoke-token-sync.yaml` | PostSync Job + CronJob → `developer-hub-spoke-tokens` |
 | `hub-sa-token-secret.yaml` | SA token for scaffolder k8s-api proxy |
 | `quay-push-secret.yaml` | Optional — only if `quayDockerConfigJson` set via Helm |
+| `plugin-readiness.yaml` | PostSync Job — healthcheck + RBAC CSV mount verification |
 
-Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, `quayDockerConfigJson`.
+Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, `quayDockerConfigJson`. ACS: Secret `acs-init-credentials` (`ROX_ADMIN_PASSWORD`) in `stackrox` at runtime.
+
+**Plugin flags** (hub `component-applications.yaml` → `plugins`): `argocd`, `kuadrant`, `notificationsEmail` enabled; `lightspeed` disabled; backend `ephemeral-storage` 2Gi/5Gi for Kuadrant npm deps.
 
 Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component.
 
@@ -640,7 +645,10 @@ Hub: `service-interconnect` (listeners) + `hub-gateway` after spokes expose `ie-
 | Argo `field-content-developer-hub` stuck on PostSync hook | `developer-hub-lightspeed-ai-sync` Failed (empty Role `resourceNames`) | Fix `lightspeed.yaml` `$credName`; delete Job; `SkipHooks=true` on resync |
 | `industrial-edge-tst-east` **Missing**, sync waits on `kafka-metrics-config` | Argo SSA health loop on ConfigMap; IE wiped on spoke | Clear `/operation`; resync; fallback: `helm template` + `oc apply` chart on spoke |
 | `operators-*` **Degraded**, CSVs **Succeeded** | Stale Argo Subscription health | Often cosmetic after restart; refresh app |
-| Skupper `sitesInNetwork` &lt; 3 | AccessToken / Link not Ready | Run `accesstoken-sync` CronJob or manual token — **acm-hub-spoke** |
+| Skupper `sitesInNetwork` &lt; 3 | AccessToken / Link not Ready | CronJob every **30 min** or `oc create job skupper-accesstoken-sync-manual --from=cronjob/skupper-accesstoken-sync` — **acm-hub-spoke** |
+| Quay route **503** | MinIO bucket `quay` missing or Quay not Ready | Sync `industrial-edge-minio` + `quay-registry`; check `minio-bucket-init` Job |
+| No sensor emails in Mailpit | `clusters.hub.domain` empty on spoke | Patch east/west `field-content` with hub apps domain; `ie-alerter-mailpit-config-check` Job fails with clear message |
+| ACS UI empty clusters | Init bundle secrets missing | Create `acs-init-credentials`; sync `acs-init-bundle-sync` or manual `roxctl` — `docs/products/acs.md` |
 
 ### Argo recovery commands (all clusters)
 

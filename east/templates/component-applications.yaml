@@ -190,6 +190,16 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         clusterRole: spoke
+    {{- else if eq .id "ie-anomaly-alerter" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        clusterName: {{ $.Values.clusterName }}
+        hubClusterDomain: {{ $hubDomain }}
+        global:
+          hubClusterDomain: {{ $hubDomain }}
+        mailpit:
+          requireHubDomain: true
     {{- else if eq .id "kiali" }}
     helm:
       valuesObject:

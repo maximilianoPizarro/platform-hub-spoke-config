@@ -103,7 +103,7 @@ oc get applications -n openshift-gitops | grep -E 'west$'
 
 Do **not** expect `spoke-gateway-west` on the hub; it lives in **west** `openshift-gitops`.
 
-5. **Skupper link (automatic):** after hub `service-interconnect` and spoke `spoke-interconnect` sync, the PostSync Job **`skupper-accesstoken-sync-hook`** reads `AccessGrant/spoke-link` status and creates `AccessToken/hub-link` on each spoke via **ManagedClusterAction** (no secrets in Git). A CronJob re-runs every 6 hours.
+5. **Skupper link (automatic):** after hub `service-interconnect` and spoke `spoke-interconnect` sync, the PostSync Job **`skupper-accesstoken-sync-hook`** reads `AccessGrant/spoke-link` status and creates `AccessToken/hub-link` on each spoke via **ManagedClusterAction** (no secrets in Git). A CronJob re-runs every 30 minutes (`*/30 * * * *`).
 
 ```bash
 # Hub — verify grant + sync job

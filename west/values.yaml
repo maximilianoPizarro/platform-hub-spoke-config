@@ -9,7 +9,9 @@ argocd:
 clusterName: west
 userCount: 50
 
-# RHDP injects deployer + clusters.hub via ArgoCD helm.values. No {{ }} in Git (Helm parse error).
+# RHDP injects deployer.domain (local spoke) and clusters.hub.domain (hub apps domain).
+# clusters.hub.domain is required for Mailpit alerts, ACS Central endpoint, and hub console links.
+# No {{ }} in Git (Helm parse error).
 clusters:
   hub:
     domain: ""

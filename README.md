@@ -215,6 +215,19 @@ oc get managedclusters
 oc get applications -n openshift-gitops | grep -E 'east-spoke|west-spoke|developer-hub'
 ```
 
+**Downstream features that require the hub patch above:**
+
+| Feature | Required values |
+|---------|-----------------|
+| Developer Hub Topology / OCM | `clusters.east/west.apiUrl` + tokens |
+| Mailpit alerts from sensors | `clusters.hub.domain` on **east/west** spoke orders |
+| ACS spoke registration | `clusters.hub.domain` on spokes + init bundles (see [docs/products/acs.md](docs/products/acs.md)) |
+| Quay / MinIO | `deployer.domain` on hub |
+
+After hub patch, patch **east** and **west** `field-content` with `clusters.hub.domain` set to the hub apps domain (see [docs/rhdp-field-content.md](docs/rhdp-field-content.md#spoke-orders--clustershubdomain-required)).
+
+For ACS automated cluster registration, create Secret `acs-init-credentials` in `stackrox` on the hub (see [docs/products/acs.md](docs/products/acs.md)).
+
 See also [docs/rhdp-field-content.md](docs/rhdp-field-content.md).
 
 ### 4. Import managed clusters (generic / non-RHDP)

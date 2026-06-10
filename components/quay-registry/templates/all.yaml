@@ -53,7 +53,7 @@ metadata:
   name: registry
   namespace: quay-registry
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   configBundleSecret: quay-config-bundle
   components:

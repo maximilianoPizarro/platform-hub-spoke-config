@@ -168,6 +168,14 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: acs-init-bundle-sync
+      enabled: true
+      path: acs-init-bundle-sync
+      destinationNamespace: stackrox
+      syncWave: "7"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     - id: developer-hub
       enabled: true
       path: developer-hub
