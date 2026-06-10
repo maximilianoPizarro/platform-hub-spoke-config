@@ -147,7 +147,77 @@ spec:
     namespace: openshift-gitops
 ```
 
-### 3. Import managed clusters
+### 3. RHDP Field Content (demo.redhat.com) — hub + spokes
+
+Order **three separate** catalog environments (`existing_gitops: true`):
+
+| Cluster | `ocp4_workload_field_content_gitops_repo_path` |
+|---------|------------------------------------------------|
+| Hub | `.` |
+| East | `east` |
+| West | `west` |
+
+RHDP creates a `field-content` Argo CD Application per cluster with inline `helm.values` (`deployer.domain`, `litemaas`, etc.). **Do not put `{{ }}` in Git `values.yaml`** — Helm fails parsing them.
+
+After hub and both spokes are running, **patch the hub** `field-content` Application with spoke domains, API URLs, and admin tokens (replace placeholders; never commit tokens):
+
+```bash
+oc login --server=https://api.cluster-<hub-id>.dynamic2.redhatworkshops.io:6443 \
+  --token=sha256~<hub-admin-token> --insecure-skip-tls-verify
+
+oc patch application field-content -n openshift-gitops --type merge -p '
+spec:
+  source:
+    helm:
+      values: |
+        deployer:
+          domain: apps.cluster-<hub-id>.dynamic2.redhatworkshops.io
+          apiUrl: https://api.cluster-<hub-id>.dynamic2.redhatworkshops.io:6443
+        clusters:
+          hub:
+            domain: apps.cluster-<hub-id>.dynamic2.redhatworkshops.io
+          east:
+            domain: apps.cluster-<east-id>.dynamic2.redhatworkshops.io
+            apiUrl: https://api.cluster-<east-id>.dynamic2.redhatworkshops.io:6443
+            token: sha256~<east-admin-token>
+          west:
+            domain: apps.cluster-<west-id>.dynamic2.redhatworkshops.io
+            apiUrl: https://api.cluster-<west-id>.dynamic2.redhatworkshops.io:6443
+            token: sha256~<west-admin-token>
+        gitops:
+          path: .
+          repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config
+          revision: main
+        litemaas:
+          apiKey: <litellm-virtual-key-from-provision_data>
+          apiUrl: https://maas-rhdp.apps.maas.redhatworkshops.io/v1
+          enabled: true
+          model: deepseek-r1-distill-qwen-14b
+'
+```
+
+Then sync ACM import secrets (after `field-content-acm-hub-spoke` creates `ManagedCluster` east/west):
+
+```bash
+# East
+oc create secret generic auto-import-secret -n east \
+  --from-literal=token=sha256~<east-admin-token> \
+  --from-literal=server=https://api.cluster-<east-id>.dynamic2.redhatworkshops.io:6443
+oc label secret auto-import-secret -n east cluster.open-cluster-management.io/auto-import=true --overwrite
+
+# West
+oc create secret generic auto-import-secret -n west \
+  --from-literal=token=sha256~<west-admin-token> \
+  --from-literal=server=https://api.cluster-<west-id>.dynamic2.redhatworkshops.io:6443
+oc label secret auto-import-secret -n west cluster.open-cluster-management.io/auto-import=true --overwrite
+
+oc get managedclusters
+oc get applications -n openshift-gitops | grep -E 'east-spoke|west-spoke|developer-hub'
+```
+
+See also [docs/rhdp-field-content.md](docs/rhdp-field-content.md).
+
+### 4. Import managed clusters (generic / non-RHDP)
 
 In ACM, import east and west clusters with labels:
 
@@ -167,7 +237,7 @@ metadata:
 
 The `Placement` resource will detect them and the `ApplicationSet` will deploy Industrial Edge workloads to both.
 
-### 4. Validate
+### 5. Validate
 
 ```bash
 # Lint
