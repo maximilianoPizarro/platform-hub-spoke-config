@@ -27,6 +27,7 @@ Before finalizing docs changes, align with root `CONTRIBUTING.md`:
 - **`url` + `baseurl`**: must match GitHub Pages URL (`baseurl` includes repo leading slash).
 - **`aux_links`**: top-right shortcuts (GitHub).
 - **`mermaid.version`**: pins Mermaid for diagrams.
+- **`exclude`**: must list scaffolder paths under `assets/backstage/software-templates/` and `assets/backstage/onboarding/` — skeleton mkdocs/README files contain Backstage `${{ values.* }}` placeholders and appear in the sidebar as broken nav entries if Jekyll processes them.
 
 ## Just the Docs customization (this repo)
 

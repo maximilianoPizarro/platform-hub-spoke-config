@@ -74,6 +74,11 @@ Screenshots and architecture diagrams support **click-to-zoom** in a full-screen
 - Red Hat build of Apache Camel / Camel K
 - Red Hat OpenShift Pipelines (Tekton)
 - Red Hat Developer Hub (Backstage)
+- Red Hat OpenShift Dev Spaces (spoke IDEs — Kaoto, Continue AI)
+- Red Hat OpenShift Virtualization (KubeVirt / CNV workshop)
+- Red Hat Quay (container registry on hub)
+- Gitea (in-cluster Git for scaffolder repos)
+- Streams for Apache Kafka Console (hub fleet UI)
 - Red Hat Service Interconnect (Skupper)
 - Mailpit (SMTP testing for notifications)
 - Observability stack (Prometheus-compatible metrics, Grafana, OpenTelemetry, Kiali)

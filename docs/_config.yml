@@ -34,3 +34,7 @@ mermaid:
 exclude:
   - Gemfile
   - Gemfile.lock
+  # Scaffolder skeletons (Backstage ${{ values.* }} placeholders — not site pages)
+  - assets/backstage/software-templates/
+  - assets/backstage/onboarding/
+  - superpowers/
