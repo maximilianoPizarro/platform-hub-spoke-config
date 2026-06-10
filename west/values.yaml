@@ -8,6 +8,7 @@ argocd:
 
 clusterName: west
 userCount: 50
+devspacesOidcClientSecret: "devspaces-oidc-secret-value"
 
 # Kairos on spoke — AI credentials in kairos-system/kairos-ai-credentials (RHDP inject, never Git).
 kairos:
@@ -47,6 +48,10 @@ operators:
       namespace: openshift-operators
       channel: stable
       source: redhat-operators
+    - name: kubernetes-imagepuller-operator
+      namespace: openshift-operators
+      channel: stable
+      source: community-operators
     - name: rhacs-operator
       namespace: openshift-operators
       channel: stable

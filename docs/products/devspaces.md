@@ -17,6 +17,7 @@ Red Hat **OpenShift Dev Spaces** (Eclipse Che) runs on **each spoke** — not on
 | Resource | Purpose |
 | -------- | ------- |
 | Dev Spaces operator | OLM subscription on east/west |
+| Kubernetes Image Puller operator | Pre-pulls UDI images (`CheCluster.components.imagePuller`) |
 | `CheCluster` `devspaces` | Controller in namespace `devspaces` |
 | Per-user namespace | `{username}-devspaces` (e.g. `user1-devspaces`) |
 | PostSync `devspaces-gitea-credentials` | Git credentials for Gitea on hub |
@@ -38,6 +39,20 @@ https://devspaces.<spokeAppsDomain>/#https://gitea-gitea.<hub-domain>/ws-<user>/
 | **Industrial Edge Camel Kaoto** | IE MQTT/Kafka routes with Kaoto |
 
 Continue AI reads `CONTINUE_API_KEY`, `CONTINUE_API_BASE`, and `CONTINUE_MODEL` from Secret `continue-ai-config` in the user's DevSpaces namespace (auto-mounted via devfile controller labels).
+
+## Authentication (Keycloak OIDC via hub)
+
+Like [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg), DevSpaces authenticates users with the **same Keycloak `backstage` realm** as Developer Hub — not separate OpenShift htpasswd accounts on spokes:
+
+```yaml
+networking:
+  auth:
+    identityProviderURL: "https://sso.<hub-domain>/realms/backstage"
+    oAuthClientName: devspaces
+    oAuthSecret: devspaces-oidc-secret
+```
+
+The hub Keycloak realm includes a `devspaces` OIDC client with redirect URIs for **each spoke** (`https://devspaces.<east-domain>/*`, `https://devspaces.<west-domain>/*`). Users sign in with `user1` / `Welcome123!` (same as Developer Hub).
 
 ## Operator discovery
 

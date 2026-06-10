@@ -217,6 +217,7 @@ spec:
           credentialsSecretNamespace: kairos-system
           credentialsSecretName: {{ $.Values.kairos.aiCredentials.secretName | default "kairos-ai-credentials" | quote }}
           credentialsSecretKey: {{ $.Values.kairos.aiCredentials.secretKey | default "api-key" | quote }}
+        devspacesOidcClientSecret: {{ $.Values.devspacesOidcClientSecret | default "devspaces-oidc-secret-value" | quote }}
     {{- else if eq .id "console-links" }}
     helm:
       valuesObject:

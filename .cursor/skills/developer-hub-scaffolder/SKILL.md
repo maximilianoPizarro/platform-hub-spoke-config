@@ -29,6 +29,8 @@ Reference patterns:
 
 - Root [`values.yaml`](../../values.yaml): `userCount: 50` (up to 200) drives Gitea, Keycloak, and [`components/platform-users`](../../components/platform-users/) htpasswd.
 - **DevSpaces is spoke-only** — `components/devspaces` in `east/values.yaml` and `west/values.yaml`, **not** hub root `values.yaml`.
+- **DevSpaces operators on each spoke** (see [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg)): `devspaces` + `kubernetes-imagepuller-operator` (for `CheCluster.components.imagePuller`); `devworkspace-operator` is bundled in Dev Spaces 3.x (no separate sub).
+- DevSpaces auth: Keycloak OIDC via hub `sso.<hub-domain>/realms/backstage` (client `devspaces`); CheCluster `networking.auth` + Secret `devspaces-oidc-secret` on each spoke. Same `userN` / `Welcome123!` as Developer Hub.
 - Developer Hub login: Keycloak OIDC — `user1`…`userN` / `Welcome123!` (same as Gitea; not synced to spoke htpasswd).
 - Spoke DevSpaces: cluster htpasswd on east/west (`platform-users` chart); template link uses `spokeAppsDomain`.
 - Continue AI on spokes: PostSync `devspaces-continue-ai-sync` copies `kairos-system/kairos-ai-credentials` → Secret `continue-ai-config` in `{user}-devspaces` (devfile controller labels).
