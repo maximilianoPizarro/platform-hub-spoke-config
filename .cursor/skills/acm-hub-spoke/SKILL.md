@@ -1043,7 +1043,7 @@ subjects:
 
 ### Plugins (RHDH 1.9)
 
-Enabled via `plugins.*.enabled` flags: OCM (`/ocm` + `/clusters` alias), Kubernetes, Topology, Tekton, TechDocs, Quay, notifications (+ Mailpit email), ArgoCD CD tab, Kuadrant (`/kuadrant`), MCP. Disabled: kafka (ENOENT), kiali/grafana (no OCI). Hub `component-applications.yaml` sets `lightspeed.enabled: false` by default.
+Enabled via `plugins.*.enabled` flags: OCM (`/ocm` + `/clusters` alias), Kubernetes, Topology, Tekton, TechDocs, Quay, notifications (+ Mailpit email), ArgoCD CD tab, Kuadrant (`/kuadrant`), MCP, Adoption Insights, **Lightspeed** (MaaS `llama-scout-17b`). Disabled: kafka (ENOENT), kiali/grafana (no OCI). Hub uses `dynamicPluginsStorage: 10Gi`; userN RBAC via `group:default/developers`. See **developer-hub-scaffolder** skill.
 
 See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for RBAC CSV, plugin-readiness PostSync, and scaffolder templates.
 
