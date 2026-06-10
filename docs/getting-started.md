@@ -16,8 +16,9 @@ This guide bootstraps the **hub** with one Helm install, registers **east** and 
 - [ ] **Skupper** — hub `sitesInNetwork: 3`; listeners Ready in `service-interconnect`
 - [ ] **Grafana / Kiali / Kafka Console** — hub fleet views
 - [ ] **Developer Hub** — catalog + software templates
+- [ ] **Dev Spaces** — CheCluster on east and west spokes (not hub)
 
-**Next:** [Scaffolding](scaffolding.md) for a new edge instance on east or west.
+**Next:** [Scaffolding](scaffolding.md) for a new edge instance on east or west, or **Camel CDC (Kaoto + Continue AI)** for a standalone route on the target spoke.
 
 ## Prerequisites
 

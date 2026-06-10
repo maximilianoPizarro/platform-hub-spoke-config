@@ -26,6 +26,11 @@ Keep **[Discover workloads consistently](../architecture.md#components-on-the-hu
 | [AMQ Streams](amq-streams.md) | Kafka for telemetry pipelines | `components/industrial-edge-*/` |
 | [Apache Camel / Camel K](camel-k.md) | Integrations (MQTT, S3, Kafka) | `components/camel-k/` |
 | [OpenShift Pipelines](pipelines.md) | Tekton CI/CD for Industrial Edge | `components/industrial-edge-pipelines/` |
+| [Quay Registry](quay.md) | Hub container registry, workshop org | `components/quay-registry/` |
+| [Dev Spaces](devspaces.md) | Spoke IDEs (Kaoto + Continue AI) | `components/devspaces/` |
+| [OpenShift Virtualization](cnv.md) | Workshop VM + CNV template | `components/cnv-example/` |
+| [Gitea](gitea.md) | Hub Git for scaffolder repos | `components/gitea/` |
+| [Kafka Console](kafka-console.md) | Hub UI for spoke Kafka clusters | `components/kafka-console/` |
 
 ## Operator discovery — annotations & registrations at a glance
 
@@ -43,6 +48,11 @@ Most visibility comes from **CRDs**, but namespaces carry mesh/policy hints when
 | [AMQ Streams](amq-streams.md) | Kafka Console UI | This repo: **`Console`** CR (`kafkaClusters[].namespace` + bootstrap URL). Strimzi **`Kafka`** CRs live in those namespaces. |
 | [Camel K](camel-k.md) | Integrations | **`IntegrationPlatform`** (per-operator scope) selects Camel runtime profile for that namespace set. |
 | [Pipelines](pipelines.md) | Tekton controllers | **`TektonConfig`** cluster-wide / operator-managed — namespaces enabled by operator policy. |
+| [Quay](quay.md) | Image registry (hub) | **`QuayRegistry`** CR + org setup Job — catalog uses **`quay.io/repository-slug`** annotation. |
+| [Dev Spaces](devspaces.md) | Spoke dev environments | **`CheCluster`** on east/west — catalog entity **links** to devfile URL on spoke domain. |
+| [CNV](cnv.md) | Virtual machines | **`VirtualMachine`** CRs — catalog **`backstage.io/kubernetes-*`** on hub. |
+| [Gitea](gitea.md) | Source repos (hub) | PostSync org Job — scaffolder **`backstage.io/source-location`** URLs. |
+| [Kafka Console](kafka-console.md) | Fleet Kafka UI | **`Console`** CR `spec.kafkaClusters[]` — explicit bootstrap list. |
 | [Service Interconnect](../service-interconnect.md) | Cross-cluster Services | **`Site`**, **`Listener`**, **`Connector`** Skupper CRs — **not** workload Deployment annotations. |
 
 Details and YAML snippets live on each product page under **Operator discovery**.

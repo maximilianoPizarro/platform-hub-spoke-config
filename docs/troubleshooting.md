@@ -19,6 +19,11 @@ Production lessons from fleet GitOps, ambient mesh, and centralized observabilit
 | Kafka Console: `/api/kafkas` 404 | External route hits UI only; Next.js does not proxy `/api` | Enable `apiRoute` in `components/kafka-console`; verify HTTP 200 on `/api/kafkas` |
 | Strimzi entity-operator CrashLoop | mTLS on 9091 conflicts with ztunnel | Exclude operator namespace from ambient or use documented Strimzi tuning |
 | Skupper listener not Ready | Site or token not synced | Check `oc get site,listener -n service-interconnect` on hub and spoke |
+| Kuadrant `/kuadrant`: failed to fetch APIProducts | K8s plugin lacks `devportal.kuadrant.io` RBAC | Sync `developer-hub`; verify `oc auth can-i list apiproducts.devportal.kuadrant.io --as=system:serviceaccount:developer-hub:developer-hub -A` |
+| API Overview: Expected object at root, got string | Incomplete OpenAPI in catalog entity | Ensure API entities have valid `definition` with `paths`; fix `$text` file refs in `reading.allow` |
+| TechDocs tab 404 / builder not local | `techdocs.builder: external` or missing mkdocs | Set `builder: local` in app-config; scaffolded repos need `mkdocs.yml` + `backstage.io/techdocs-ref: dir:.` |
+| Quay org-setup Job failing | `/version` redirect, CSRF, or duplicate robot | Use GitOps `setup.py` with `/discovery` + bearer token; see [Quay](products/quay.md) |
+| DevSpaces link on hub 404 | DevSpaces is spoke-only | Open `https://devspaces.<east-or-west-domain>` from template output |
 
 ---
 
