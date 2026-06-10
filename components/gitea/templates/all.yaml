@@ -87,6 +87,20 @@ spec:
                 -u "$AUTH" -H "Content-Type: application/json" -d "$AOA_JSON" || true)
               echo "  app-of-apps org: HTTP $CODE"
 
+              echo "Creating admin user and org (DevSpaces + Continue AI)..."
+              AD_JSON='{"username":"admin","password":"Welcome123!","email":"admin@developer-hub.local","must_change_password":false,"send_notify":false}'
+              curl -sS -o /dev/null -w "  admin user: HTTP %{http_code}\n" -X POST "$BASE/api/v1/admin/users" \
+                -u "$AUTH" -H "Content-Type: application/json" -d "$AD_JSON" || true
+              AD_ORG='{"username":"ws-admin","visibility":"public","description":"DevSpaces Camel Kaoto repos for admin"}'
+              curl -sS -o /dev/null -w "  ws-admin org: HTTP %{http_code}\n" -X POST "$BASE/api/v1/orgs" \
+                -u "$AUTH" -H "Content-Type: application/json" -d "$AD_ORG" || true
+              AD_TID=$(curl -sS -u "$AUTH" "$BASE/api/v1/orgs/ws-admin/teams" 2>/dev/null \
+                | sed -n 's/.*"id":\([0-9]*\).*"name":"Owners".*/\1/p')
+              if [ -n "$AD_TID" ]; then
+                curl -sS -o /dev/null -X PUT "$BASE/api/v1/teams/${AD_TID}/members/admin" \
+                  -u "$AUTH" || true
+              fi
+
               echo "Creating platformadmin user and org..."
               PA_JSON='{"username":"platformadmin","password":"Welcome123!","email":"platformadmin@developer-hub.local","must_change_password":false,"send_notify":false}'
               curl -sS -o /dev/null -w "  platformadmin user: HTTP %{http_code}\n" -X POST "$BASE/api/v1/admin/users" \

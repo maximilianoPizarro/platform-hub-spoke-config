@@ -123,6 +123,7 @@ spec:
       version: 1.0.0
     servers:
       - url: http://minio-hub.service-interconnect.svc:9000
+    paths: {}
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component

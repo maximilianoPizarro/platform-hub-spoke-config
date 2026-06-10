@@ -301,7 +301,9 @@ GitOps maintains two lists in `components/namespaces/templates/all.yaml`:
 | `industrial-edge-data-lake` | Data lake / MinIO patterns | `$noMeshNamespaces` |
 | `redhat-connectivity-link-operator` | `dns-operator-controller-manager` CrashLoopBackOff under ambient | `$noMeshNamespaces` |
 
-**Currently ambient:** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `developer-hub`, `devspaces`.
+**Currently ambient (hub):** `developer-hub` (hub namespace only).
+
+**Currently ambient (spokes):** `industrial-edge-tst-all`, `industrial-edge-stormshift-messaging`, `industrial-edge-ml-workspace`, `industrial-edge-ci`, `ml-development`, `hub-gateway-system`, `redhat-ods-operator`, `openshift-cluster-observability-operator`, `devspaces` (CheCluster namespace on east/west — **not** on hub).
 
 **Explicitly NOT ambient (verified):** `spoke-gateway-system` — stays off mesh. `industrial-edge-data-lake` — data lake / MinIO patterns.
 

@@ -256,7 +256,8 @@ When documenting platform-specific topics, include these sections where relevant
 - Developer Hub OAuth, plugins, dynamic plugins → `docs/products/developer-hub.md`
 - Mailpit SMTP testing → `docs/community/mailpit.md`
 - Kairos labels, SmartScalingPolicy, hub mirror policies, console v2.0.3, agent tiers → `docs/community/kairos.md` (skill: **kairos-hub-spoke**)
-- Developer Hub RBAC CSV, Lightspeed, OCM `/ocm`, in-pod TechDocs → `docs/products/developer-hub.md`
+- Developer Hub RBAC CSV, Lightspeed, OCM `/ocm`, TechDocs local builder → `docs/products/developer-hub.md`
+- Quay org-setup, DevSpaces spoke-only, Gitea orgs, CNV workshop, Kafka Console → `docs/products/{quay,devspaces,gitea,cnv,kafka-console}.md`
 - Namespace labels, pod selectors, annotations for feature activation → `docs/annotations-reference.md`
 
 ### Diagram conventions

@@ -27,9 +27,11 @@ Reference patterns:
 
 ## Workshop users (`userCount`)
 
-- Root [`values.yaml`](../../values.yaml): `userCount: 50` (up to 200) drives Gitea, DevSpaces, Keycloak, and [`components/platform-users`](../../components/platform-users/) htpasswd.
+- Root [`values.yaml`](../../values.yaml): `userCount: 50` (up to 200) drives Gitea, Keycloak, and [`components/platform-users`](../../components/platform-users/) htpasswd.
+- **DevSpaces is spoke-only** — `components/devspaces` in `east/values.yaml` and `west/values.yaml`, **not** hub root `values.yaml`.
 - Developer Hub login: Keycloak OIDC — `user1`…`userN` / `Welcome123!` (same as Gitea; not synced to spoke htpasswd).
 - Spoke DevSpaces: cluster htpasswd on east/west (`platform-users` chart); template link uses `spokeAppsDomain`.
+- Continue AI on spokes: PostSync `devspaces-continue-ai-sync` copies `kairos-system/kairos-ai-credentials` → Secret `continue-ai-config` in `{user}-devspaces` (devfile controller labels).
 - Quay pushes: org `workshop`, secret `quay-workshop-push`; see [`docs/assets/backstage/onboarding/`](../../docs/assets/backstage/onboarding/).
 
 ## Authentication (Keycloak OIDC, not GitHub)
@@ -125,7 +127,7 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 
 **Dynamic plugins PVC:** default chart size **2Gi** is too small for ArgoCD + Kuadrant + email + MCP OCI. Set `dynamicPluginsStorage: 10Gi` in hub `component-applications.yaml` and patch `dynamic-plugins-root` with `$patch: replace` in `deployment.patch`.
 
-**Kuadrant K8s config:** hub cluster in `clusterLocatorMethods` needs `serviceAccountToken: ${K8S_SA_TOKEN}` (Kuadrant catalog provider requires token on clusters[0]).
+**Kuadrant K8s config:** hub cluster in `clusterLocatorMethods` needs `serviceAccountToken: ${K8S_SA_TOKEN}` (Kuadrant catalog provider requires token on clusters[0]). **ClusterRole `backstage-kubernetes-plugin`** must include `devportal.kuadrant.io` resources (`apiproducts`, `apikeys`) — CRD group is **not** `kuadrant.io`. API Product scaffold template uses `apiVersion: devportal.kuadrant.io/v1`.
 
 **PostSync:** `developer-hub-plugin-readiness` Job (wave 10) checks `/healthcheck`, RBAC CSV mount, and basic plugin readiness.
 
@@ -207,8 +209,9 @@ Add hosts to `backend.reading.allow`: `petstore3.swagger.io`, `httpbin.org`, `re
 | Template | Purpose |
 | -------- | ------- |
 | `industrial-edge` | IoT edge instance on east/west (+ Gitea webhook step) |
-| `industrial-edge-camel-kaoto` | Camel routes + DevSpaces/Kaoto |
-| `industrial-edge-api-product` | Kuadrant APIProduct + OpenAPI catalog entity |
+| `industrial-edge-camel-kaoto` | Camel routes + DevSpaces/Kaoto (+ mkdocs for TechDocs) |
+| `camel-kaoto-cdc` | Standalone CDC route; DevSpaces on target spoke |
+| `industrial-edge-api-product` | Kuadrant APIProduct (`devportal.kuadrant.io/v1`) + OpenAPI catalog entity |
 | `industrial-edge-delete` | Delete ArgoCD app + Gitea repo + notify |
 
 Template `owner` parameter: use `ui:field: OwnerPicker` (not `${{ user.entity.metadata.name }}` default — breaks form when user entity missing). Catalog locations: GitHub blob (scaffolder skeleton) + raw GitHub fallback for template ingestion.
@@ -349,7 +352,8 @@ For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off 
 
 ## TechDocs (in-pod, not GitHub Pages)
 
-- `plugins.techdocs.enabled: true` with local builder/publisher in app-config
+- `plugins.techdocs.enabled: true` with **`techdocs.builder: local`** in app-config (builds from Gitea repo on Docs tab view)
+- Scaffold skeletons: `mkdocs.yml`, `docs/index.md`, `backstage.io/techdocs-ref: dir:.` in `catalog-info.yaml`
 - `templates/catalog-onboarding.yaml` + `files/onboarding/` (mkdocs, `techdocs-ref: dir:.`)
 - Do **not** rely on `FetchUrlReader` to github.io for workshop onboarding — that caused `readTree` errors
 

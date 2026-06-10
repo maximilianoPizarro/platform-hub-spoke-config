@@ -16,7 +16,8 @@ Developer Hub **Create** templates deploy new Industrial Edge instances to **eas
 | Signed in as `platformadmin` (or your catalog user) | Keycloak OIDC; user in `catalog-users.yaml` |
 | Gitea org `ws-platformadmin` exists | PostSync Job `gitea-admin-setup` in namespace `gitea` |
 | Spoke tokens synced | `oc get secret developer-hub-spoke-tokens -n developer-hub` |
-| Templates catalog loaded | **Create** shows three templates (after GitHub Pages deploy) |
+| Templates catalog loaded | **Create** shows templates (after GitHub Pages deploy) |
+| Dev Spaces on target spoke | `oc get checluster -n devspaces` on east/west |
 
 `platformadmin` is the Gitea root-equivalent user (`gitea_admin` is the admin account). Workshop users get orgs `ws-user1`, `ws-user2`, …; `platformadmin` uses **`ws-platformadmin`**.
 
@@ -32,7 +33,9 @@ https://maximilianopizarro.github.io/platform-hub-spoke-config/assets/backstage/
 | -------- | ------ | ------ |
 | **Industrial Edge** | east or west | IoT namespace, sensors, Kafka, deployment, Tekton pipeline |
 | **Camel Kaoto** | east or west | Camel routes, DevSpaces devfile, Continue AI config |
+| **Camel CDC (Kaoto + Continue AI)** | east or west | Standalone CDC route; DevSpaces on **spoke** (`spokeAppsDomain`) |
 | **Industrial Edge Delete** | east or west | Removes ArgoCD Application + Gitea repo + notification |
+| **CNV VM Workshop** | hub | Virtual machine manifests in Gitea |
 
 ## Step-by-step — deploy on east
 
@@ -82,7 +85,19 @@ The `app-of-apps` org is created by the Gitea PostSync Job. Use it when wiring a
 | Deployment pull | Same internal image (no pull secret on OpenShift) |
 | Catalog display | `quay.io/maximilianopizarro/<uniqueName>` annotation only |
 
-On-prem **Quay** (`quay-registry.<hub-domain>`) is for public catalog metadata and optional mirror; pipelines do not require Quay credentials unless you add an explicit push step.
+On-prem **Quay** (`quay-registry.<hub-domain>`) is for public catalog metadata and optional mirror; pipelines do not require Quay credentials unless you add an explicit push step. See [Quay Registry](products/quay.md).
+
+## DevSpaces and Continue AI
+
+DevSpaces runs on **spokes only** — not the hub. Template output links use:
+
+```text
+https://devspaces.<spokeAppsDomain>/#https://gitea-gitea.<hub-domain>/ws-<user>/<repo>/raw/branch/main/devfile.yaml
+```
+
+Continue AI credentials are synced into `{username}-devspaces` by PostSync job `devspaces-continue-ai-sync` (reads `kairos-system/kairos-ai-credentials` on the spoke). Devfile `setup-continue` substitutes `CONTINUE_API_KEY` from the auto-mounted secret.
+
+See [Dev Spaces](products/devspaces.md).
 
 ## Delete an instance
 

@@ -168,9 +168,10 @@ Gitea route: `https://gitea-gitea.<hub-apps-domain>`. Integration token: `GITEA_
 | `managed-service-accounts.yaml` | Spoke SA for K8s plugin |
 | `spoke-token-sync.yaml` | Token refresh CronJob |
 | `hub-sa-token-secret.yaml` | Hub SA token for k8s-api proxy |
-| `continue-ai-secret.yaml` | Continue AI in `admin-devspaces` |
 
 Route: `https://developer-hub.<hub-apps-domain>`
+
+Continue AI for DevSpaces is provisioned on **spokes** via `components/devspaces/templates/continue-ai-sync.yaml` — not on the hub.
 
 ## RBAC and Lightspeed (workshop)
 
@@ -178,7 +179,7 @@ With `plugins.rbac.enabled: true`, Backstage uses **deny-by-default**. The platf
 
 **Lightspeed** (`plugins.lightspeed.enabled`): OCI plugins `bs_1.45.3__1.2.3`, sidecars for Llama Stack + LCS, vLLM model aligned with Kairos (`granite-31-8b`). API key can sync from `kairos-system/kairos-ai-credentials` when `syncApiKeyFromKairos: true`.
 
-**TechDocs:** onboarding entity uses `backstage.io/techdocs-ref: dir:.` with mkdocs under `files/onboarding/` (in-cluster builder — not GitHub Pages fetch).
+**TechDocs:** `techdocs.builder: local` builds from entity repos (Gitea) on demand. Onboarding mkdocs lives under `files/onboarding/`; scaffolded entities include `mkdocs.yml` and `backstage.io/techdocs-ref: dir:.` in skeletons.
 
 Rollout DevHub after Git merge: sync Argo app `field-content-developer-hub` on the hub.
 
@@ -194,6 +195,8 @@ Rollout DevHub after Git merge: sync Argo app `field-content-developer-hub` on t
 | K8s plugin TLS errors | Self-signed API certs | `skipTLSVerify` + `NODE_TLS_REJECT_UNAUTHORIZED=0` |
 | CI tab empty | Wrong Tekton annotation | `janus-idp.io/tekton: <namespace>` not `"true"` |
 | IoT dashboard 503 from hub | Mesh on IE namespaces | Keep `industrial-edge-tst-all` and `spoke-gateway-system` **off** ambient mesh |
+| Kuadrant API Products empty | K8s RBAC or CRD group | ClusterRole needs `devportal.kuadrant.io`; API Product template uses `devportal.kuadrant.io/v1` |
+| TechDocs 404 for scaffolded app | Missing mkdocs in repo | Re-scaffold or add `mkdocs.yml` + `docs/index.md` to Gitea repo |
 
 See also [Backstage assets README]({{ site.baseurl }}/assets/backstage/README.html) and the **developer-hub-scaffolder** Cursor skill.
 

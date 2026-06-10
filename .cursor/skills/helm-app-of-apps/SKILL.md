@@ -148,7 +148,9 @@ Hub `templates/component-applications.yaml` and spoke `east|west/templates/compo
 
 **Prefer vendoring** third-party charts under `components/<wrapper>/` with `charts/*.tgz` committed (see `components/camel-dashboard-openshift/`) when spokes have slow egress or Argo `DeadlineExceeded` on public Helm repos. Re-vendor with `scripts/vendor-camel-dashboard-chart.sh`.
 
-Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `acs-init-bundle-sync`, `quay-registry`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`.
+Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `acs-init-bundle-sync`, `quay-registry`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`, `cnv-example`.
+
+**DevSpaces (`components/devspaces`)** — spoke-only (east/west). Pass `continueAi` in spoke `component-applications.yaml` helm `valuesObject` (apiBase/model from `kairos.aiModel`, secret refs from `kairos.aiCredentials`). Do **not** add devspaces to hub root `values.yaml`.
 
 **Quay dependency chain:** `industrial-edge-minio` (wave 2) → PostSync `minio-bucket-init` (bucket `quay`) → `quay-registry` QuayRegistry (wave 4) → PostSync `quay-readiness`.
 

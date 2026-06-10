@@ -1,4 +1,4 @@
-apiVersion: kuadrant.io/v1beta1
+apiVersion: devportal.kuadrant.io/v1
 kind: APIProduct
 metadata:
   name: ${{ values.uniqueName }}

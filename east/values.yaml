@@ -9,6 +9,15 @@ argocd:
 clusterName: east
 userCount: 50
 
+# Kairos on spoke — AI credentials in kairos-system/kairos-ai-credentials (RHDP inject, never Git).
+kairos:
+  aiCredentials:
+    secretName: kairos-ai-credentials
+    secretKey: api-key
+  aiModel:
+    apiURL: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions"
+    model: llama-scout-17b
+
 # RHDP injects deployer.domain (local spoke) and clusters.hub.domain (hub apps domain).
 # clusters.hub.domain is required for Mailpit alerts, ACS Central endpoint, and hub console links.
 # No {{ }} in Git (Helm parse error).

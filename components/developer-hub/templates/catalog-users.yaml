@@ -44,6 +44,17 @@ data:
         email: platformadmin@redhat.local
       memberOf:
         - platform-engineering
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: User
+    metadata:
+      name: admin
+    spec:
+      profile:
+        displayName: Workshop Admin
+        email: admin@developer-hub.local
+      memberOf:
+        - developers
 {{- range $i := until $count }}
     ---
     apiVersion: backstage.io/v1alpha1
