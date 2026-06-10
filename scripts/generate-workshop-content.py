@@ -2,6 +2,7 @@
 """Generate Hybrid Mesh AI Workshop Showroom (.adoc) and GitHub Pages (.md) modules."""
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -12,12 +13,14 @@ from workshop_content_data import (  # noqa: E402
     CRED_NOTE_EN,
     CRED_NOTE_ES,
     ESTIMATED_MIN,
+    FACILITATOR_ONLY_SLUGS,
     HYBRID_INTEGRATION_EN,
     HYBRID_INTEGRATION_ES,
     INDEX_INTRO_EN,
     INDEX_INTRO_ES,
     LAB_ACCESS_EN,
     LAB_ACCESS_ES,
+    MODULE_CONTEXT,
     NARRATIVES,
     NEXT_PAGE,
     PREREQUISITES_EN,
@@ -37,185 +40,95 @@ from workshop_content_data import (  # noqa: E402
 SHOWROOM = ROOT / "showroom-hybrid-mesh-ai"
 DOCS = ROOT / "docs" / "workshop"
 
-# slug → (ui_table adoc rows, yaml excerpt, verify command)
-YAML_BEHIND: dict[str, tuple[str, str, str]] = {
+# slug → (GitOps source table rows, verify command) — no fabricated YAML snippets
+GITOPS_REF: dict[str, tuple[str, str]] = {
     "hybrid-cloud-strategy": (
-        "| Executive narrative | docs/workshop/parte-a/ | Narrative |\n| Fleet ACM | components/acm-hub-spoke/ | ManagedCluster |",
-        "# Executive track — reference ROSA docs\n# https://docs.redhat.com/en/documentation/rosa/",
+        "| ACM fleet UI | `components/acm-hub-spoke/` |\n| Hub app-of-apps | `templates/component-applications.yaml` |",
         "oc get managedclusters 2>/dev/null | head -5",
     ),
     "rosa-architecture": (
-        "| ROSA control plane | docs.redhat.com ROSA | Managed service |\n| Lab hub-spoke | components/acm-hub-spoke/templates/managed-clusters.yaml | ManagedCluster |\n| West spoke | same chart | ManagedCluster west |",
-        """apiVersion: cluster.open-cluster-management.io/v1
-kind: ManagedCluster
-metadata:
-  name: east
-  labels:
-    region: east
-spec:
-  hubAcceptsClient: true
----
-apiVersion: cluster.open-cluster-management.io/v1
-kind: ManagedCluster
-metadata:
-  name: west
-  labels:
-    region: west
-spec:
-  hubAcceptsClient: true""",
-        "oc get managedclusters",
+        "| ManagedCluster CRs | `components/acm-hub-spoke/templates/managed-clusters.yaml` |\n| Spoke registration | ACM → Clusters UI on this hub |",
+        "oc get managedclusters -o wide",
     ),
     "security-scale-hybrid": (
-        "| ACS Central | components/acs-operator/ | Central |\n| Mesh ambient | components/servicemeshoperator3/ | Subscription |",
-        """# stackrox namespace must NOT use istio ambient label
-metadata:
-  name: stackrox""",
-        "oc get central -n stackrox",
+        "| ACS operator | `components/acs-operator/` |\n| ACS Central route | namespace `stackrox` |",
+        "oc get central -n stackrox; oc get ns stackrox --show-labels | head -3",
     ),
     "aws-ai-integration": (
-        "| Bedrock/SageMaker (narrative) | AWS docs | External |\n| MaaS lab | components/openshift-ai-hub/ | DataScienceCluster |",
-        """stringData:
-  OPENAI_API_BASE: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
-# Secret openshift-ai-maas-credentials in maas-workshop""",
-        "oc get dsc -A",
+        "| OpenShift AI hub | `components/openshift-ai-hub/` |\n| MaaS credentials | namespace `maas-workshop` |",
+        "oc get dsc -A 2>/dev/null; oc get ns maas-workshop 2>/dev/null",
     ),
     "cases-roadmap": (
-        "| Industrial Edge | components/industrial-edge-tst/ | Deployments |\n| Showroom | components/showroom/ | Deployment |\n| Registration | components/workshop-registration/ | Deployment |",
-        "# Transition to Parte B after registration",
-        "curl -sk -o /dev/null -w '%{http_code}' https://workshop-registration.{hub_domain}/api/health",
+        "| Showroom | `components/showroom/` |\n| Registration | `components/workshop-registration/` |",
+        "curl -sk -o /dev/null -w '%{http_code}' https://workshop-registration.%HUB_DOMAIN%/api/health",
     ),
     "acm-multicluster": (
-        "| ACM Clusters UI | components/acm-hub-spoke/ | ManagedCluster |\n| GitOpsCluster | components/acm-hub-spoke/templates/gitops-cluster.yaml | GitOpsCluster |",
-        """apiVersion: cluster.open-cluster-management.io/v1
-kind: ManagedCluster
-metadata:
-  name: east
-spec:
-  hubAcceptsClient: true""",
-        "oc get managedclusters && oc get gitopscluster -A",
+        "| ManagedCluster | `components/acm-hub-spoke/templates/managed-clusters.yaml` |\n| GitOpsCluster | `components/acm-hub-spoke/templates/gitops-cluster.yaml` |",
+        "oc get managedclusters; oc get gitopscluster -A 2>/dev/null | head -5",
     ),
     "hybrid-mesh-architecture": (
-        "| Hub gateway | components/hub-gateway/templates/httproute.yaml | HTTPRoute |\n| Skupper | components/service-interconnect/ | Site/Connector |",
-        """apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: industrial-edge-lb
-# hub ingress → spoke gateways via Skupper""",
-        "oc get httproute -n hub-gateway-system",
+        "| Hub gateway | `components/hub-gateway/` |\n| Skupper | `components/service-interconnect/` |",
+        "oc get httproute -n hub-gateway-system 2>/dev/null | head -5",
     ),
     "software-templates": (
-        "| Developer Hub Create | docs/assets/backstage/software-templates/ | SoftwareTemplate |\n| Plan B catalog | components/workshop-demos/files/catalog/ | System |",
-        """metadata:
-  name: hybrid-mesh-shared-demos
-  title: Hybrid Mesh AI — Shared Demos (Plan B)""",
-        "oc get configmap developer-hub-catalog-demos -n developer-hub 2>/dev/null || oc get application -n openshift-gitops | grep workshop",
+        "| Template catalog | `docs/assets/backstage/software-templates/` |\n| Plan B demos | `components/workshop-demos/files/catalog/hybrid-mesh-shared-demos.yaml` |",
+        "oc get configmap developer-hub-catalog-demos -n developer-hub 2>/dev/null",
     ),
     "deploy-industrial-edge": (
-        "| Scaffold IE | software-templates/industrial-edge/template.yaml | SoftwareTemplate |\n| Spoke deploy | east/templates/component-applications.yaml | Application |",
-        """spec:
-  destination:
-    namespace: industrial-edge-tst-all""",
-        "oc get applications -n openshift-gitops | grep -E 'industrial|east-spoke'",
+        "| IE on spoke | `components/industrial-edge-tst/` (east Application) |\n| Line dashboard | namespace `industrial-edge-tst-all` |",
+        "oc get deploy -n industrial-edge-tst-all 2>/dev/null | head -8",
     ),
     "kairos-scaling": (
-        "| Kairos Console | components/kairos/templates/console-rbac.yaml | ClusterRole |\n| SmartScalingPolicy | components/kairos/templates/sensor-scan-policies.yaml | SmartScalingPolicy |",
-        """apiVersion: kairos.io/v1alpha1
-kind: SmartScalingPolicy
-metadata:
-  name: scan-policy-machine-sensor""",
-        "oc get smartscalingpolicy -A",
+        "| Kairos policies | `components/kairos/templates/sensor-scan-policies.yaml` |\n| Kairos Console | `components/kairos/` |",
+        "oc get smartscalingpolicy -A 2>/dev/null | head -5",
     ),
     "observability": (
-        "| Grafana dashboards | components/grafana-dashboards/ | ConfigMap |\n| OTEL | components/opentelemetry/ | Instrumentation |\n| Kafka Console | components/kafka-console/ | Deployment |",
-        "# Open Grafana from ConsoleLink; filter by cluster label",
-        "oc get grafanadashboard -A 2>/dev/null | head -5; oc get route -n openshift-cluster-observability-operator 2>/dev/null | head -3",
+        "| Grafana dashboards | `components/grafana-dashboards/` |\n| OTEL | `components/opentelemetry/` |",
+        "oc get route -n openshift-cluster-observability-operator 2>/dev/null | head -3",
     ),
     "openshift-gitops": (
-        "| ApplicationSet | components/acm-hub-spoke/templates/applicationset.yaml | ApplicationSet |\n| Hub apps | templates/component-applications.yaml | Application |",
-        """apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: industrial-edge-spoke""",
-        "oc get applicationset -n openshift-gitops",
+        "| Hub Applications | `templates/component-applications.yaml` |\n| ApplicationSet IE | `components/acm-hub-spoke/templates/applicationset.yaml` |",
+        "oc get applications -n openshift-gitops 2>/dev/null | head -10",
     ),
     "service-mesh": (
-        "| OSSM3 | components/servicemeshoperator3/ | Subscription |\n| Kiali | components/kiali/ | Kiali CR |",
-        """metadata:
-  labels:
-    istio.io/dataplane-mode: ambient""",
-        "oc get istio -n istio-system; oc get kiali -A",
+        "| OSSM3 subscription | `components/servicemeshoperator3/` |\n| Kiali | `components/kiali/` |",
+        "oc get istio -n istio-system 2>/dev/null; oc get kiali -A 2>/dev/null | head -3",
     ),
     "scalability": (
-        "| Kafka | components/industrial-edge-tst/ | KafkaNodePool |\n| HPA | industrial-edge manifests | HorizontalPodAutoscaler |",
-        """apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: line-dashboard""",
-        "oc get hpa -n industrial-edge-tst-all",
+        "| IE workloads | `components/industrial-edge-tst/` |\n| HPA / Kafka | spoke namespace `industrial-edge-tst-all` |",
+        "oc get hpa -n industrial-edge-tst-all 2>/dev/null",
     ),
     "network-policies": (
-        "| NP demo | components/workshop-demos/templates/network-policy-demo.yaml | NetworkPolicy |\n| OVN CNI | OpenShift networking | Cluster default |",
-        """apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: ie-workshop-allow-dashboard
-  namespace: industrial-edge-tst-all""",
-        "oc get networkpolicy -n industrial-edge-tst-all",
+        "| NP demo | `components/workshop-demos/templates/network-policy-demo.yaml` |\n| IE namespace | `industrial-edge-tst-all` |",
+        "oc get networkpolicy -n industrial-edge-tst-all 2>/dev/null",
     ),
     "acs-kuadrant": (
-        "| ACS init | components/acs-init-bundle-sync/ | Job |\n| External APIs | components/workshop-kuadrant-apis/templates/external-backends.yaml | ServiceEntry |\n| Kuadrant policies | components/workshop-kuadrant-apis/templates/policies.yaml | TokenRateLimitPolicy |\n| Hub gateway | components/hub-gateway/ | HTTPRoute |",
-        """# External public APIs — no in-cluster Docker images
-# ServiceEntry + DestinationRule + HTTPRoute (Hostname backendRef)
-# curl -H 'Authorization: APIKEY $KEY' https://workshop-apis.{hub_domain}/httpbin/get""",
-        "oc get serviceentry,httproute -n hub-gateway-system | grep workshop",
+        "| Workshop APIs | `components/workshop-kuadrant-apis/` |\n| Hub gateway | `components/hub-gateway/` |",
+        "oc get httproute,serviceentry -n hub-gateway-system 2>/dev/null | grep -i workshop | head -5",
     ),
     "finops-kubecost": (
-        "| Kubecost | components/kubecost/ | CostAnalyzer |\n| MinIO ETL | components/industrial-edge-minio/ | Bucket |",
-        "# Free tier: single-cluster Kubecost on hub",
-        "oc get deploy -n kubecost kubecost-cost-analyzer",
+        "| Kubecost | `components/kubecost/` |\n| MinIO data lake | `components/industrial-edge-minio/` |",
+        "oc get deploy -n kubecost 2>/dev/null | head -3",
     ),
     "openshift-ai": (
-        "| DSC | components/openshift-ai-hub/ | DataScienceCluster |\n| MaaS | maas-workshop namespace | Secret |",
-        """apiVersion: datasciencecluster.opendatahub.io/v1
-kind: DataScienceCluster
-metadata:
-  name: default-dsc""",
-        "oc get dsc; oc get ns maas-workshop demo-ods-workspace 2>/dev/null",
+        "| DSC | `components/openshift-ai-hub/` |\n| MaaS | values `litemaas` in hub `values.yaml` |",
+        "oc get dsc 2>/dev/null; oc get ns maas-workshop 2>/dev/null",
     ),
     "llm-rag": (
-        "| Lightspeed | components/developer-hub/ | Plugin |\n| MaaS | openshift-ai-hub | Credentials |",
-        """# Developer Hub → Lightspeed uses MaaS llama-scout-17b""",
-        "oc get deploy -n developer-hub 2>/dev/null | grep -i lightspeed || echo 'Lightspeed via RHDH plugin'",
+        "| Developer Hub Lightspeed | `components/developer-hub/` |\n| MaaS endpoint | hub `maas-workshop` |",
+        "oc get deploy -n developer-hub 2>/dev/null | head -5",
     ),
     "text-ai-predictive": (
-        "| Anomaly alerter | components/ie-anomaly-alerter/ | Deployment |\n| Kafka metrics | industrial-edge-tst-all | Topic |",
-        "# ie-anomaly-alerter correlates sensor anomalies",
-        "oc get deploy -n industrial-edge-tst-all | grep -i anomaly",
+        "| IE alerter | `components/ie-anomaly-alerter/` |\n| Kafka topics | `industrial-edge-tst-all` |",
+        "oc get deploy -n industrial-edge-tst-all 2>/dev/null | grep -i anomaly",
     ),
     "neuroface": (
-        "| NeuroFace | components/neuroface/ | Helm chart |\n| MaaS chat | neuroface.chat | Config |",
-        """chat:
-  enabled: true
-  modelEndpoint: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
-litellm:
-  enabled: false""",
-        "curl -sk -o /dev/null -w '%{http_code}' https://neuroface.{hub_domain}/api/health",
+        "| NeuroFace chart | `components/neuroface/` |\n| Route | `neuroface.%HUB_DOMAIN%` |",
+        "curl -sk -o /dev/null -w '%{http_code}' https://neuroface.%HUB_DOMAIN%/",
     ),
     "ai-end-user-apps": (
-        "| line-dashboard | industrial-edge-tst-all | Deployment |\n| Camel K | industrial-edge-pipelines | Integration |",
-        "# End-user apps on spoke consume IE + AI stack",
-        "oc get deploy -n industrial-edge-tst-all line-dashboard",
-    ),
-    "full-verification": (
-        "| Progress API | workshop-registration | POST /api/progress |\n| E2E script | scripts/verify-workshop-e2e.sh | Shell |\n| Checklist | verification/progress-checklist.yaml | YAML |",
-        """# Checks: registration, showroom, ACM clusters, IE deploy, NeuroFace route""",
-        "bash scripts/verify-workshop-e2e.sh 2>/dev/null || oc get managedclusters",
-    ),
-    "agent-browser-recording": (
-        "| Agent Browser | verification/agent-browser/*.yaml | YAML flows |\n| Runbook | verification/recording-runbook.md | Doc |",
-        """# Recordings stay local — *.mp4 gitignored
-# Naming: YYYY-MM-DD-userN-module-slug.mp4""",
-        "test -f verification/recording-runbook.md && test -d verification/agent-browser",
+        "| Line dashboard | `industrial-edge-tst-all` |\n| Developer Hub IE catalog | `components/developer-hub/files/catalog/industrial-edge-system.yaml` |",
+        "oc get deploy -n industrial-edge-tst-all line-dashboard 2>/dev/null",
     ),
 }
 
@@ -242,9 +155,9 @@ MODULES = [
     ("23", "llm-rag", "LLMs & RAG", "LLMs y RAG", "B", False),
     ("24", "text-ai-predictive", "Generative & Predictive Text", "Texto gen y predictivo", "B", False),
     ("25", "neuroface", "Face & Object AI + Chat", "NeuroFace", "B", False),
-    ("26", "ai-end-user-apps", "AI in End-User Apps", "IA en apps finales", "B", False),
-    ("27", "full-verification", "Full Stack Verification", "Verificación completa", "B", False),
-    ("28", "agent-browser-recording", "Agent Browser & Recording", "Agent Browser y grabación", "B", False),
+    ("26", "ai-end-user-apps", "AI in End-User Apps", "IA en apps finales", "B", False, False),
+    ("27", "full-verification", "Full Stack Verification (facilitator)", "Verificación E2E (facilitador)", "F", False, True),
+    ("28", "agent-browser-recording", "Agent Browser (facilitator)", "Agent Browser (facilitador)", "F", False, True),
 ]
 
 IMAGE_BY_SLUG = {
@@ -269,36 +182,77 @@ IMAGE_BY_SLUG = {
 }
 
 
-def yaml_section(slug: str) -> str:
-    if slug not in YAML_BEHIND:
+def clickable_lab_access(text: str) -> str:
+    """Convert backtick-wrapped https URLs in lab tables to AsciiDoc link: macros."""
+
+    def linkify_line(line: str) -> str:
+        m = re.search(r"`(https?://[^`]+)`", line)
+        if not m:
+            return line
+        url = m.group(1)
+        parts = [p.strip() for p in line.split("|")]
+        if len(parts) >= 3 and parts[1]:
+            label = parts[1]
+            return line.replace(f"`{url}`", f"link:{url}[{label}]")
+        return line.replace(f"`{url}`", f"link:{url}[Open]")
+
+    return "\n".join(linkify_line(line) for line in text.split("\n"))
+
+
+def gitops_section(slug: str, lang: str) -> str:
+    if slug in FACILITATOR_ONLY_SLUGS or slug not in GITOPS_REF:
         return ""
-    table, yaml_block, verify = YAML_BEHIND[slug]
+    table, verify = GITOPS_REF[slug]
     rows = "\n".join(
         "| " + " | ".join(cell.strip() for cell in line.split("|") if cell.strip()) + " |"
         for line in table.strip().split("\n")
         if line.strip()
     )
+    title = "Where this lab is defined" if lang == "en" else "Dónde está definido este lab"
+    note = (
+        "NOTE: Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. "
+        "Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`."
+        if lang == "en"
+        else "NOTE: Las rutas referencian el repo GitOps `platform-hub-spoke-config` desplegado en **este** cluster. "
+        "No copies fragmentos como manifiestos independientes — usa los enlaces de consola y verifica con `oc`."
+    )
+    verify_label = "Verify in the Showroom terminal" if lang == "en" else "Verificar en la terminal Showroom"
     return f"""
-== YAML behind the scenes
+== {title}
 
-[cols="2,3,1"]
+{note}
+
+[cols="2,3"]
 |===
-| UI action | Git source | Kind
+| UI / capability | Source in GitOps repo
 
 {rows}
 |===
 
-[source,yaml]
-----
-{yaml_block.strip()}
-----
-
-Verify:
+{verify_label}:
 
 [source,bash]
 ----
-{verify}
+{verify.strip()}
 ----
+"""
+
+
+def module_context_section(slug: str, lang: str) -> str:
+    if slug not in MODULE_CONTEXT:
+        return ""
+    label = "What you will do" if lang == "en" else "Qué harás"
+    banner = ""
+    if slug in FACILITATOR_ONLY_SLUGS:
+        banner = (
+            "IMPORTANT: **Facilitator / automation agent only** — this page is not part of the learner navigation.\n\n"
+            if lang == "en"
+            else "IMPORTANT: **Solo facilitador / agente de automatización** — esta página no forma parte de la navegación del participante.\n\n"
+        )
+    return f"""
+== {label}
+
+{banner}{MODULE_CONTEXT[slug][lang].strip()}
 """
 
 
@@ -320,7 +274,8 @@ def lab_access_section(slug: str, lang: str) -> str:
     note = ""
     if slug != "index":
         note = (CRED_NOTE_EN if lang == "en" else CRED_NOTE_ES).strip() + "\n\n"
-    return f"\n== {title}\n\n{note}{access_map[slug].strip()}\n"
+    body = clickable_lab_access(access_map[slug].strip())
+    return f"\n== {title}\n\n{note}{body}\n"
 
 
 def next_nav(slug: str, lang: str) -> str:
@@ -387,15 +342,16 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
 | 05 | Real Cases & Roadmap
 |===
 
-.Part B — Hands-on (10–28)
+.Part B — Hands-on (10–26)
 [cols="1,3"]
 |===
 | 10–14 | Foundation — ACM, mesh, templates, IE, Kairos
 | 15–18 | Operations — observability, GitOps, mesh, scale
 | 19–21 | Security & FinOps — NP, ACS/Kuadrant, Kubecost
-| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace
-| 27–28 | Verification & recording runbook
+| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace, end-user apps
 |===
+
+NOTE: Modules 27–28 (verification & Agent Browser) are **facilitator/agent tasks** only — see `showroom-hybrid-mesh-ai/verification/`. They are not part of the learner path.
 
 == Registration & Plan B demos
 
@@ -418,15 +374,16 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
 | 05 | Casos reales y roadmap
 |===
 
-.Parte B — Hands-on (10–28)
+.Parte B — Hands-on (10–26)
 [cols="1,3"]
 |===
 | 10–14 | Foundation — ACM, mesh, templates, IE, Kairos
 | 15–18 | Operations — observabilidad, GitOps, mesh, escala
 | 19–21 | Security & FinOps — NP, ACS/Kuadrant, Kubecost
-| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace
-| 27–28 | Verificación y runbook de grabación
+| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace, apps finales
 |===
+
+NOTE: Los módulos 27–28 (verificación y Agent Browser) son **tareas de facilitador/agente** — ver `showroom-hybrid-mesh-ai/verification/`. No forman parte del recorrido del participante.
 
 == Registro y demos Plan B
 
@@ -465,30 +422,36 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
     )
 
     overview_section = ""
-    if not is_index:
+    if not is_index and slug not in FACILITATOR_ONLY_SLUGS:
         overview_section = f"""
 == {overview}
 
 {narrative.strip()}
 """
+    elif slug in FACILITATOR_ONLY_SLUGS:
+        overview_section = module_context_section(slug, lang)
 
-    body_lab_access = "" if is_index else lab_access_section(slug, lang)
+    context_section = ""
+    if not is_index and slug not in FACILITATOR_ONLY_SLUGS and slug in MODULE_CONTEXT:
+        context_section = module_context_section(slug, lang)
 
-    return f"""= {title}
+    body_lab_access = "" if is_index or slug in FACILITATOR_ONLY_SLUGS else lab_access_section(slug, lang)
 
-{time_label.strip()}
-{img}
-{index_block.strip()}
-{overview_section.strip()}
-{body_lab_access}
+    show_block = ""
+    todo_block = ""
+    verify_block = ""
+    if slug not in FACILITATOR_ONLY_SLUGS:
+        show_block = f"""
 == {show_label}
 
 {show_tell.strip()}
-
+"""
+        todo_block = f"""
 == {todo_label}
 
 {todos.strip()}
-{live}{yaml_section(slug)}
+"""
+        verify_block = f"""
 == {verify_label}
 
 [cols="1,2,1"]
@@ -497,10 +460,27 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
 
 | Progress | Save checkboxes below | `POST /api/progress` returns OK
 |===
+"""
 
-{progress}
+    return f"""= {title}
 
-{tip}
+{time_label.strip()}
+{img}
+{index_block.strip()}
+
+{context_section.strip()}
+
+{overview_section.strip()}
+
+{body_lab_access}
+{show_block.strip()}
+{todo_block.strip()}
+{live}{gitops_section(slug, lang)}
+{verify_block.strip()}
+
+{progress if slug not in FACILITATOR_ONLY_SLUGS else ""}
+
+{tip if slug not in FACILITATOR_ONLY_SLUGS else ""}
 
 {next_nav(slug, lang)}
 """
@@ -529,7 +509,9 @@ def main() -> None:
     nav_en = ["* xref:00-index.adoc[Welcome]\n", "\n.Part A — Strategy\n"]
     nav_es = ["* xref:00-index.adoc[Bienvenida]\n", "\n.Parte A — Estrategia\n"]
 
-    for num, slug, en_title, es_title, parte, is_idx in MODULES:
+    for item in MODULES:
+        num, slug, en_title, es_title, parte, is_idx = item[:6]
+        facilitator_only = item[6] if len(item) > 6 else False
         fname = "00-index.adoc" if is_idx else f"{num}-{slug}.adoc"
         (SHOWROOM / "content/modules/en/modules/ROOT/pages" / fname).write_text(
             adoc_page(num, slug, en_title, "en", is_idx), encoding="utf-8"
@@ -537,6 +519,8 @@ def main() -> None:
         (SHOWROOM / "content/modules/es/modules/ROOT/pages" / fname).write_text(
             adoc_page(num, slug, es_title, "es", is_idx), encoding="utf-8"
         )
+        if facilitator_only:
+            continue
         label_en = en_title if is_idx else f"{num}. {en_title}"
         label_es = es_title if is_idx else f"{num}. {es_title}"
         entry_en = f"* xref:{fname}[{label_en}]\n"

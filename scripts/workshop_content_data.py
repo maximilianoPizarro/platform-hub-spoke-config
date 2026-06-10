@@ -54,9 +54,56 @@ NEXT_PAGE: dict[str, str | None] = {
     "llm-rag": "24-text-ai-predictive.adoc",
     "text-ai-predictive": "25-neuroface.adoc",
     "neuroface": "26-ai-end-user-apps.adoc",
-    "ai-end-user-apps": "27-full-verification.adoc",
-    "full-verification": "28-agent-browser-recording.adoc",
+    "ai-end-user-apps": None,
+    "full-verification": None,
     "agent-browser-recording": None,
+}
+
+# Not shown in learner nav — used by facilitators / CI agents only
+FACILITATOR_ONLY_SLUGS: frozenset[str] = frozenset({"full-verification", "agent-browser-recording"})
+
+# Practical learner context (what to do in the lab — not marketing copy)
+MODULE_CONTEXT: dict[str, dict[str, str]] = {
+    "acm-multicluster": {
+        "en": """In this module you open the **ACM Clusters** view on the hub and confirm `east` and `west` spokes are `Available`. Use the Showroom terminal: `oc get managedclusters`. Every later Part B exercise assumes you know which cluster hosts your workloads (usually `east`).""",
+        "es": """En este módulo abres **ACM Clusters** en el hub y confirmas que los spokes `east` y `west` están `Available`. Usa la terminal Showroom: `oc get managedclusters`. Cada ejercicio posterior asume que sabes en qué cluster corren tus cargas (normalmente `east`).""",
+    },
+    "hybrid-mesh-architecture": {
+        "en": """You will trace how external traffic reaches Industrial Edge on a spoke: hub Gateway API `HTTPRoute`, Skupper interconnect, and the IE route. Open the Skupper observer and IE UI from the lab access table — no separate ACM or ROSA documentation site is required.""",
+        "es": """Rastrearás cómo el tráfico externo llega a Industrial Edge en un spoke: `HTTPRoute` Gateway API en hub, interconnect Skupper y ruta IE. Abre el observer Skupper y la UI IE desde la tabla de acceso — no necesitas sitios externos de ACM o ROSA.""",
+    },
+    "software-templates": {
+        "en": """You will create (or browse) a workload from **Developer Hub → Create**. If your `%USER_NAME%` scaffold fails, open **Plan B** system `hybrid-mesh-shared-demos` — same URLs, pre-deployed. Check Gitea only if you successfully scaffolded.""",
+        "es": """Crearás (o explorarás) una carga desde **Developer Hub → Create**. Si falla el scaffold de `%USER_NAME%`, abre el system **Plan B** `hybrid-mesh-shared-demos`. Revisa Gitea solo si el scaffold tuvo éxito.""",
+    },
+    "deploy-industrial-edge": {
+        "en": """Goal: confirm Industrial Edge workloads are reachable — line dashboard, Kafka topics, and (optional) your user-scoped namespace. Use Plan B demo `demo-industrial-edge-east` if you did not scaffold.""",
+        "es": """Objetivo: confirmar que las cargas Industrial Edge responden — line dashboard, topics Kafka y (opcional) tu namespace. Usa demo Plan B `demo-industrial-edge-east` si no hiciste scaffold.""",
+    },
+    "acs-kuadrant": {
+        "en": """You will use **ACS Central** on this cluster (`central-stackrox` route) for runtime security context and **Developer Hub → Kuadrant** to request an API key for `workshop-apis`. Test with `curl` and your key — not a generic Red Hat marketing URL.""",
+        "es": """Usarás **ACS Central** en este cluster (ruta `central-stackrox`) y **Developer Hub → Kuadrant** para solicitar API key de `workshop-apis`. Prueba con `curl` y tu key — no URLs genéricas de marketing.""",
+    },
+    "openshift-ai": {
+        "en": """Open the **OpenShift AI dashboard** on this hub and confirm `DataScienceCluster` is ready. MaaS endpoint credentials are pre-provisioned for the lab — you do not configure AWS Bedrock in this module.""",
+        "es": """Abre el **dashboard OpenShift AI** en este hub y confirma que `DataScienceCluster` está listo. Las credenciales MaaS están pre-provisionadas — no configuras AWS Bedrock en este módulo.""",
+    },
+    "neuroface": {
+        "en": """Open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] in this browser, allow webcam access, and test detection + chat. If the route fails, check Argo app `field-content-neuroface` on the hub — do not follow external LibreChat docs.""",
+        "es": """Abre link:https://neuroface.%HUB_DOMAIN%[NeuroFace], permite webcam y prueba detección + chat. Si falla la ruta, revisa la app Argo `field-content-neuroface` en el hub.""",
+    },
+    "ai-end-user-apps": {
+        "en": """Capstone: tie together IE dashboard, Developer Hub catalog entries, and Grafana for `%USER_NAME%`. This is the **last learner module (26)** — facilitators run automated verification separately.""",
+        "es": """Cierre: conecta dashboard IE, entradas Developer Hub y Grafana para `%USER_NAME%`. Este es el **último módulo del participante (26)** — los facilitadores ejecutan verificación automatizada por separado.""",
+    },
+    "full-verification": {
+        "en": """**Facilitator / agent only.** Run `scripts/verify-workshop-e2e.sh` and `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — not shown to learners in the workshop nav.""",
+        "es": """**Solo facilitador / agente.** Ejecuta `scripts/verify-workshop-e2e.sh` y `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — no aparece en la navegación del participante.""",
+    },
+    "agent-browser-recording": {
+        "en": """**Facilitator / agent only.** Agent Browser YAML under `verification/agent-browser/` replays UI flows for CI. Recordings stay local (`*.mp4` gitignored).""",
+        "es": """**Solo facilitador / agente.** YAML Agent Browser bajo `verification/agent-browser/` reproduce flujos UI para CI. Grabaciones locales (`*.mp4` gitignored).""",
+    },
 }
 
 HYBRID_INTEGRATION_EN = """
@@ -147,15 +194,19 @@ INDEX_LAB_ACCESS_NOTE_ES = """NOTE: *Login del taller* — %USER_NAME% / `Welcom
 """
 
 INDEX_INTRO_EN = """
-Welcome to the **Hybrid Mesh AI Workshop** — a dual-track experience that mirrors how Red Hat customers run hybrid cloud on OpenShift. Part A (modules 01–05) is executive; Part B (modules 10–28) is hands-on on a live RHDP hub-spoke fleet.
+Welcome to the **Hybrid Mesh AI Workshop** — a dual-track experience on a live RHDP hub-spoke fleet. Part A (modules 01–05) is executive narrative; Part B (modules 10–26) is hands-on in this Showroom and the OpenShift console.
 
-Register at `https://workshop-registration.%HUB_DOMAIN%` to receive lab identity **%USER_NAME%**. The Showroom at `https://showroom-showroom.%HUB_DOMAIN%` embeds an authenticated `oc` terminal for Part B. If scaffolding fails, use **Plan B** shared demos in Developer Hub → System `hybrid-mesh-shared-demos`.
+Register at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] to receive lab identity **%USER_NAME%**. Open link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom home] for the embedded `oc` terminal. If scaffolding fails, use **Plan B** shared demos in link:https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos[Developer Hub — hybrid-mesh-shared-demos].
+
+NOTE: End-to-end verification and recording runbooks under `showroom-hybrid-mesh-ai/verification/` are for **facilitators and automation agents only** — not part of the learner path.
 """
 
 INDEX_INTRO_ES = """
-Bienvenido al **Taller Hybrid Mesh AI** — experiencia dual: Parte A (01–05) ejecutiva y Parte B (10–28) hands-on en flota hub-spoke RHDP.
+Bienvenido al **Taller Hybrid Mesh AI** — experiencia dual en flota hub-spoke RHDP. Parte A (01–05) es narrativa ejecutiva; Parte B (10–26) es hands-on en este Showroom y la consola OpenShift.
 
-Regístrate en `https://workshop-registration.%HUB_DOMAIN%` para recibir la identidad **%USER_NAME%**. El Showroom en `https://showroom-showroom.%HUB_DOMAIN%` incluye terminal `oc` autenticada. Si falla el scaffolder, usa demos **Plan B** en Developer Hub → System `hybrid-mesh-shared-demos`.
+Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro del taller] para obtener **%USER_NAME%**. Abre link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom] para la terminal `oc` integrada. Si falla el scaffolder, usa demos **Plan B** en link:https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos[Developer Hub — hybrid-mesh-shared-demos].
+
+NOTE: La verificación E2E y runbooks de grabación en `showroom-hybrid-mesh-ai/verification/` son solo para **facilitadores y agentes de automatización** — no forman parte del recorrido del participante.
 """
 
 PROGRESS_UI_EN = """
@@ -257,7 +308,7 @@ PREREQUISITES_EN = """
 
 * Modern web browser (Chrome or Firefox recommended) with webcam access for NeuroFace modules.
 * Access to the OpenShift console on the workshop hub — launch **Hybrid Mesh AI Workshop** from the Application menu.
-* Workshop registration at `https://workshop-registration.%HUB_DOMAIN%` to obtain `%USER_NAME%` and Showroom redirect.
+* Workshop registration at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] to obtain `%USER_NAME%` and Showroom redirect.
 * Optional: use the embedded Showroom terminal for `oc` commands; no local kubeconfig required for Part B.
 """
 
@@ -266,22 +317,22 @@ PREREQUISITES_ES = """
 
 * Navegador moderno (Chrome o Firefox recomendado) con acceso a webcam para módulos NeuroFace.
 * Acceso a la consola OpenShift del hub — iniciar **Hybrid Mesh AI Workshop** desde el menú Application.
-* Registro en `https://workshop-registration.%HUB_DOMAIN%` para obtener `%USER_NAME%` y redirect al Showroom.
+* Registro en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro del taller] para obtener `%USER_NAME%` y redirect al Showroom.
 * Opcional: terminal Showroom integrada para comandos `oc`; no se requiere kubeconfig local para la Parte B.
 """
 
 NARRATIVES: dict[str, dict[str, str]] = {
     "index": {
-        "en": """This workshop demonstrates how Red Hat customers unify strategy and operations across hybrid cloud using OpenShift as the common platform. You will see the same patterns used with ROSA on AWS applied to a live RHDP hub-spoke lab with east and west spokes managed by ACM.
+        "en": """This workshop demonstrates how Red Hat customers unify strategy and operations across hybrid cloud using OpenShift as the common platform. You will apply the same patterns on a live RHDP hub-spoke lab with east and west spokes managed by ACM.
 
-Part A frames the business case: modernization, security, FinOps, and AI without vendor lock-in. Part B lets you deploy Industrial Edge workloads, observe them multicluster, secure APIs with Kuadrant, and run inference with OpenShift AI and NeuroFace — all as `%USER_NAME%` in an isolated namespace slice.
+Part A frames the business case: modernization, security, FinOps, and AI. Part B (modules 10–26) lets you use Industrial Edge, multicluster observability, Kuadrant API security, and OpenShift AI — as `%USER_NAME%` in this lab environment.
 
-Use the hybrid callout table on this page whenever a facilitator compares production ROSA topology to what you see in the console. Registration at `https://workshop-registration.%HUB_DOMAIN%` is required before hands-on modules.""",
-        "es": """Este taller demuestra cómo los clientes de Red Hat unifican estrategia y operaciones en nube híbrida usando OpenShift como plataforma común. Verás los mismos patrones usados con ROSA en AWS aplicados a un lab hub-spoke RHDP con spokes east y west gestionados por ACM.
+Register at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] before hands-on modules.""",
+        "es": """Este taller demuestra cómo unificar estrategia y operaciones en nube híbrida con OpenShift. Aplicarás los mismos patrones en un lab hub-spoke RHDP con spokes east y west gestionados por ACM.
 
-La Parte A enmarca el caso de negocio: modernización, seguridad, FinOps e IA sin lock-in. La Parte B te permite desplegar cargas Industrial Edge, observarlas multicluster, asegurar APIs con Kuadrant y ejecutar inferencia con OpenShift AI y NeuroFace — todo como `%USER_NAME%` en un slice de namespace aislado.
+La Parte A enmarca el caso de negocio; la Parte B (módulos 10–26) usa Industrial Edge, observabilidad multicluster, Kuadrant y OpenShift AI — como `%USER_NAME%` en este entorno.
 
-Usa la tabla callout híbrida de esta página cuando el facilitador compare topología ROSA de producción con lo que ves en la consola. El registro en `https://workshop-registration.%HUB_DOMAIN%` es obligatorio antes de los módulos hands-on.""",
+Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro] antes de los módulos hands-on.""",
     },
     "hybrid-cloud-strategy": {
         "en": """Hybrid cloud strategy starts with workload placement: keep latency-sensitive factory systems at the edge, burst analytics and AI training to cloud regions, and govern everything from a central OpenShift hub. Red Hat OpenShift Container Platform delivers a single Kubernetes API and operator model whether clusters run on-prem, at edge sites, or as ROSA in AWS.
@@ -1076,9 +1127,9 @@ LAB_ACCESS_EN: dict[str, str] = {
 |===
 | Service | URL | Credentials
 
-| ACS Central | `https://central-stackrox.%HUB_DOMAIN%` | {_OAUTH_EN}
-| OpenShift Console — Security | `https://console-openshift-console.%HUB_DOMAIN%/security` | {_WU_EN}
-| Kiali (mesh policies) | `https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%` | {_OAUTH_EN}
+| ACS Central | link:https://central-stackrox.%HUB_DOMAIN%[ACS Central] | {_OAUTH_EN}
+| OpenShift Console (hub) | link:https://console-openshift-console.%HUB_DOMAIN%[OpenShift Console] | {_WU_EN}
+| Kiali (mesh policies) | link:https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%[Kiali] | {_OAUTH_EN}
 |===
 """,
     "aws-ai-integration": f"""
