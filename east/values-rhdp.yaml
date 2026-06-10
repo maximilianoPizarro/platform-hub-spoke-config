@@ -1,11 +1,2 @@
-# RHDP Field Content overlay — east spoke (path: east/)
-# Ansible templates this file before helm install.
-# Merge: helm upgrade --install field-content-east east/ -f east/values.yaml -f east/values-rhdp.yaml
-
-deployer:
-  domain: "{{ openshift_cluster_ingress_domain }}"
-  apiUrl: "{{ openshift_api_server_url }}"
-
-clusters:
-  hub:
-    domain: "{{ openshift_cluster_hub_ingress_domain }}"
+# Optional manual overlay — RHDP templates east/values.yaml directly.
+# Jinja placeholders live in east/values.yaml (deployer + clusters.hub).

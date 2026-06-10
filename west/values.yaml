@@ -9,15 +9,15 @@ argocd:
 clusterName: west
 userCount: 50
 
-# Hub apps domain — set openshift_cluster_hub_ingress_domain in RHDP order (see west/values-rhdp.yaml).
+# Hub apps domain — pass openshift_cluster_hub_ingress_domain in RHDP order (hub's ingress domain).
 clusters:
   hub:
-    domain: ""
+    domain: "{{ openshift_cluster_hub_ingress_domain }}"
 
-# This spoke's apps/API domain — injected by RHDP openshift_cluster_ingress_domain.
+# This spoke's apps/API domain — RHDP openshift_cluster_ingress_domain on this cluster.
 deployer:
-  domain: ""
-  apiUrl: ""
+  domain: "{{ openshift_cluster_ingress_domain }}"
+  apiUrl: "{{ openshift_api_url | default(openshift_api_server_url, true) }}"
 
 operators:
   subscriptions:

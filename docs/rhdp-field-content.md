@@ -1,6 +1,8 @@
 # RHDP Field Content — 3 cluster orders (hub / east / west)
 
-Use **three separate catalog orders**, one per OpenShift cluster. Each order points at this repo with a different Helm path and merges `values-rhdp.yaml` (Ansible/Jinja overlays).
+Use **three separate catalog orders**, one per OpenShift cluster. Each order points at this repo with a different Helm path.
+
+RHDP **templates `values.yaml` in the chart path** (Ansible/Jinja) before `helm upgrade` — same pattern as other Field Content repos. Jinja placeholders are in `deployer`, `clusters.hub`, and `litemaas` sections; no extra values file is required.
 
 ## Catalog parameters (all three orders)
 
@@ -11,22 +13,18 @@ Use **three separate catalog orders**, one per OpenShift cluster. Each order poi
 | `ocp4_workload_field_content_gitops_repo_path` | `.` | `east/` | `west/` |
 | `existing_gitops` | `true` | `true` | `true` |
 
-RHDP must merge **two values files** (base + overlay):
-
-| Cluster | Base | RHDP overlay (Jinja) |
-|---------|------|----------------------|
-| Hub | `values.yaml` | `values-rhdp.yaml` |
-| East | `east/values.yaml` | `east/values-rhdp.yaml` |
-| West | `west/values.yaml` | `west/values-rhdp.yaml` |
-
-If your catalog item supports `ocp4_workload_field_content_gitops_extra_values` or an extra-values file path, point it at the overlay file for that path.
+| Cluster | Templated file |
+|---------|----------------|
+| Hub | `values.yaml` |
+| East | `east/values.yaml` |
+| West | `west/values.yaml` |
 
 ## Variables injected automatically (per cluster)
 
 | RHDP variable | Helm value | Hub | East | West |
 |---------------|------------|-----|------|------|
 | `openshift_cluster_ingress_domain` | `deployer.domain` | this hub | this east spoke | this west spoke |
-| `openshift_api_server_url` | `deployer.apiUrl` | this hub | this east spoke | this west spoke |
+| `openshift_api_url` (or `openshift_api_server_url`) | `deployer.apiUrl` | this hub | this east spoke | this west spoke |
 | `openshift_cluster_ingress_domain` | `clusters.hub.domain` | same as hub | — | — |
 | `openshift_cluster_hub_ingress_domain` | `clusters.hub.domain` | — | **required** | **required** |
 | `litellm_virtual_key` | `litemaas.apiKey` | hub only | — | — |
@@ -43,13 +41,13 @@ Set on a **second hub helm upgrade** or via catalog custom vars:
 
 ## Recommended order
 
-1. **Hub** — path `.`, merge `values.yaml` + `values-rhdp.yaml`
+1. **Hub** — path `.` (RHDP templates `values.yaml`)
 2. **East** — path `east/`, set `openshift_cluster_hub_ingress_domain` to the hub's `openshift_cluster_ingress_domain`
 3. **West** — path `west/`, same hub domain parameter
 4. **Hub again** — import east/west in ACM; `helm upgrade` with spoke domains + tokens:
 
 ```bash
-helm upgrade field-content . -f values.yaml -f values-rhdp.yaml \
+helm upgrade field-content . -f values.yaml \
   --set clusters.east.domain=apps.cluster-<east-id>.dynamic2.redhatworkshops.io \
   --set clusters.east.apiUrl=https://api.cluster-<east-id>.dynamic2.redhatworkshops.io:6443 \
   --set clusters.west.domain=apps.cluster-<west-id>.dynamic2.redhatworkshops.io \

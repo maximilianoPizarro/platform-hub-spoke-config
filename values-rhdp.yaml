@@ -1,23 +1,3 @@
-# RHDP Field Content overlay — hub cluster (path: .)
-# Ansible templates this file before helm install. Do not use in local helm template/CI.
-# Merge: helm upgrade --install field-content . -f values.yaml -f values-rhdp.yaml
-
-deployer:
-  domain: "{{ openshift_cluster_ingress_domain }}"
-  apiUrl: "{{ openshift_api_server_url }}"
-
-clusters:
-  hub:
-    domain: "{{ openshift_cluster_ingress_domain }}"
-  # Optional: set when east/west clusters are provisioned (second helm upgrade or catalog params).
-  east:
-    domain: "{{ openshift_cluster_east_ingress_domain | default('') }}"
-    apiUrl: "{{ openshift_cluster_east_api_url | default('') }}"
-  west:
-    domain: "{{ openshift_cluster_west_ingress_domain | default('') }}"
-    apiUrl: "{{ openshift_cluster_west_api_url | default('') }}"
-
-litemaas:
-  apiKey: "{{ litellm_virtual_key | default('') }}"
-  apiUrl: "{{ litellm_api_base_url | default('https://litellm-prod.apps.maas.redhatworkshops.io/v1') }}"
-  model: "{{ litellm_available_models_list | default('deepseek-r1-distill-qwen-14b') }}"
+# Optional manual overlay — RHDP templates values.yaml directly (no extra -f needed).
+# Use only for local helm: helm upgrade ... -f values.yaml -f values-rhdp.yaml --set deployer.domain=...
+# Content is duplicated in values.yaml deployer/clusters/litemaas sections.
