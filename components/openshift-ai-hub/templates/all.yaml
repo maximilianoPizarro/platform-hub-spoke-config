@@ -48,6 +48,7 @@ metadata:
     opendatahub.io/managed: "true"
   annotations:
     argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: Replace=true
     opendatahub.io/connection-type: generic
     openshift.io/display-name: MaaS RHDP API Key
 type: Opaque
