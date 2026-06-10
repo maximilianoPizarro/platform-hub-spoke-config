@@ -39,7 +39,7 @@ components/    → shared component charts
 ## Phase 1: Prepare
 
 1. Fork [`platform-hub-spoke-config`](https://github.com/maximilianoPizarro/platform-hub-spoke-config).
-2. Set cluster domains in **`values.yaml`** (hub) and spoke **`deployer.domain`** / **`clusters.hub.domain`** in `east/values.yaml`, `west/values.yaml`.
+2. Set cluster domains in **`values.yaml`** (hub) and spoke **`deployer.domain`** / **`clusters.hub.domain`** in `east/values.yaml`, `west/values.yaml` — or use RHDP overlays in [`rhdp-field-content.md`](rhdp-field-content.md) (`values-rhdp.yaml` per path).
 3. Validate rendering:
 
 ```bash

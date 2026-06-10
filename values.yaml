@@ -20,20 +20,21 @@ kairos:
     apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
     model: granite-31-8b
 
-# Multi-cluster configuration
+# Multi-cluster configuration — domains injected by RHDP (values-rhdp.yaml) or --set at install.
+# After east/west clusters exist, set clusters.east/west.domain + apiUrl (see docs/rhdp-field-content.md).
 clusters:
   hub:
-    domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
+    domain: ""
   east:
-    domain: "apps.cluster-2847b.dynamic2.redhatworkshops.io"
-    apiUrl: "https://api.cluster-2847b.dynamic2.redhatworkshops.io:6443"
+    domain: ""
+    apiUrl: ""
     # token: set via --set clusters.east.token=sha256~... (never commit tokens)
     # kialiToken / kialiCaData: for hub Kiali multi-cluster (see getting-started.md)
     kialiToken: ""
     kialiCaData: ""
   west:
-    domain: "apps.cluster-5zjkk.dynamic2.redhatworkshops.io"
-    apiUrl: "https://api.cluster-5zjkk.dynamic2.redhatworkshops.io:6443"
+    domain: ""
+    apiUrl: ""
     # token: set via --set clusters.west.token=sha256~... (never commit tokens)
     kialiToken: ""
     kialiCaData: ""
@@ -348,8 +349,8 @@ connectivityLink:
       skipDryRunOnMissingResource: true
 
 deployer:
-  domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
-  apiUrl: "https://api.cluster-xqg4c.dynamic2.redhatworkshops.io:6443"
+  domain: ""
+  apiUrl: ""
 
 litemaas:
   apiKey: ""

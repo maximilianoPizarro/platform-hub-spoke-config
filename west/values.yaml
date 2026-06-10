@@ -9,13 +9,15 @@ argocd:
 clusterName: west
 userCount: 50
 
+# Hub apps domain — set openshift_cluster_hub_ingress_domain in RHDP order (see west/values-rhdp.yaml).
 clusters:
   hub:
-    domain: "apps.cluster-xqg4c.dynamic2.redhatworkshops.io"
+    domain: ""
 
+# This spoke's apps/API domain — injected by RHDP openshift_cluster_ingress_domain.
 deployer:
-  domain: "apps.cluster-5zjkk.dynamic2.redhatworkshops.io"
-  apiUrl: "https://api.cluster-5zjkk.dynamic2.redhatworkshops.io:6443"
+  domain: ""
+  apiUrl: ""
 
 operators:
   subscriptions:

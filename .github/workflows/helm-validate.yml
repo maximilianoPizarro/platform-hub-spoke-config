@@ -39,14 +39,20 @@ jobs:
             path: "."
             values: values.yaml
             domain: apps.hub.example.com
+            apiUrl: https://api.hub.example.com:6443
+            hubDomain: apps.hub.example.com
           - name: east
             path: east
             values: east/values.yaml
             domain: apps.east.example.com
+            apiUrl: https://api.east.example.com:6443
+            hubDomain: apps.hub.example.com
           - name: west
             path: west
             values: west/values.yaml
             domain: apps.west.example.com
+            apiUrl: https://api.west.example.com:6443
+            hubDomain: apps.hub.example.com
     steps:
       - uses: actions/checkout@v4
       - uses: azure/setup-helm@v4
@@ -57,6 +63,8 @@ jobs:
           helm template test-release ${{ matrix.profile.path }} \
             -f ${{ matrix.profile.values }} \
             --set deployer.domain=${{ matrix.profile.domain }} \
+            --set deployer.apiUrl=${{ matrix.profile.apiUrl }} \
+            --set clusters.hub.domain=${{ matrix.profile.hubDomain }} \
             > /dev/null
           echo "Template ${{ matrix.profile.name }} rendered successfully"
       - name: Template vendored Camel Dashboard (OCP 4.20 kube 1.33)
