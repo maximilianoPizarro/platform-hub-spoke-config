@@ -811,8 +811,18 @@ spec:
           spec:
             automountServiceAccountToken: true
             serviceAccountName: developer-hub
-{{- if or (include "developer-hub.lightspeedEnabled" .) (.Values.plugins.rbac.enabled | default false) }}
             volumes:
+              - $patch: replace
+                name: dynamic-plugins-root
+                ephemeral:
+                  volumeClaimTemplate:
+                    spec:
+                      accessModes:
+                        - ReadWriteOnce
+                      resources:
+                        requests:
+                          storage: {{ .Values.dynamicPluginsStorage | default "10Gi" | quote }}
+{{- if or (include "developer-hub.lightspeedEnabled" .) (.Values.plugins.rbac.enabled | default false) }}
 {{- if include "developer-hub.lightspeedEnabled" . }}
               - name: lightspeed-stack
                 configMap:
@@ -833,6 +843,12 @@ spec:
 {{- end }}
 {{- end }}
             initContainers:
+              - name: install-dynamic-plugins
+                resources:
+                  requests:
+                    ephemeral-storage: 2Gi
+                  limits:
+                    ephemeral-storage: 5Gi
               - name: wait-for-postgres
                 image: registry.redhat.io/openshift4/ose-cli:latest
                 command: ["/bin/bash", "-c"]

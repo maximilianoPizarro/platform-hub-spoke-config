@@ -1,4 +1,6 @@
 clusterDomain: ""
+# Ephemeral PVC for install-dynamic-plugins (default chart size 2Gi is too small for ArgoCD + Kuadrant + email + MCP OCI overlays).
+dynamicPluginsStorage: 10Gi
 userCount: 50
 defaultPassword: "Welcome123!"
 # OIDC client secret for developer-hub + Keycloak backstage realm (set via --set, never commit real values)
