@@ -20,10 +20,11 @@ kairos:
     apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
     model: granite-31-8b
 
-# Multi-cluster configuration — hub domain templated by RHDP below; east/west after spokes exist.
+# Multi-cluster — RHDP injects deployer.domain via ArgoCD Application helm.values (existing_gitops).
+# Do NOT use {{ }} here; Helm treats it as template syntax and ArgoCD sync fails.
 clusters:
   hub:
-    domain: "{{ openshift_cluster_ingress_domain }}"
+    domain: ""
   east:
     domain: ""
     apiUrl: ""
@@ -347,16 +348,16 @@ connectivityLink:
       selfHeal: true
       skipDryRunOnMissingResource: true
 
-# Values injected by RHDP field content workload (Ansible templates before helm install).
+# Injected at runtime by RHDP into ArgoCD Application spec.source.helm.values (not from Git).
 deployer:
-  domain: "{{ openshift_cluster_ingress_domain }}"
-  apiUrl: "{{ openshift_api_url | default(openshift_api_server_url, true) }}"
+  domain: ""
+  apiUrl: ""
 
 litemaas:
-  apiKey: "{{ litellm_virtual_key | default('', true) }}"
-  apiUrl: "{{ litellm_api_base_url | default('https://litellm-prod.apps.maas.redhatworkshops.io/v1', true) }}"
+  apiKey: ""
+  apiUrl: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
   enabled: true
-  model: "{{ litellm_available_models_list | default('deepseek-r1-distill-qwen-14b', true) }}"
+  model: "deepseek-r1-distill-qwen-14b"
 
 fieldContent:
   deploymentType: "helm"

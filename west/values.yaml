@@ -9,15 +9,14 @@ argocd:
 clusterName: west
 userCount: 50
 
-# Hub apps domain — pass openshift_cluster_hub_ingress_domain in RHDP order (hub's ingress domain).
+# RHDP injects deployer + clusters.hub via ArgoCD helm.values. No {{ }} in Git (Helm parse error).
 clusters:
   hub:
-    domain: "{{ openshift_cluster_hub_ingress_domain }}"
+    domain: ""
 
-# This spoke's apps/API domain — RHDP openshift_cluster_ingress_domain on this cluster.
 deployer:
-  domain: "{{ openshift_cluster_ingress_domain }}"
-  apiUrl: "{{ openshift_api_url | default(openshift_api_server_url, true) }}"
+  domain: ""
+  apiUrl: ""
 
 operators:
   subscriptions:
