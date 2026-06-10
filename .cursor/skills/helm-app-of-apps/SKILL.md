@@ -540,9 +540,16 @@ Key sub-templates (not separate Argo apps — same chart):
 
 Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, `quayDockerConfigJson`. ACS: Secret `acs-init-credentials` (`ROX_ADMIN_PASSWORD`) in `stackrox` at runtime.
 
-**Plugin flags** (hub `component-applications.yaml` → `plugins`): `argocd`, `kuadrant`, `notificationsEmail` enabled; `lightspeed` disabled; backend `ephemeral-storage` 2Gi/5Gi for Kuadrant npm deps.
+**Plugin flags** (hub `component-applications.yaml` → `plugins`): `argocd`, `kuadrant`, `notificationsEmail`, `lightspeed` enabled; `dynamicPluginsStorage: 10Gi`; userN RBAC via `group:default/developers`.
 
-Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component.
+**Hub AI / virtualization apps:**
+
+| App id | Path | Notes |
+| ------ | ---- | ----- |
+| `openshift-ai-hub` | `components/openshift-ai-hub` | DSC + `maas-workshop`; Secret `openshift-ai-maas-credentials` ignoreDifferences |
+| `cnv-example` | `components/cnv-example` | Sample cirros VM; requires `kubevirt-hyperconverged` operator subscription |
+
+Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component. Includes `openshift-ai-workspace` and `cnv-vm-workshop`.
 
 See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for Topology, scaffolder, RBAC CSV deployment mount, Lightspeed PostSync hook, and troubleshooting.
 

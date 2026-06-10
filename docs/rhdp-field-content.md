@@ -8,7 +8,8 @@ RHDP does **not** template `values.yaml` in Git. It creates an Argo CD `Applicat
 
 - `deployer.domain` ← `openshift_cluster_ingress_domain`
 - `deployer.apiUrl` ← `openshift_api_url`
-- `litemaas.apiKey` / `litemaas.apiUrl` (when LiteLLM enabled)
+- `litemaas.apiKey` / `litemaas.apiUrl` (MaaS — never commit `sk-*` keys to Git)
+- `litemaas.model` — default `llama-scout-17b` (workshop); also `deepseek-r1-distill-qwen-14b`, `codellama-7b-instruct`
 
 **Never put `{{ openshift_cluster_ingress_domain }}` in Git-tracked YAML** — Helm interprees `{{ }}` as Helm template syntax and Argo CD fails with `invalid map key`.
 
@@ -88,6 +89,24 @@ Expect many `field-content-*` child apps after `field-content` syncs. If sync is
 ```bash
 oc get application field-content -n openshift-gitops -o jsonpath='{.status.conditions[*].message}{"\n"}'
 ```
+
+## MaaS API keys (hub — after sync)
+
+Inject via RHDP `litemaas.apiKey` in `field-content` helm.values, or create secrets manually:
+
+```bash
+# Kairos + Developer Hub Lightspeed
+oc create secret generic kairos-ai-credentials -n kairos-system \
+  --from-literal=api-key='sk-...' --dry-run=client -o yaml | oc apply -f -
+
+# OpenShift AI playground / InferenceService proxies
+oc create secret generic openshift-ai-maas-credentials -n maas-workshop \
+  --from-literal=api-key='sk-...' \
+  --from-literal=OPENAI_API_BASE='https://maas-rhdp.apps.maas.redhatworkshops.io/v1' \
+  --dry-run=client -o yaml | oc apply -f -
+```
+
+Use separate MaaS keys per model if your workshop provides them; `llama-scout-17b` is the default for userN Lightspeed chat.
 
 ## Local validation
 

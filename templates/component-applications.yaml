@@ -42,6 +42,12 @@ spec:
         - /data
         - /stringData
     - kind: Secret
+      name: openshift-ai-maas-credentials
+      namespace: maas-workshop
+      jsonPointers:
+        - /data
+        - /stringData
+    - kind: Secret
       name: kiali-remote-east
       namespace: openshift-cluster-observability-operator
       jsonPointers:
@@ -319,6 +325,9 @@ spec:
             apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
           west:
             apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
+        spokeDomains:
+          east: {{ $eastDomain | quote }}
+          west: {{ $westDomain | quote }}
     {{- else if eq .path "acm-hub-spoke" }}
     helm:
       valuesObject:
@@ -451,6 +460,29 @@ spec:
           limits:
             cpu: 200m
             memory: 128Mi
+    {{- else if eq .path "openshift-ai-hub" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        maas:
+          endpoint: {{ $.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1" | trimSuffix "/v1" | quote }}
+          credentialsSecretName: openshift-ai-maas-credentials
+          credentialsSecretKey: api-key
+          models:
+            - id: llama-scout-17b
+              displayName: Llama Scout 17B (workshop default)
+            - id: deepseek-r1-distill-qwen-14b
+              displayName: DeepSeek R1 Distill Qwen 14B
+            - id: codellama-7b-instruct
+              displayName: CodeLlama 7B Instruct
+    {{- else if eq .path "cnv-example" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        vm:
+          enabled: true
+          name: workshop-cnv-demo
+          namespace: cnv-workshop
     {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "quay-registry") }}
     helm:
       valuesObject:

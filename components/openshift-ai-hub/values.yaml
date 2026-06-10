@@ -1,0 +1,16 @@
+clusterDomain: ""
+maas:
+  endpoint: "https://maas-rhdp.apps.maas.redhatworkshops.io"
+  credentialsSecretName: openshift-ai-maas-credentials
+  credentialsSecretKey: api-key
+  models:
+    - id: llama-scout-17b
+      displayName: Llama Scout 17B (workshop default)
+    - id: deepseek-r1-distill-qwen-14b
+      displayName: DeepSeek R1 Distill Qwen 14B
+    - id: codellama-7b-instruct
+      displayName: CodeLlama 7B Instruct
+playground:
+  enabled: true
+mcp:
+  enabled: true

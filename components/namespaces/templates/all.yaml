@@ -13,6 +13,8 @@
   "developer-hub"
   "devspaces"
   "kairos-system"
+  "openshift-cnv"
+  "maas-workshop"
 }}
 {{- /* RHCL dns-operator: no ambient — CrashLoopBackOff on spokes when meshed */ -}}
 {{- $noMeshNamespaces := list

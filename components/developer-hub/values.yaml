@@ -26,6 +26,10 @@ kubernetesSpokes:
     apiUrl: ""
   west:
     apiUrl: ""
+# RHDP injects spoke ingress domains for IE catalog links (component-applications.yaml).
+spokeDomains:
+  east: ""
+  west: ""
 # Dynamic plugins — disable if package missing in RHDH image (oc exec ... ls dynamic-plugins/dist)
 plugins:
   rbac:

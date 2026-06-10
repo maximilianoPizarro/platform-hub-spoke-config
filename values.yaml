@@ -94,6 +94,10 @@ connectivityLink:
         namespace: openshift-operators
         channel: stable-3.14
         source: redhat-operators
+      - name: kubevirt-hyperconverged
+        namespace: openshift-cnv
+        channel: stable
+        source: redhat-operators
 
   apps:
     # Core platform
@@ -353,6 +357,22 @@ connectivityLink:
       path: kubecost
       destinationNamespace: kubecost
       syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: openshift-ai-hub
+      enabled: true
+      path: openshift-ai-hub
+      destinationNamespace: maas-workshop
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: cnv-example
+      enabled: true
+      path: cnv-example
+      destinationNamespace: cnv-workshop
+      syncWave: "8"
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true

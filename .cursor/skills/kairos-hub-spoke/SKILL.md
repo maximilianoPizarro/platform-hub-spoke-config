@@ -64,6 +64,12 @@ oc auth can-i list smartscalingpolicies --as=system:serviceaccount:kairos-system
 - Hub `field-content-kairos` should sync after spokes have operator + `kairos-system` namespace; console image tag is independent of CSV version.
 - Do **not** leave stray `KairosConsole` on spokes — hub URL only (approve 404 on spoke routes).
 
+## MaaS credentials (hub)
+
+- Default `aiModel.apiURL`: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions`
+- Default model: `llama-scout-17b` — API key in `kairos-system/kairos-ai-credentials` (RHDP `litemaas.apiKey`, never Git)
+- If operator CSV missing: verify `community-operators` catalog and `candidate-v2` channel; check `Subscription/kairos-operator` in `kairos-system`
+
 ## Related skills
 
 - **developer-hub-scaffolder** — IE labels `kairos.io/managed`, environment agents, Lightspeed shares `kairos-ai-credentials`

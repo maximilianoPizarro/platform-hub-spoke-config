@@ -7,28 +7,34 @@ nav_order: 7
 
 # OpenShift AI
 
-Red Hat **OpenShift AI** operationalizes data science workloads on OpenShift: notebooks, model training pipelines, and **model serving** with scalable inference routes.
+Red Hat **OpenShift AI** on the **hub** provides dashboard, workbenches, KServe (RawDeployment), and MaaS-backed external models for the workshop.
 
-![OpenShift AI – Data Science Projects]({{ site.baseurl }}/assets/images/openshift-ia.png)
-{: .mb-4 }
-*OpenShift AI home — data science projects and model training workflows.*
-{: .fs-2 .text-grey-dk-000 }
+## Hub component
 
-## Platform integration
+| Path | Purpose |
+|------|---------|
+| `components/openshift-ai-hub/` | `DataScienceCluster`, `maas-workshop` project, MaaS proxies, playground config |
+| `components/industrial-edge-data-science-cluster/` | Spoke-only DSC (east/west ML) |
 
-| Concern | Notes |
-| ------- | ----- |
-| **DataScienceCluster** | Top-level operator CR provisioning OpenShift AI services. |
-| **Model serving** | Serves scoring endpoints consumed by Industrial Edge dashboards or Kafka processors. |
-| **Anomaly detection** | Example ML use case over sensor-derived features flowing through Kafka. |
+## MaaS models (external)
 
-Industrial Edge charts such as `industrial-edge-data-science-cluster` and `industrial-edge-data-science-project` wrap operator-managed namespaces and projects.
+Models are proxied from `https://maas-rhdp.apps.maas.redhatworkshops.io/v1` — API keys via RHDP `litemaas.apiKey` or Secret `openshift-ai-maas-credentials` (never Git).
 
-## Operator discovery
+| Model | Use case |
+|-------|----------|
+| `llama-scout-17b` | Default workshop / Lightspeed / userN |
+| `deepseek-r1-distill-qwen-14b` | Admin reasoning / GitOps reconciliation |
+| `codellama-7b-instruct` | Code / scaffolder / templates |
 
-The **OpenShift AI operator** reconciles **`DataScienceCluster`** (`datasciencecluster.opendatahub.io`) cluster-wide — downstream components (`Dashboard`, `ModelMeshServing`, …) appear once DSC reaches **`Phase: Ready`**.
+## Console
 
-Namespaces such as **`redhat-ods-applications`** host dashboard/workbenches operator-managed — operators bind workloads via CR ownership references rather than requiring arbitrary **`Deployment.metadata.annotations`** so controllers discover pods.
+- **ConsoleLink:** Platform Hub-Spoke → OpenShift AI
+- URL: `https://rhods-dashboard-redhat-ods-applications.<hub-apps-domain>`
+
+## Developer Hub
+
+- Software template: **OpenShift AI: Data Science Workspace**
+- MCP: Developer Hub MCP tools + OpenShift AI playground config in `maas-workshop`
 
 ## Documentation
 

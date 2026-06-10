@@ -13,8 +13,8 @@ aiCredentials:
   secretKey: api-key
 
 aiModel:
-  apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
-  model: granite-31-8b
+  apiURL: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions"
+  model: llama-scout-17b
   temperature: "0.3"
   timeoutSeconds: 60
 

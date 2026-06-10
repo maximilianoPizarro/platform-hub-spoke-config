@@ -1,0 +1,5 @@
+clusterDomain: ""
+vm:
+  enabled: true
+  name: workshop-cnv-demo
+  namespace: cnv-workshop

@@ -9,3 +9,5 @@ spec:
     - ./industrial-edge-camel-kaoto/template.yaml
     - ./industrial-edge-delete/template.yaml
     - ./industrial-edge-api-product/template.yaml
+    - ./openshift-ai-workspace/template.yaml
+    - ./cnv-vm-workshop/template.yaml
