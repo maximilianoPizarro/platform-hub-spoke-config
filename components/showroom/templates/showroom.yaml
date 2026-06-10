@@ -248,6 +248,35 @@ spec:
         - mountPath: /showroom/www
           name: showroom-files
           subPath: www
+      - name: antora-html-subst
+        image: "docker.io/mikefarah/yq:4"
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -e
+            UD="/user_data/user_data.yml"
+            WWW="/showroom/www"
+            if [ ! -f "$UD" ] || [ ! -d "$WWW" ]; then
+              echo "skip html subst — missing user_data or www"
+              exit 0
+            fi
+            HUB=$(yq -r '.hub_domain // ""' "$UD")
+            EAST=$(yq -r '.east_domain // ""' "$UD")
+            WEST=$(yq -r '.west_domain // ""' "$UD")
+            REG=$(yq -r '.registration_url // ""' "$UD")
+            for f in $(find "$WWW" -name '*.html' 2>/dev/null); do
+              [ -n "$HUB" ] && sed -i "s|%HUB_DOMAIN%|${HUB}|g" "$f"
+              [ -n "$EAST" ] && sed -i "s|%EAST_DOMAIN%|${EAST}|g" "$f"
+              [ -n "$WEST" ] && sed -i "s|%WEST_DOMAIN%|${WEST}|g" "$f"
+              [ -n "$REG" ] && sed -i "s|https://workshop-registration.${HUB}|${REG}|g" "$f"
+            done
+            echo "substituted domains in $(find "$WWW" -name '*.html' | wc -l) html files"
+        volumeMounts:
+        - mountPath: /showroom/www
+          name: showroom-files
+          subPath: www
+        - name: user-data
+          mountPath: /user_data/
       containers:
       - name: nginx
         image: "quay.io/rhpds/nginx:1.25"
