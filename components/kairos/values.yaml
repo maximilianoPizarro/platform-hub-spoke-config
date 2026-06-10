@@ -3,7 +3,7 @@ clusterName: hub
 clusterDomain: apps.cluster.example.com
 
 operator:
-  channel: candidate-v2
+  channel: stable
   source: community-operators
   sourceNamespace: openshift-marketplace
 
