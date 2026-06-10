@@ -1,10 +1,3 @@
----
-layout: default
-title: "Software Templates"
-parent: Hybrid Mesh AI Workshop
-nav_order: 12
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Software Templates
@@ -28,6 +21,23 @@ Developer Hub Create; golden paths. Plan B: demos compartidos en catálogo.
 
 1. Facilitador cubre módulo **12** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Developer Hub Create | docs/assets/backstage/software-templates/ | SoftwareTemplate |
+| Plan B catalog | components/workshop-demos/files/catalog/ | System |
+
+```yaml
+metadata:
+  name: hybrid-mesh-shared-demos
+  title: Hybrid Mesh AI — Shared Demos (Plan B)
+```
+
+```bash
+oc get configmap developer-hub-catalog-demos -n developer-hub
+```
 
 ## Your TODO
 

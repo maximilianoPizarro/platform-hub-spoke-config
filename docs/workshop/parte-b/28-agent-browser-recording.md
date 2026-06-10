@@ -1,10 +1,3 @@
----
-layout: default
-title: "Agent Browser & Recording"
-parent: Hybrid Mesh AI Workshop
-nav_order: 28
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Agent Browser & Recording
@@ -28,6 +21,23 @@ Agent Browser YAML en `verification/agent-browser/`. Grabaciones **no** se commi
 
 1. Facilitador cubre módulo **28** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Agent Browser | verification/agent-browser/*.yaml | Scripts |
+| Recordings | NOT in Git | Local only |
+
+```yaml
+# recording-runbook.md — Win+G / OBS, no MP4 in repo
+recordings/
+*.mp4  # gitignored
+```
+
+```bash
+test -f showroom-hybrid-mesh-ai/verification/recording-runbook.md
+```
 
 ## Your TODO
 

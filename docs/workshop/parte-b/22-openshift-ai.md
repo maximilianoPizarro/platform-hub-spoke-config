@@ -1,10 +1,3 @@
----
-layout: default
-title: "OpenShift AI Workshop"
-parent: Hybrid Mesh AI Workshop
-nav_order: 22
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # OpenShift AI Workshop
@@ -28,6 +21,24 @@ DSC hub; maas-workshop; demo-ods-workspace.
 
 1. Facilitador cubre módulo **22** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| DSC | components/openshift-ai-hub/templates/all.yaml | DataScienceCluster |
+| MaaS workshop | maas-workshop namespace | Secret |
+
+```yaml
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+```
+
+```bash
+oc get dsc
+```
 
 ## Your TODO
 

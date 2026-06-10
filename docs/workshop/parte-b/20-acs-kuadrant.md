@@ -1,10 +1,3 @@
----
-layout: default
-title: "ACS & Connectivity Link"
-parent: Hybrid Mesh AI Workshop
-nav_order: 20
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # ACS & Connectivity Link
@@ -28,6 +21,22 @@ ACS Central; AuthPolicy; APIProduct demo.
 
 1. Facilitador cubre módulo **20** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| ACS init bundles | components/acs-init-bundle-sync/ | Job |
+| Kuadrant | components/hub-gateway/ | AuthPolicy |
+
+```yaml
+# Secret acs-init-credentials required in stackrox
+# roxctl central init-bundles generate hub --output-secrets -
+```
+
+```bash
+oc get securedcluster -n stackrox
+```
 
 ## Your TODO
 

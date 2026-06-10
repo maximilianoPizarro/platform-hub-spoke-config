@@ -1,10 +1,3 @@
----
-layout: default
-title: "AWS Services & AI Integration"
-parent: Hybrid Mesh AI Workshop
-nav_order: 4
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # AWS Services & AI Integration
@@ -28,6 +21,23 @@ IAM/OIDC; Bedrock/SageMaker narrativa; patrón OpenShift AI + MaaS en lab.
 
 1. Facilitador cubre módulo **04** (A).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Bedrock/SageMaker (narrativa) | AWS docs | External |
+| MaaS lab | components/openshift-ai-hub/ | DataScienceCluster |
+
+```yaml
+stringData:
+  OPENAI_API_BASE: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
+# Secret openshift-ai-maas-credentials in maas-workshop
+```
+
+```bash
+oc get dsc -A
+```
 
 ## Your TODO
 

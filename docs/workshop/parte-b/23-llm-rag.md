@@ -1,10 +1,3 @@
----
-layout: default
-title: "LLMs & RAG"
-parent: Hybrid Mesh AI Workshop
-nav_order: 23
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # LLMs & RAG
@@ -28,6 +21,21 @@ Developer Lightspeed; Kairos agents; Continue AI DevSpaces.
 
 1. Facilitador cubre módulo **23** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Lightspeed | components/developer-hub/templates/lightspeed.yaml | Deployment |
+| Kairos agents | components/kairos/ | Console |
+
+```yaml
+# MaaS endpoint shared with NeuroFace and Continue AI on spokes
+```
+
+```bash
+oc get deploy -n developer-hub | grep lightspeed
+```
 
 ## Your TODO
 

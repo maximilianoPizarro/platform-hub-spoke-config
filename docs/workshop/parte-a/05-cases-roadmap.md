@@ -1,10 +1,3 @@
----
-layout: default
-title: "Real Cases & Roadmap"
-parent: Hybrid Mesh AI Workshop
-nav_order: 5
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Real Cases & Roadmap
@@ -28,6 +21,21 @@ Industrial Edge IoT; Hybrid Mesh AI roadmap; transición a Parte B hands-on.
 
 1. Facilitador cubre módulo **05** (A).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Industrial Edge | components/industrial-edge-tst/ | Kafka + dashboard |
+| Workshop | components/showroom/ | Showroom |
+
+```yaml
+# Transition to Parte B — register at workshop-registration
+```
+
+```bash
+curl -sk -o /dev/null -w '%{http_code}' https://workshop-registration.${HUB_DOMAIN}/api/health
+```
 
 ## Your TODO
 

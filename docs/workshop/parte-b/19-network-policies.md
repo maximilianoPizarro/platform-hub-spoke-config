@@ -1,10 +1,3 @@
----
-layout: default
-title: "Network Policies"
-parent: Hybrid Mesh AI Workshop
-nav_order: 19
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Network Policies
@@ -22,12 +15,31 @@ nav_order: 19
 
 ## Contexto
 
-NetworkPolicy demo en namespace IE; verify `oc get networkpolicy`.
+NetworkPolicy demo en namespace IE.
 
 ## Show and Tell
 
 1. Facilitador cubre módulo **19** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| NP demo IE | components/workshop-demos/templates/network-policy-demo.yaml | NetworkPolicy |
+| OVN | OpenShift SDN/OVN | CNI |
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ie-workshop-allow-dashboard
+  namespace: industrial-edge-tst-all
+```
+
+```bash
+oc get networkpolicy -n industrial-edge-tst-all
+```
 
 ## Your TODO
 

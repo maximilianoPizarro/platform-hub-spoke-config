@@ -1,10 +1,3 @@
----
-layout: default
-title: "Deploy Industrial Edge Apps"
-parent: Hybrid Mesh AI Workshop
-nav_order: 13
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Deploy Industrial Edge Apps
@@ -28,6 +21,24 @@ Scaffold IE east/west; Gitea `ws-{user_name}`; Argo CD Application on spoke.
 
 1. Facilitador cubre módulo **13** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Scaffold IE | software-templates/industrial-edge/template.yaml | SoftwareTemplate |
+| Spoke deploy | east/templates/component-applications.yaml | Application |
+
+```yaml
+# Argo CD Application on spoke after scaffold
+spec:
+  destination:
+    namespace: industrial-edge-tst-all
+```
+
+```bash
+oc get applications -n openshift-gitops | grep industrial
+```
 
 ## Your TODO
 

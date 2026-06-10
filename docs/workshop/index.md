@@ -5,7 +5,7 @@ nav_order: 11
 has_children: true
 ---
 
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` — registro: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Hybrid Mesh AI Workshop
 
@@ -20,24 +20,18 @@ has_children: true
 | AWS Cost Explorer | Kubecost federated ETL |
 | Route 53 + ALB | Hub Gateway + Skupper |
 
-## Contexto
+## Agenda
 
-Agenda Parte A (01–05) y Parte B (10–27). Registro: `https://workshop-registration.{hub_domain}`. Showroom live con terminal `oc`.
+### Parte A (01–05) — Executive
+Strategy, ROSA, security/scale, AWS+AI, cases & roadmap.
 
-## Show and Tell
+### Parte B (10–28) — Hands-on
+ACM, mesh, GitOps, IE, AI, NeuroFace, verification.
 
-1. Facilitador cubre módulo **00** (A).
-2. Comparar ROSA/AWS vs lab RHDP.
+## Registro
 
-## Your TODO
+OpenShift Console → **Hybrid Mesh AI Workshop** → email → `userN` → Showroom redirect.
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
-
-## Verify
-
-- Progress API responde OK
-
----
+Agenda Parte A (01–05) y Parte B (10–28). Registro: `https://workshop-registration.{hub_domain}`. Showroom live con terminal `oc`.
 
 *Las grabaciones de pantalla del evento no se publican en este repositorio.*

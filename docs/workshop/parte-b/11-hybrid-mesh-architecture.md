@@ -1,10 +1,3 @@
----
-layout: default
-title: "Hybrid Mesh Architecture"
-parent: Hybrid Mesh AI Workshop
-nav_order: 11
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Hybrid Mesh Architecture
@@ -22,12 +15,31 @@ nav_order: 11
 
 ## Contexto
 
-Hub gateway, Skupper, spoke gateways. YAML: hub-gateway + service-interconnect.
+Hub gateway, Skupper, spoke gateways.
 
 ## Show and Tell
 
 1. Facilitador cubre módulo **11** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Hub gateway | components/hub-gateway/templates/httproute.yaml | HTTPRoute |
+| Skupper | components/service-interconnect/ | Site/Connector |
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: industrial-edge-front
+# routes hub ingress to spoke gateways via Skupper
+```
+
+```bash
+oc get httproute -A | head
+```
 
 ## Your TODO
 

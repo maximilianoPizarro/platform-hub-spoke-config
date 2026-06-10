@@ -1,10 +1,3 @@
----
-layout: default
-title: "Security & Scale in Hybrid"
-parent: Hybrid Mesh AI Workshop
-nav_order: 3
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Security & Scale in Hybrid
@@ -28,6 +21,25 @@ ACM governance; mesh zero-trust; observabilidad multicluster; FinOps.
 
 1. Facilitador cubre módulo **03** (A).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| ACS Central | components/acs-operator/ | Central |
+| Mesh ambient | components/operators/templates/servicemeshoperator3.yaml | Subscription |
+
+```yaml
+# stackrox namespace must NOT use istio ambient
+metadata:
+  name: stackrox
+  labels:
+    # no istio.io/dataplane-mode: ambient
+```
+
+```bash
+oc get central -n stackrox
+```
 
 ## Your TODO
 

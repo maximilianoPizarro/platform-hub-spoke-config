@@ -10,6 +10,9 @@ mkdir -p "$SHOWROOM_IMG" "$DOCS_IMG"
 MODULES=(
   "00-index-hybrid-mesh"
   "01-hybrid-strategy"
+  "02-rosa-architecture"
+  "10-acm-multicluster"
+  "11-hybrid-mesh"
   "25-neuroface-dashboard"
 )
 

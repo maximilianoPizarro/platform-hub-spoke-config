@@ -1,10 +1,3 @@
----
-layout: default
-title: "Scalability HPA Kafka"
-parent: Hybrid Mesh AI Workshop
-nav_order: 18
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Scalability HPA Kafka
@@ -28,6 +21,24 @@ HPA workloads; KafkaNodePool; Kairos policies.
 
 1. Facilitador cubre módulo **18** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Kafka | components/industrial-edge-tst/templates/kafka-cluster.yaml | Kafka |
+| HPA | workload manifests | HorizontalPodAutoscaler |
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: line-dashboard
+```
+
+```bash
+oc get hpa -n industrial-edge-tst-all
+```
 
 ## Your TODO
 

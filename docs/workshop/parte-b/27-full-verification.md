@@ -1,10 +1,3 @@
----
-layout: default
-title: "Full Stack Verification"
-parent: Hybrid Mesh AI Workshop
-nav_order: 27
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Full Stack Verification
@@ -28,6 +21,22 @@ Checklist Parte A + B; Plan B demos; progress API summary.
 
 1. Facilitador cubre módulo **27** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Registration | components/workshop-registration/ | Deployment |
+| Showroom | components/showroom/ | Deployment |
+| Progress API | POST /api/progress | HTTP |
+
+```yaml
+# verification/progress-checklist.yaml — user1 east Parte B
+```
+
+```bash
+bash scripts/verify-workshop-e2e.sh
+```
 
 ## Your TODO
 

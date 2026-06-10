@@ -1,10 +1,3 @@
----
-layout: default
-title: "OpenShift Service Mesh"
-parent: Hybrid Mesh AI Workshop
-nav_order: 17
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # OpenShift Service Mesh
@@ -28,6 +21,25 @@ OSSM3 ambient; Kiali; ztunnel metrics.
 
 1. Facilitador cubre módulo **17** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| OSSM3 | components/operators/templates/servicemeshoperator3.yaml | Subscription |
+| Kiali | components/kiali/ | Kiali CR |
+
+```yaml
+spec:
+  values:
+    meshConfig:
+      defaultConfig:
+        tracing: {}
+```
+
+```bash
+oc get servicemeshcontrolplane -n istio-system
+```
 
 ## Your TODO
 

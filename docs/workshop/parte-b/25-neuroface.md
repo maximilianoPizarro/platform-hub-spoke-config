@@ -1,10 +1,3 @@
----
-layout: default
-title: "Face & Object AI + Chat"
-parent: Hybrid Mesh AI Workshop
-nav_order: 25
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Face & Object AI + Chat
@@ -28,6 +21,30 @@ Webcam; YOLO + face detection; `/api/chat` → MaaS. URL: `https://neuroface.{hu
 
 1. Facilitador cubre módulo **25** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| NeuroFace UI | components/neuroface/ | Helm wrapper |
+| MaaS chat | neuroface.chat.modelEndpoint | Config |
+| No LibreChat | — | Decision |
+
+```yaml
+chat:
+  enabled: true
+  modelEndpoint: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
+  modelName: "llama-scout-17b"
+ovms:
+  modelmesh:
+    enabled: true
+litellm:
+  enabled: false
+```
+
+```bash
+curl -sk https://neuroface.${HUB_DOMAIN}/api/health
+```
 
 ## Your TODO
 

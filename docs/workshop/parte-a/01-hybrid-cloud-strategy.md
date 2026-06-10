@@ -1,10 +1,3 @@
----
-layout: default
-title: "Hybrid Cloud Strategy"
-parent: Hybrid Mesh AI Workshop
-nav_order: 1
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Hybrid Cloud Strategy
@@ -28,6 +21,22 @@ Modernizar apps, escalar híbrido, automatización/seguridad, time-to-market.
 
 1. Facilitador cubre módulo **01** (A).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Estrategia ejecutiva | docs/workshop/parte-a/ | Narrative |
+| Fleet ACM | components/acm-hub-spoke/ | ManagedCluster |
+
+```yaml
+# Executive track — no CR required on cluster for Parte A
+# Reference: https://docs.redhat.com/en/documentation/rosa/
+```
+
+```bash
+oc get managedclusters 2>/dev/null | head -5
+```
 
 ## Your TODO
 

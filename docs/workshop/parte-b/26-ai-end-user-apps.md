@@ -1,10 +1,3 @@
----
-layout: default
-title: "AI in End-User Apps"
-parent: Hybrid Mesh AI Workshop
-nav_order: 26
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # AI in End-User Apps
@@ -28,6 +21,21 @@ line-dashboard; Camel alerts; NeuroFace + IE stack integration.
 
 1. Facilitador cubre módulo **26** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| line-dashboard | industrial-edge-tst-all | Deployment |
+| Camel | Camel K Integration | Integration |
+
+```yaml
+# End-user apps consume IE + AI stack on spoke
+```
+
+```bash
+oc get deploy -n industrial-edge-tst-all line-dashboard
+```
 
 ## Your TODO
 

@@ -1,10 +1,3 @@
----
-layout: default
-title: "Multicluster Fleet & ACM"
-parent: Hybrid Mesh AI Workshop
-nav_order: 10
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Multicluster Fleet & ACM
@@ -22,12 +15,32 @@ nav_order: 10
 
 ## Contexto
 
-ACM Clusters; ManagedCluster; GitOpsCluster. YAML: `components/acm-hub-spoke/templates/managed-clusters.yaml`.
+ACM Clusters; ManagedCluster; GitOpsCluster.
 
 ## Show and Tell
 
 1. Facilitador cubre módulo **10** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| ACM Clusters UI | components/acm-hub-spoke/templates/managed-clusters.yaml | ManagedCluster |
+| GitOpsCluster | components/acm-hub-spoke/templates/gitops-cluster.yaml | GitOpsCluster |
+
+```yaml
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: east
+spec:
+  hubAcceptsClient: true
+```
+
+```bash
+oc get managedclusters
+```
 
 ## Your TODO
 

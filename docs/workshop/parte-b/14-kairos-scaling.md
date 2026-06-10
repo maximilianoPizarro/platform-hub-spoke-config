@@ -1,10 +1,3 @@
----
-layout: default
-title: "Worker Scaling with Kairos"
-parent: Hybrid Mesh AI Workshop
-nav_order: 14
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Worker Scaling with Kairos
@@ -28,6 +21,25 @@ SmartScalingPolicy sensor-scan; approve flow en Kairos Console.
 
 1. Facilitador cubre módulo **14** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Kairos Console | components/kairos/templates/console-rbac.yaml | ClusterRole |
+| Sensor scan SSP | components/kairos/templates/sensor-scan-policies.yaml | SmartScalingPolicy |
+
+```yaml
+apiVersion: kairos.io/v1alpha1
+kind: SmartScalingPolicy
+metadata:
+  name: scan-policy-machine-sensor
+# approve scaling in Kairos Console
+```
+
+```bash
+oc get smartscalingpolicy -A
+```
 
 ## Your TODO
 

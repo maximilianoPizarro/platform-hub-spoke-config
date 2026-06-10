@@ -1,10 +1,3 @@
----
-layout: default
-title: "Metrics Logging Dashboards"
-parent: Hybrid Mesh AI Workshop
-nav_order: 15
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Metrics Logging Dashboards
@@ -28,6 +21,22 @@ Grafana multicluster; OTEL; Kafka Console.
 
 1. Facilitador cubre módulo **15** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Grafana | components/grafana-dashboards/ | ConfigMap |
+| OTEL | components/opentelemetry/ | Instrumentation |
+
+```yaml
+# Grafana multicluster dashboards on hub
+# Kafka Console: components/kafka-console/
+```
+
+```bash
+oc get grafanadashboard -A | head
+```
 
 ## Your TODO
 

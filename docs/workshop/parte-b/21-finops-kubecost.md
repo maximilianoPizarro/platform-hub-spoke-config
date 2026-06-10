@@ -1,10 +1,3 @@
----
-layout: default
-title: "FinOps with Kubecost"
-parent: Hybrid Mesh AI Workshop
-nav_order: 21
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # FinOps with Kubecost
@@ -28,6 +21,21 @@ Kubecost hub primary + spoke agents; allocations by namespace.
 
 1. Facilitador cubre módulo **21** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Kubecost hub | components/kubecost/templates/all.yaml | Kubecost |
+| Federated ETL | MinIO bucket kubecost | Object storage |
+
+```yaml
+# Kubecost primary on hub, agents on spokes
+```
+
+```bash
+oc get deploy -n kubecost
+```
 
 ## Your TODO
 

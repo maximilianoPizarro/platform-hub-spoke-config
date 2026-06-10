@@ -1,10 +1,3 @@
----
-layout: default
-title: "ROSA Architecture & Benefits"
-parent: Hybrid Mesh AI Workshop
-nav_order: 2
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # ROSA Architecture & Benefits
@@ -28,6 +21,29 @@ Control plane gestionado AWS; workers; SLA; mismo operador en on-prem y ROSA.
 
 1. Facilitador cubre módulo **02** (A).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| ROSA control plane AWS | docs.redhat.com ROSA | Managed service |
+| Lab hub-spoke | components/acm-hub-spoke/templates/managed-clusters.yaml | ManagedCluster |
+
+```yaml
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: east
+  labels:
+    region: east
+    vendor: OpenShift
+spec:
+  hubAcceptsClient: true
+```
+
+```bash
+oc get managedclusters
+```
 
 ## Your TODO
 

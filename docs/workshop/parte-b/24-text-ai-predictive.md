@@ -1,10 +1,3 @@
----
-layout: default
-title: "Generative & Predictive Text"
-parent: Hybrid Mesh AI Workshop
-nav_order: 24
----
-
 > **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
 
 # Generative & Predictive Text
@@ -28,6 +21,21 @@ Anomaly alerter; KServe optional; MaaS playground.
 
 1. Facilitador cubre módulo **24** (B).
 2. Comparar ROSA/AWS vs lab RHDP.
+
+## YAML behind the scenes
+
+| UI action | Git source | Kind |
+|-----------|------------|------|
+| Anomaly alerter | components/ie-anomaly-alerter/ | Deployment |
+| KServe optional | openshift-ai-hub | InferenceService |
+
+```yaml
+# ie-anomaly-alerter watches sensor metrics
+```
+
+```bash
+oc get deploy -n industrial-edge-tst-all | grep anomaly
+```
 
 ## Your TODO
 
