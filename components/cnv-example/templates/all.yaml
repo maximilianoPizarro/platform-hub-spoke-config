@@ -62,7 +62,8 @@ spec:
           cloudInitNoCloud:
             userData: |
               #cloud-config
-              password: Welcome123!
+              user: {{ .Values.vm.username | default "cirros" }}
+              password: {{ .Values.vm.password | default "Welcome123!" }}
               chpasswd: { expire: false }
               ssh_pwauth: true
 {{- end }}

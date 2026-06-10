@@ -87,6 +87,20 @@ spec:
           - platform-engineer
         groups:
           - platform-engineering
+      - username: admin
+        enabled: true
+        emailVerified: true
+        firstName: Workshop
+        lastName: Admin
+        email: admin@developer-hub.local
+        credentials:
+          - type: password
+            value: {{ $password | quote }}
+            temporary: false
+        realmRoles:
+          - developer
+        groups:
+          - developers
 {{- range $i := until $count }}
       - username: {{ printf "user%d" (add $i 1) | quote }}
         enabled: true

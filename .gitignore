@@ -14,3 +14,6 @@ hub-init.yaml
 
 # Skupper AccessToken scratch files (contain grant codes — never commit)
 .tmp/
+
+# Manual Quay org-setup debug job (use GitOps template instead)
+components/quay-registry/files/quay-workshop-org-setup-job.yaml

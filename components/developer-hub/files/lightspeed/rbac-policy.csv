@@ -1,7 +1,8 @@
 # Workshop: full read/use for all authenticated Developer Hub users (OIDC / Keycloak).
-# Keycloak + catalog-users.yaml use group "developers" (user1..userN memberOf developers).
+# Keycloak + catalog-users.yaml use group developers (user1..userN memberOf developers).
 g, group:default/developers, role:default/authenticated
 g, group:default/backstage-users, role:default/authenticated
+g, user:default/admin, role:default/authenticated
 g, user:default/platformadmin, role:default/authenticated
 # Catalog
 p, role:default/authenticated, catalog-entity, read, allow

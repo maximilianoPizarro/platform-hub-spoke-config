@@ -211,6 +211,12 @@ spec:
         clusterDomain: {{ $domain }}
         hubClusterDomain: {{ $hubDomain }}
         userCount: {{ $.Values.userCount | default 50 }}
+        continueAi:
+          apiBase: {{ trimSuffix "/chat/completions" (trimSuffix "/" (($.Values.kairos.aiModel.apiURL | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions"))) | quote }}
+          model: {{ $.Values.kairos.aiModel.model | default "llama-scout-17b" | quote }}
+          credentialsSecretNamespace: kairos-system
+          credentialsSecretName: {{ $.Values.kairos.aiCredentials.secretName | default "kairos-ai-credentials" | quote }}
+          credentialsSecretKey: {{ $.Values.kairos.aiCredentials.secretKey | default "api-key" | quote }}
     {{- else if eq .id "console-links" }}
     helm:
       valuesObject:

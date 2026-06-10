@@ -8,6 +8,7 @@ metadata:
     backstage.io/kubernetes-id: ${{ values.uniqueName }}
     backstage.io/kubernetes-namespace: ${{ values.namespace }}
     backstage.io/kubernetes-cluster: ${{ values.targetCluster }}
+    backstage.io/techdocs-ref: dir:.
     janus-idp.io/tekton: ${{ values.namespace }}
     backstage.io/source-location: url:https://gitea-gitea.${{ values.clusterDomain }}/ws-${{ values.owner }}/${{ values.name }}-${{ values.targetCluster }}-${{ values.environment }}
     kairos.io/environment: ${{ values.environment }}

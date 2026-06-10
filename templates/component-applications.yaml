@@ -484,6 +484,8 @@ spec:
           enabled: true
           name: workshop-cnv-demo
           namespace: cnv-workshop
+          username: cirros
+          password: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
     {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "quay-registry") }}
     helm:
       valuesObject:
