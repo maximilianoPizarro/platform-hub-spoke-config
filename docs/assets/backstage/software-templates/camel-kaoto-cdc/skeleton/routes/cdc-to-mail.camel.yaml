@@ -30,7 +30,7 @@
             json:
               library: jackson
         - to:
-            uri: http:cdc-email-transformer.kafka-cdc.svc:8080
+            uri: "${{ values.mailpitApiUrl }}/api/v1/send"
             parameters:
               httpMethod: POST
         - log:

@@ -54,8 +54,35 @@ spec:
   lifecycle: production
   owner: platform-engineering
   system: public-api-demos
-  definition:
-    $text: https://httpbin.org/spec.json
+  definition: |
+    openapi: 3.0.3
+    info:
+      title: httpbin.org
+      version: 1.0.0
+      description: HTTP request/response testing service
+    servers:
+      - url: https://httpbin.org
+    paths:
+      /get:
+        get:
+          summary: Returns GET request data
+          operationId: getRequest
+          responses:
+            "200":
+              description: Echo of GET request
+      /status/{code}:
+        get:
+          summary: Returns given HTTP status code
+          operationId: getStatus
+          parameters:
+            - name: code
+              in: path
+              required: true
+              schema:
+                type: integer
+          responses:
+            "200":
+              description: Status response
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API

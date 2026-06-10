@@ -123,7 +123,14 @@ spec:
       version: 1.0.0
     servers:
       - url: http://minio-hub.service-interconnect.svc:9000
-    paths: {}
+    paths:
+      /health:
+        get:
+          summary: MinIO health check (stub)
+          operationId: minioHealth
+          responses:
+            "200":
+              description: Service reachable
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -297,10 +304,21 @@ metadata:
     backstage.io/kubernetes-id: line-dashboard
     backstage.io/kubernetes-label-selector: app=line-dashboard
     argocd/app-name: field-content-industrial-edge-tst
+    janus-idp.io/tekton: industrial-edge-ci
+    backstage.io/techdocs-ref: url:https://maximilianopizarro.github.io/platform-hub-spoke-config/docs/industrial-edge/
   links:
     - url: https://line-dashboard-industrial-edge-tst-all.__EAST_APPS_DOMAIN__
       title: Dashboard (east)
       icon: web
+    - url: https://devspaces.__EAST_APPS_DOMAIN__
+      title: DevSpaces (east)
+      icon: catalog
+    - url: https://workshop-apis.__HUB_APPS_DOMAIN__
+      title: Workshop APIs (Kuadrant)
+      icon: api
+    - url: https://developer-hub.__HUB_APPS_DOMAIN__/kuadrant
+      title: Kuadrant API keys
+      icon: catalog
 spec:
   type: website
   lifecycle: production

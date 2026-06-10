@@ -146,6 +146,7 @@ rules:
     resources:
       - authpolicies
       - ratelimitpolicies
+      - tokenratelimitpolicies
       - dnspolicies
       - tlspolicies
     verbs: [get, list, watch]
@@ -321,6 +322,10 @@ data:
             - allow: [API, System]
         - type: file
           target: /opt/app-root/src/catalog-data/demos/hybrid-mesh-shared-demos.yaml
+          rules:
+            - allow: [System, Component]
+        - type: file
+          target: /opt/app-root/src/catalog-data/workshop-kuadrant/workshop-kuadrant-apis.yaml
           rules:
             - allow: [System, Component]
         - type: url
@@ -716,7 +721,7 @@ data:
               email:
                 transportConfig:
                   transport: smtp
-                  hostname: mailpit.mailpit.svc.cluster.local
+                  hostname: mailpit-templates.mailpit-templates.svc.cluster.local
                   port: 1025
                   secure: false
                   requireTLS: false
@@ -817,6 +822,11 @@ spec:
         - name: developer-hub-catalog-demos
           key: hybrid-mesh-shared-demos.yaml
           mountPath: /opt/app-root/src/catalog-data/demos
+          containers:
+            - "*"
+        - name: developer-hub-catalog-workshop-kuadrant-apis
+          key: workshop-kuadrant-apis.yaml
+          mountPath: /opt/app-root/src/catalog-data/workshop-kuadrant
           containers:
             - "*"
     route:

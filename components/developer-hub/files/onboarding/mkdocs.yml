@@ -6,5 +6,6 @@ nav:
   - Create a component: create-component.md
   - Pipelines and Quay: pipelines.md
   - Observability: observability.md
+  - Kuadrant API keys: kuadrant-apis.md
 plugins:
   - techdocs-core

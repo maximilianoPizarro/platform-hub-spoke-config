@@ -3,7 +3,7 @@
 # PNG output is committed; never commit MP4 from this script.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SHOWROOM_IMG="${ROOT}/showroom-hybrid-mesh-ai/content/modules/en/ROOT/images"
+SHOWROOM_IMG="${ROOT}/showroom-hybrid-mesh-ai/content/modules/en/modules/ROOT/images"
 DOCS_IMG="${ROOT}/docs/assets/images/workshop"
 mkdir -p "$SHOWROOM_IMG" "$DOCS_IMG"
 
@@ -11,9 +11,21 @@ MODULES=(
   "00-index-hybrid-mesh"
   "01-hybrid-strategy"
   "02-rosa-architecture"
+  "03-security-scale-hybrid"
+  "04-aws-ai-integration"
+  "05-cases-roadmap"
   "10-acm-multicluster"
   "11-hybrid-mesh"
+  "12-software-templates"
+  "13-deploy-industrial-edge"
+  "16-openshift-gitops"
+  "17-service-mesh"
+  "20-acs-kuadrant"
+  "22-openshift-ai"
+  "23-llm-rag"
   "25-neuroface-dashboard"
+  "26-ai-end-user-apps"
+  "27-full-verification"
 )
 
 for name in "${MODULES[@]}"; do

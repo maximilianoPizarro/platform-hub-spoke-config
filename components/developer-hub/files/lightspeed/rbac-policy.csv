@@ -47,6 +47,9 @@ p, role:default/authenticated, kuadrant.apikey.create, create, allow
 p, role:default/authenticated, kuadrant.apikey.read.own, read, allow
 p, role:default/authenticated, kuadrant.planpolicy.list, read, allow
 p, role:default/authenticated, kuadrant.planpolicy.read.all, read, allow
+p, role:default/authenticated, kuadrant.httproute.list, read, allow
+p, role:default/authenticated, kuadrant.authpolicy.list, read, allow
+p, role:default/authenticated, kuadrant.ratelimitpolicy.list, read, allow
 # Platform Admin — explicit full access (supplements policyAdminUser bypass)
 g, user:default/platformadmin, role:default/admin
 # Admin: explicit permissions (rbac-backend does not support role inheritance)

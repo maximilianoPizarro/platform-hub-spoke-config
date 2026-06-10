@@ -80,6 +80,10 @@ spec:
           title: Source Kafka Topic
           type: string
           default: cdc.public.customers
+        mailpitApiUrl:
+          title: Mailpit API (Software Templates)
+          type: string
+          default: "http://mailpit-templates.mailpit-templates.svc:8025"
   steps:
     - id: fetch-skeleton
       name: Fetch Skeleton
@@ -93,6 +97,7 @@ spec:
           description: ${{ parameters.description }}
           kafkaBootstrap: ${{ parameters.kafkaBootstrap }}
           kafkaTopic: ${{ parameters.kafkaTopic }}
+          mailpitApiUrl: ${{ parameters.mailpitApiUrl }}
           namespace: "${{ parameters.owner }}-apps-${{ parameters.targetCluster }}"
           targetCluster: ${{ parameters.targetCluster }}
           clusterDomain: ${{ parameters.clusterDomain }}

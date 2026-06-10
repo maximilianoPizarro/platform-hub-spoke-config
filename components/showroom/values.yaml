@@ -33,10 +33,13 @@ deployer:
 clusters:
   hub:
     domain: ""
+    apiUrl: ""
   east:
     domain: ""
+    apiUrl: ""
   west:
     domain: ""
+    apiUrl: ""
 
 registration:
   url: ""

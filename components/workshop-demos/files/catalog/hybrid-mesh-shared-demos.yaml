@@ -18,10 +18,18 @@ metadata:
   title: Industrial Edge (shared)
   description: Line dashboard on east spoke — Plan B when scaffold fails
   tags: [workshop, industrial-edge, plan-b]
+  annotations:
+    backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: line-dashboard
+    janus-idp.io/tekton: industrial-edge-ci
   links:
     - url: https://line-dashboard-industrial-edge-tst-all.YOUR_EAST_DOMAIN
       title: Line Dashboard
       icon: dashboard
+    - url: https://devspaces.YOUR_EAST_DOMAIN
+      title: DevSpaces (east)
+      icon: catalog
 spec:
   type: service
   lifecycle: production
@@ -65,6 +73,13 @@ metadata:
   title: API Product (shared)
   description: Kuadrant APIProduct demo namespace
   tags: [workshop, kuadrant, plan-b]
+  links:
+    - url: https://workshop-apis.YOUR_HUB_DOMAIN
+      title: Workshop APIs
+      icon: api
+    - url: https://developer-hub.YOUR_HUB_DOMAIN/kuadrant
+      title: Kuadrant API keys
+      icon: catalog
 spec:
   type: service
   lifecycle: production

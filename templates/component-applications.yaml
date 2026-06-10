@@ -417,6 +417,8 @@ spec:
         clusterName: hub
         role: primary
         clusterRole: hub
+        federatedETL:
+          enabled: false
     {{- else if eq .path "servicemeshoperator3" }}
     helm:
       valuesObject:
@@ -500,10 +502,13 @@ spec:
         clusters:
           hub:
             domain: {{ $hubDomain | quote }}
+            apiUrl: {{ $.Values.clusters.hub.apiUrl | default "" | quote }}
           east:
             domain: {{ $eastDomain | quote }}
+            apiUrl: {{ $.Values.clusters.east.apiUrl | default "" | quote }}
           west:
             domain: {{ $westDomain | quote }}
+            apiUrl: {{ $.Values.clusters.west.apiUrl | default "" | quote }}
         registration:
           url: {{ printf "https://workshop-registration.%s" $domain | quote }}
         demo:
@@ -517,6 +522,15 @@ spec:
         eastClusterDomain: {{ $eastDomain | quote }}
         gitea:
           url: {{ printf "https://gitea-gitea.%s" $domain | quote }}
+    {{- else if eq .path "workshop-kuadrant-apis" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        gateway:
+          hostname: {{ printf "workshop-apis.%s" $domain | quote }}
+        apis:
+          maas:
+            apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
     {{- else if eq .path "neuroface" }}
     helm:
       valuesObject:
@@ -544,7 +558,7 @@ spec:
           namespace: cnv-workshop
           username: cirros
           password: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
-    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "quay-registry") }}
+    {{- else if has .path (list "opentelemetry" "rhcl-operator" "observability" "istio-monitoring" "service-interconnect" "mailpit" "mailpit-templates" "quay-registry") }}
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}

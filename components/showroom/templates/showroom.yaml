@@ -132,8 +132,11 @@ data:
   user_data.yml: |
     hub_domain: {{ .Values.deployer.domain }}
     cluster_domain: {{ .Values.deployer.domain }}
+    hub_api_url: {{ .Values.clusters.hub.apiUrl | default "" | quote }}
     east_domain: {{ .Values.clusters.east.domain | default "" }}
+    east_api_url: {{ .Values.clusters.east.apiUrl | default "" | quote }}
     west_domain: {{ .Values.clusters.west.domain | default "" }}
+    west_api_url: {{ .Values.clusters.west.apiUrl | default "" | quote }}
     registration_url: {{ .Values.registration.url | default (printf "https://workshop-registration.%s" .Values.deployer.domain) }}
     user_name: '%USER_NAME%'
     user_password: '%USER_PASSWORD%'
@@ -203,6 +206,26 @@ spec:
         - mountPath: /showroom/repo
           name: showroom-files
           subPath: repo
+      - name: antora-userdata-merge
+        image: "docker.io/mikefarah/yq:4"
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -e
+            SITE="/showroom/repo/site.yml"
+            if [ -f "$SITE" ] && [ -f /user_data/user_data.yml ]; then
+              yq -i '.asciidoc.attributes *= load("/user_data/user_data.yml")' "$SITE"
+            fi
+            ANTORA="/showroom/repo/content/antora.yml"
+            if [ -f "$ANTORA" ] && [ -f /user_data/user_data.yml ]; then
+              yq -i '.asciidoc.attributes *= load("/user_data/user_data.yml")' "$ANTORA"
+            fi
+        volumeMounts:
+        - mountPath: /showroom/repo
+          name: showroom-files
+          subPath: repo
+        - name: user-data
+          mountPath: /user_data/
       - name: antora-builder
         image: "quay.io/rhpds/antora:v1.0.1"
         env:

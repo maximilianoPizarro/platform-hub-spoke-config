@@ -26,6 +26,7 @@ kairos:
 clusters:
   hub:
     domain: ""
+    apiUrl: ""
   east:
     domain: ""
     apiUrl: ""
@@ -249,6 +250,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    # Kuadrant workshop APIs — external public APIs via Gateway API + ServiceEntry
+    - id: workshop-kuadrant-apis
+      enabled: true
+      path: workshop-kuadrant-apis
+      destinationNamespace: workshop-kuadrant-apis
+      syncWave: "1"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     # Gitea (centralized on hub)
     - id: gitea-chart
       enabled: true
@@ -312,6 +322,15 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: false
+    # Mailpit for software template notifications (isolated from platform Mailpit)
+    - id: mailpit-templates
+      enabled: true
+      path: mailpit-templates
+      destinationNamespace: mailpit-templates
+      syncWave: "0"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: false
     # MinIO (centralized on hub — shared by Kubecost ETL, IE data-lake, ML models)
     - id: industrial-edge-minio
       enabled: true
@@ -351,7 +370,7 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
-    # Kubecost (Red Hat certified operator - Federated ETL hub primary)
+    # Kubecost (Red Hat certified operator — free single-cluster on hub)
     - id: kubecost
       enabled: true
       path: kubecost
