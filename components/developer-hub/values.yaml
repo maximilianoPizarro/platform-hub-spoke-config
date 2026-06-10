@@ -5,8 +5,6 @@ userCount: 50
 defaultPassword: "Welcome123!"
 # OIDC client secret for developer-hub + Keycloak backstage realm (set via --set, never commit real values)
 keycloakOidcClientSecret: ""
-# DevSpaces OIDC client secret (hub Keycloak → spoke CheCluster); must match keycloak devspaces client
-devspacesOidcClientSecret: "devspaces-oidc-secret-value"
 # Gitea personal access token for gitea_admin (create via Gitea UI or API, never commit real values)
 giteaToken: ""
 sessionSecret: ""

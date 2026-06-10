@@ -40,19 +40,27 @@ https://devspaces.<spokeAppsDomain>/#https://gitea-gitea.<hub-domain>/ws-<user>/
 
 Continue AI reads `CONTINUE_API_KEY`, `CONTINUE_API_BASE`, and `CONTINUE_MODEL` from Secret `continue-ai-config` in the user's DevSpaces namespace (auto-mounted via devfile controller labels).
 
-## Authentication (Keycloak OIDC via hub)
+## Authentication (OpenShift htpasswd on each spoke)
 
-Like [test-drive-pe-oscg](https://github.com/maximilianoPizarro/test-drive-pe-oscg), DevSpaces authenticates users with the **same Keycloak `backstage` realm** as Developer Hub — not separate OpenShift htpasswd accounts on spokes:
+DevSpaces **does not** use Keycloak. Each spoke uses the cluster **htpasswd** identity provider provisioned by [`components/platform-users/`](../components/platform-users/) (`platform-users-htpasswd-setup` PostSync Job):
 
-```yaml
-networking:
-  auth:
-    identityProviderURL: "https://sso.<hub-domain>/realms/backstage"
-    oAuthClientName: devspaces
-    oAuthSecret: devspaces-oidc-secret
+| User | Password (default) | Notes |
+| ---- | ------------------ | ----- |
+| `user1` … `userN` | `Welcome123!` | Same username as Developer Hub / Gitea |
+| `admin` | `Welcome123!` | Workshop admin |
+| `platformadmin` | `Welcome123!` | Platform engineer |
+
+Developer Hub login remains **Keycloak OIDC on the hub**; DevSpaces login on east/west uses **OpenShift OAuth htpasswd** on that spoke. Use the same username so `{username}-devspaces` namespaces auto-provision on the correct cluster.
+
+## Spoke context from software templates
+
+When a user scaffolds with `targetCluster: east` or `west`, template output links use `spokeAppsDomain` so **Open in DevSpaces** opens the IDE on **that spoke** (same Kubernetes context as deployed workloads):
+
+```
+https://devspaces.<spokeAppsDomain>/#https://gitea-gitea.<hub-domain>/ws-<owner>/<repo>/...
 ```
 
-The hub Keycloak realm includes a `devspaces` OIDC client with redirect URIs for **each spoke** (`https://devspaces.<east-domain>/*`, `https://devspaces.<west-domain>/*`). Users sign in with `user1` / `Welcome123!` (same as Developer Hub).
+Catalog entities carry `backstage.io/kubernetes-cluster: east|west` for Topology/Kubernetes tabs on the matching spoke.
 
 ## Operator discovery
 
@@ -78,6 +86,8 @@ oc get secret continue-ai-config -n user1-devspaces
 | Symptom | Fix |
 | ------- | --- |
 | DevSpaces link 404 on hub | Expected — DevSpaces is spoke-only; use east/west domain |
+| DevSpaces login fails | Use **htpasswd_users** on the spoke console login (not Keycloak); same `userN` / `Welcome123!` |
+| Wrong spoke DevSpaces | Template must set `targetCluster` + `spokeAppsDomain`; link uses `devspaces.<spokeAppsDomain>` |
 | Continue AI no API key | Ensure `kairos-system/kairos-ai-credentials` exists on spoke; re-run sync job |
 | Gitea clone fails in workspace | Check `devspaces-gitea-credentials` job and `{user}-devspaces` secret |
 

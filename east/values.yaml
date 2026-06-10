@@ -8,7 +8,6 @@ argocd:
 
 clusterName: east
 userCount: 50
-devspacesOidcClientSecret: "devspaces-oidc-secret-value"
 
 # Kairos on spoke — AI credentials in kairos-system/kairos-ai-credentials (RHDP inject, never Git).
 kairos:
