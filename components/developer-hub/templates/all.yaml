@@ -382,6 +382,7 @@ data:
           - notifications
           - argocd
           - kuadrant
+          - adoption-insights
 {{- if include "developer-hub.lightspeedEnabled" . }}
           - lightspeed
 {{- end }}

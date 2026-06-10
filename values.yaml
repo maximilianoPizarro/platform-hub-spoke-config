@@ -17,8 +17,9 @@ kairos:
     secretName: kairos-ai-credentials
     secretKey: api-key
   aiModel:
-    apiURL: "https://isvc-granite-31-8b-fp8-predictor.sandbox-shared-models.svc.cluster.local:8443/v1/chat/completions"
-    model: granite-31-8b
+    # OpenAI-compatible MaaS endpoint — API key in kairos-system/kairos-ai-credentials (RHDP inject, never Git).
+    apiURL: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions"
+    model: llama-scout-17b
 
 # Multi-cluster — RHDP injects deployer.domain via ArgoCD Application helm.values (existing_gitops).
 # Do NOT use {{ }} here; Helm treats it as template syntax and ArgoCD sync fails.
@@ -363,9 +364,9 @@ deployer:
 
 litemaas:
   apiKey: ""
-  apiUrl: "https://litellm-prod.apps.maas.redhatworkshops.io/v1"
+  apiUrl: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
   enabled: true
-  model: "deepseek-r1-distill-qwen-14b"
+  model: "llama-scout-17b"
 
 fieldContent:
   deploymentType: "helm"

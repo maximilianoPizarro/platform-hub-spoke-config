@@ -285,17 +285,17 @@ spec:
         userCount: {{ $.Values.userCount | default 50 }}
         defaultPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
         aiModel:
-          apiURL: {{ $.Values.kairos.aiModel.apiURL | quote }}
-          model: {{ $.Values.kairos.aiModel.model | quote }}
+          apiURL: {{ if $.Values.litemaas.enabled }}{{ printf "%s/chat/completions" (trimSuffix "/" ($.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1")) | quote }}{{ else }}{{ $.Values.kairos.aiModel.apiURL | quote }}{{ end }}
+          model: {{ if $.Values.litemaas.enabled }}{{ $.Values.litemaas.model | default "llama-scout-17b" | quote }}{{ else }}{{ $.Values.kairos.aiModel.model | quote }}{{ end }}
         plugins:
           rbac:
             enabled: true
             policyAdminUser: platformadmin
           lightspeed:
-            enabled: false
+            enabled: true
             aiModel:
-              apiURL: {{ $.Values.kairos.aiModel.apiURL | quote }}
-              model: {{ $.Values.kairos.aiModel.model | quote }}
+              apiURL: {{ if $.Values.litemaas.enabled }}{{ printf "%s/chat/completions" (trimSuffix "/" ($.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1")) | quote }}{{ else }}{{ $.Values.kairos.aiModel.apiURL | quote }}{{ end }}
+              model: {{ if $.Values.litemaas.enabled }}{{ $.Values.litemaas.model | default "llama-scout-17b" | quote }}{{ else }}{{ $.Values.kairos.aiModel.model | quote }}{{ end }}
               credentialsSecretName: {{ $.Values.kairos.aiCredentials.secretName | quote }}
               credentialsSecretNamespace: kairos-system
               credentialsSecretKey: {{ $.Values.kairos.aiCredentials.secretKey | quote }}

@@ -123,6 +123,10 @@ Hub ClusterRole must include `argoproj.io/applications` verbs: get, list, watch,
 
 **Flag wiring:** `plugins.*.enabled` in `values.yaml` must drive `disabled: {{ not .Values.plugins.*.enabled }}` in `templates/all.yaml` — never hardcode `disabled: true` for argocd/kuadrant/email when values say enabled.
 
+**Dynamic plugins PVC:** default chart size **2Gi** is too small for ArgoCD + Kuadrant + email + MCP OCI. Set `dynamicPluginsStorage: 10Gi` in hub `component-applications.yaml` and patch `dynamic-plugins-root` with `$patch: replace` in `deployment.patch`.
+
+**Kuadrant K8s config:** hub cluster in `clusterLocatorMethods` needs `serviceAccountToken: ${K8S_SA_TOKEN}` (Kuadrant catalog provider requires token on clusters[0]).
+
 **PostSync:** `developer-hub-plugin-readiness` Job (wave 10) checks `/healthcheck`, RBAC CSV mount, and basic plugin readiness.
 
 **YAML trap:** `catalog.providers` (ocm, keycloakOrg) must be indented under `catalog:`, not under `quay:`.
@@ -147,6 +151,7 @@ kubernetes:
         - name: hub
           url: https://kubernetes.default.svc.cluster.local:443
           authProvider: serviceAccount
+          serviceAccountToken: ${K8S_SA_TOKEN}
           skipTLSVerify: true
         - name: east
           url: ${EAST_API_URL}
@@ -311,30 +316,34 @@ Grant `role:default/authenticated` at minimum:
 | Kubernetes / Topology | `kubernetes.clusters.read`, `kubernetes.resources.read`, `kubernetes.proxy` |
 | OCM | `ocm.entity.read`, `ocm.cluster.read` — required for `/ocm` and **Clusters** menu |
 | Argo CD | `argocd.view.read` |
-| Adoption Insights | `adoption-insights.events.read` |
+| Adoption Insights | `adoption-insights.events.read`, `adoption-insights.nav.read`, `adoption-insights.entity.read` |
 | TechDocs | `techdocs.entity.read` |
 | Kuadrant | `kuadrant.apiproduct.list`, `kuadrant.apiproduct.read.all`, `kuadrant.apikey.*`, `kuadrant.planpolicy.*` — **not** `kuadrant.api-product.read` |
 | Notifications | `notification.entity.read` |
 | Lightspeed | `lightspeed.chat.*` |
 
-`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, `argocd`, `kuadrant`, `notifications`, and `lightspeed` when enabled.
+`pluginsWithPermission` in app-config must list: `catalog`, `scaffolder`, `permission`, `kubernetes`, `ocm`, `techdocs`, `argocd`, `kuadrant`, `notifications`, `adoption-insights`, and `lightspeed` when enabled.
 
 **Group bindings** in `rbac-policy.csv`:
-- `g, group:default/backstage-users, role:default/authenticated` (Keycloak group sync)
+- `g, group:default/developers, role:default/authenticated` — **workshop userN** (`catalog-users.yaml` + Keycloak group `developers`)
+- `g, group:default/backstage-users, role:default/authenticated` (optional alias if Keycloak sync adds it)
 - `g, user:default/platformadmin, role:default/authenticated` (explicit OIDC admin)
 - `g, user:default/platformadmin, role:default/admin`
+
+**Trap:** binding only `backstage-users` leaves **userN without any role** — Clusters, public APIs, Adoption, Kuadrant all denied. Do **not** use `g, role:default/admin, role:default/authenticated` (rbac-backend rejects role inheritance).
 
 `platformadmin` gets full Kuadrant + policy admin via `role:default/admin`.
 
 For labs only, set `plugins.rbac.enabled: false` to restore deny-by-default off (empty catalog risk remains if partial CSV).
 
-## Lightspeed (Granite, same stack as Kairos)
+## Lightspeed (MaaS OpenAI-compatible)
 
-- Enable: `plugins.lightspeed.enabled: true`, OCI tag `bs_1.45.3__1.2.3`
+- Enable: `plugins.lightspeed.enabled: true` in hub `component-applications.yaml`, OCI tag `bs_1.45.3__1.2.3`
 - Sidecars: `llama-stack`, `lightspeed-core`, optional `rag-content`
-- vLLM: `developer-hub.lightspeedAiModel` helper — hub `component-applications.yaml` passes Kairos `aiModel` URL/model
+- **Default model (workshop userN):** `llama-scout-17b` via `litemaas.apiUrl` → `https://maas-rhdp.apps.maas.redhatworkshops.io/v1`
+- **API keys never in Git** — RHDP injects `litemaas.apiKey` and/or `kairos-system/kairos-ai-credentials`; PostSync `developer-hub-lightspeed-ai-sync` copies key into `llama-stack-secrets`
+- Other MaaS models: `deepseek-r1-distill-qwen-14b` (admin/reasoning), `codellama-7b-instruct` (code/templates)
 - Routes: `/lightspeed` page + FAB; secrets `lightspeed-secrets`, ConfigMaps `lightspeed-stack`, `lightspeed-app-config`
-- Optional: `syncApiKeyFromKairos` Job copies `kairos-ai-credentials` API key via PostSync Job `developer-hub-lightspeed-ai-sync`
 
 **Lightspeed kairos Role trap:** In `templates/lightspeed.yaml`, `Role` `developer-hub-lightspeed-ai-sync-kairos-read` must use `resourceNames: ["{{ $credName }}"]` where `$credName` defaults to `kairos-ai-credentials`. Using `$ai.credentialsSecretName` directly renders **empty** `resourceNames: [""]` when `aiModel` is unset → Job gets `Forbidden` on `kairos-system/kairos-ai-credentials` and **blocks** `field-content-developer-hub` sync on the PostSync hook.
 
@@ -381,7 +390,10 @@ IoT dashboard fix: remove ambient from `industrial-edge-tst-all` + `spoke-gatewa
 | Self-signed cert in K8s plugin | `NODE_TLS_REJECT_UNAUTHORIZED=0` + skipTLSVerify |
 | TechDocs `FetchUrlReader does not implement readTree` | Use in-pod mkdocs (`catalog-onboarding.yaml`, `dir:.`) not remote github.io tree |
 | `/ocm` or `/clusters` 404 | OCM dynamic plugin failed to load (check `install-dynamic-plugins` logs); or navigate to `/ocm` not a stale `/clusters` bookmark before alias was added |
-| `/ocm` permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy`; verify `group:default/backstage-users` binding |
+| `/ocm` permission denied | RBAC on without `ocm.*` in CSV; sync `rhdh-rbac-policy`; verify `group:default/developers` binding for userN |
+| Adoption Insights empty for userN | Add `adoption-insights` to `pluginsWithPermission`; CSV `adoption-insights.nav.read` + `developers` group |
+| `install-dynamic-plugins` ENOSPC | Increase `dynamicPluginsStorage` to 10Gi; patch `dynamic-plugins-root` volume |
+| Kuadrant backend startup fail | Add `serviceAccountToken: ${K8S_SA_TOKEN}` on hub cluster in kubernetes config |
 | Docs tab empty (`workshop-onboarding`) | Missing `backstage.io/techdocs-ref: dir:.` on in-pod `files/onboarding/catalog-info.yaml` |
 | Topology "Missing Permission" | User not in `authenticated` role; verify Keycloak username matches CSV; ensure `kubernetes.clusters.read` in CSV |
 | Kuadrant permission denied | Use `kuadrant.apiproduct.list` not `kuadrant.api-product.read`; add `kuadrant` to `pluginsWithPermission` |
@@ -429,4 +441,4 @@ oc delete job developer-hub-lightspeed-ai-sync -n developer-hub --ignore-not-fou
 
 ## Tag / release
 
-Platform snapshot tags: **`ocp-420-v4`** (Camel Dashboard spokes), **`ocp-420-v5`** (Developer Hub RBAC/Lightspeed/TechDocs, Kairos hub policy mirrors, console **v2.0.3**). Pin Argo `targetRevision` to the tag for reproducible workshops.
+Platform snapshot tags: **`ocp-420-v4`** (Camel Dashboard spokes), **`ocp-420-v5`** (RHDP hub-spoke, RHDH plugins 10Gi PVC, userN RBAC `developers` group, MaaS Lightspeed, Quay/Mailpit/Skupper/ACS). Pin Argo `targetRevision` to the tag for reproducible workshops.

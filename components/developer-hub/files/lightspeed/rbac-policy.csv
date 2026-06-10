@@ -1,5 +1,6 @@
 # Workshop: full read/use for all authenticated Developer Hub users (OIDC / Keycloak).
-# Keycloak group backstage-users (synced by catalog-backend-module-keycloak) → authenticated role.
+# Keycloak + catalog-users.yaml use group "developers" (user1..userN memberOf developers).
+g, group:default/developers, role:default/authenticated
 g, group:default/backstage-users, role:default/authenticated
 g, user:default/platformadmin, role:default/authenticated
 # Catalog
@@ -28,6 +29,8 @@ p, role:default/authenticated, kafka.topic.read, read, allow
 p, role:default/authenticated, kafka.consumer-group.read, read, allow
 # Adoption Insights
 p, role:default/authenticated, adoption-insights.events.read, read, allow
+p, role:default/authenticated, adoption-insights.nav.read, read, allow
+p, role:default/authenticated, adoption-insights.entity.read, read, allow
 # TechDocs
 p, role:default/authenticated, techdocs.entity.read, read, allow
 # Lightspeed
@@ -45,8 +48,19 @@ p, role:default/authenticated, kuadrant.planpolicy.list, read, allow
 p, role:default/authenticated, kuadrant.planpolicy.read.all, read, allow
 # Platform Admin — explicit full access (supplements policyAdminUser bypass)
 g, user:default/platformadmin, role:default/admin
-# Admin inherits all authenticated permissions (role inheritance)
-g, role:default/admin, role:default/authenticated
+# Admin: explicit permissions (rbac-backend does not support role inheritance)
+p, role:default/admin, catalog-entity, read, allow
+p, role:default/admin, scaffolder.action.execute, use, allow
+p, role:default/admin, kubernetes.clusters.read, read, allow
+p, role:default/admin, kubernetes.resources.read, read, allow
+p, role:default/admin, ocm.entity.read, read, allow
+p, role:default/admin, ocm.cluster.read, read, allow
+p, role:default/admin, adoption-insights.events.read, read, allow
+p, role:default/admin, adoption-insights.nav.read, read, allow
+p, role:default/admin, adoption-insights.entity.read, read, allow
+p, role:default/admin, techdocs.entity.read, read, allow
+p, role:default/admin, lightspeed.chat.read, read, allow
+p, role:default/admin, lightspeed.chat.create, create, allow
 p, role:default/admin, policy-entity, read, allow
 p, role:default/admin, policy-entity, create, allow
 p, role:default/admin, policy-entity, update, allow
