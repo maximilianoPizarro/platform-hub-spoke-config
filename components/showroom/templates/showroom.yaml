@@ -216,10 +216,14 @@ spec:
             if [ -f "$SITE" ] && [ -f /user_data/user_data.yml ]; then
               yq -i '.asciidoc.attributes *= load("/user_data/user_data.yml")' "$SITE"
             fi
-            ANTORA="/showroom/repo/content/antora.yml"
-            if [ -f "$ANTORA" ] && [ -f /user_data/user_data.yml ]; then
-              yq -i '.asciidoc.attributes *= load("/user_data/user_data.yml")' "$ANTORA"
-            fi
+            for ANTORA in \
+              "/showroom/repo/content/antora.yml" \
+              "/showroom/repo/content/modules/en/antora.yml" \
+              "/showroom/repo/content/modules/es/antora.yml"; do
+              if [ -f "$ANTORA" ] && [ -f /user_data/user_data.yml ]; then
+                yq -i '.asciidoc.attributes *= load("/user_data/user_data.yml")' "$ANTORA"
+              fi
+            done
         volumeMounts:
         - mountPath: /showroom/repo
           name: showroom-files
