@@ -124,6 +124,16 @@ ACS UI → **Platform Configuration → Clusters** should list `hub`, `east`, an
 | Central unreachable | `stackrox` namespace must **not** use Istio ambient |
 | MCA Job fails on spoke | Grant `default` SA in `stackrox` permission to apply secrets, or apply manually on spoke |
 
+### Developer Hub — CVE visibility for userN
+
+| Path | Scope | Status |
+|------|-------|--------|
+| **Quay plugin** (entity tab) | Images pushed to org `workshop` | Enabled — best option for scaffolded components |
+| **Security Insights** (`/rhacs` proxy) | ACS image/deployment CVEs on catalog entities | Optional — set `plugins.acsSecurityInsights.enabled: true` if package exists in RHDH image; inject `rhacsApiToken` via Helm → Secret `developer-hub-oidc-auth` key `RHACS_API_TOKEN` |
+| **ACS Central UI** | Full fleet | Facilitator/admin — requires init bundles (above) |
+
+Prerequisite for Security Insights: clusters registered in ACS and a read-only API token from **Platform Configuration → Integrations → API token**.
+
 ## Operator discovery
 
 **RHACS controller manager** watches **`SecuredCluster`** CRs inside **`stackrox`** (platform.stackrox.io) plus **`Central`** objects where Central installs live.

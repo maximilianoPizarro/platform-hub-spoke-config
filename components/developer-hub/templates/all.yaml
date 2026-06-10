@@ -319,6 +319,10 @@ data:
           target: /opt/app-root/src/catalog-data/public-apis/public-apis.yaml
           rules:
             - allow: [API, System]
+        - type: file
+          target: /opt/app-root/src/catalog-data/demos/hybrid-mesh-shared-demos.yaml
+          rules:
+            - allow: [System, Component]
         - type: url
           target: https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
@@ -808,6 +812,11 @@ spec:
         - name: developer-hub-catalog-public-apis
           key: public-apis.yaml
           mountPath: /opt/app-root/src/catalog-data/public-apis
+          containers:
+            - "*"
+        - name: developer-hub-catalog-demos
+          key: hybrid-mesh-shared-demos.yaml
+          mountPath: /opt/app-root/src/catalog-data/demos
           containers:
             - "*"
     route:

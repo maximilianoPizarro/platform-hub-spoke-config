@@ -3,6 +3,8 @@ charts/
 # Vendored spoke chart (Argo must not fetch camel-tooling.github.io at sync time)
 !components/camel-dashboard-openshift/charts/
 !components/camel-dashboard-openshift/charts/*.tgz
+!components/neuroface/charts/
+!components/neuroface/charts/*.tgz
 .DS_Store
 agent-tools/
 
@@ -17,3 +19,15 @@ hub-init.yaml
 
 # Manual Quay org-setup debug job (use GitOps template instead)
 components/quay-registry/files/quay-workshop-org-setup-job.yaml
+
+# Workshop screen recordings — local only, never commit
+recordings/
+workshop-recordings/
+captures/
+*.mp4
+*.mkv
+*.webm
+*.mov
+
+# Antora Showroom content — separate repo (maximilianoPizarro/showroom-hybrid-mesh-ai)
+showroom-hybrid-mesh-ai/

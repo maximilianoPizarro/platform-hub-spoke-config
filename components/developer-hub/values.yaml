@@ -10,6 +10,8 @@ giteaToken: ""
 sessionSecret: ""
 # Quay.io dockerconfigjson for pipeline push (set via --set, never commit credentials)
 quayDockerConfigJson: ""
+# ACS API token for /rhacs proxy and Security Insights plugin (runtime — never commit)
+rhacsApiToken: ""
 # Sync ManagedServiceAccount tokens from east/west into developer-hub-spoke-tokens Secret
 pluginReadiness:
   enabled: true

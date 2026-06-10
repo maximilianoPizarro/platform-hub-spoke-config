@@ -36,6 +36,15 @@ Reference patterns:
 - Continue AI on spokes: PostSync `devspaces-continue-ai-sync` copies `kairos-system/kairos-ai-credentials` → Secret `continue-ai-config` in `{user}-devspaces` (devfile controller labels).
 - Quay pushes: org `workshop`, secret `quay-workshop-push`; see [`docs/assets/backstage/onboarding/`](../../docs/assets/backstage/onboarding/).
 
+## Hybrid Mesh AI Workshop (Showroom userN)
+
+- **Registration:** `components/workshop-registration/` → `https://workshop-registration.<hub-domain>` assigns `userN`, redirects to Showroom with `USER_NAME`, `EAST_DOMAIN`, `WEST_DOMAIN`.
+- **Showroom:** `components/showroom/` + Antora repo `showroom-hybrid-mesh-ai/` (content generated via `scripts/generate-workshop-content.py`).
+- **Plan B shared demos:** `components/workshop-demos/` ConfigMap `developer-hub-catalog-demos` → System `hybrid-mesh-shared-demos` (browse without scaffolding).
+- **NeuroFace:** `components/neuroface/` — shared AI demo; **no LibreChat**.
+- **Progress API:** `POST /api/progress` on registration service; Showroom `progress-tracker.js` posts module completion.
+- **GitHub Pages mirror:** `docs/workshop/` — static read-only; hands-on uses in-cluster Showroom terminal `oc`.
+
 ## Authentication (Keycloak OIDC, not GitHub)
 
 - **`signInPage: oidc`** with Keycloak realm `backstage` at `https://sso.<clusterDomain>`

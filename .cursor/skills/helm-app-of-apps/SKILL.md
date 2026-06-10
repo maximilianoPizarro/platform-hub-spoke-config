@@ -148,7 +148,7 @@ Hub `templates/component-applications.yaml` and spoke `east|west/templates/compo
 
 **Prefer vendoring** third-party charts under `components/<wrapper>/` with `charts/*.tgz` committed (see `components/camel-dashboard-openshift/`) when spokes have slow egress or Argo `DeadlineExceeded` on public Helm repos. Re-vendor with `scripts/vendor-camel-dashboard-chart.sh`.
 
-Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `acs-init-bundle-sync`, `quay-registry`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`, `cnv-example`.
+Hub-only components (NOT in spoke charts): `kafka-console`, `grafana-dashboards`, `hub-gateway`, `service-interconnect`, `acm-hub-spoke`, `acm-operator`, `acs-operator`, `acs-init-bundle-sync`, `quay-registry`, `developer-hub`, `gitea`, `gitea-chart`, `mailpit`, `workshop-registration`, `showroom`, `workshop-demos`, `neuroface`, `cnv-example`, `openshift-ai-hub`.
 
 **DevSpaces (`components/devspaces`)** — spoke-only (east/west). Pass `continueAi` in spoke `component-applications.yaml` helm `valuesObject` (apiBase/model from `kairos.aiModel`, secret refs from `kairos.aiCredentials`). Do **not** add devspaces to hub root `values.yaml`.
 
@@ -550,6 +550,17 @@ Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, 
 | ------ | ---- | ----- |
 | `openshift-ai-hub` | `components/openshift-ai-hub` | DSC + `maas-workshop`; Secret `openshift-ai-maas-credentials` ignoreDifferences |
 | `cnv-example` | `components/cnv-example` | Sample cirros VM; requires `kubevirt-hyperconverged` operator subscription |
+
+**Hybrid Mesh AI Workshop (hub-only, sync waves 4–7):**
+
+| App id | Path | syncWave | Notes |
+| ------ | ---- | -------- | ----- |
+| `workshop-registration` | `components/workshop-registration` | 4 | Email→userN, PVC progress, redirect Showroom |
+| `showroom` | `components/showroom` | 5 | Antora from [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) |
+| `workshop-demos` | `components/workshop-demos` | 6 | Plan B catalog, CDC/API gaps, IE NetworkPolicy demo |
+| `neuroface` | `components/neuroface` | 7 | Vendored `neuroface-1.2.0.tgz`; MaaS chat |
+
+Antora content repo is **not** in this monorepo (`showroom-hybrid-mesh-ai/` gitignored). Regenerate: `python3 scripts/generate-workshop-content.py` then push the external repo. GitHub Pages mirror: `docs/workshop/`.
 
 Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component. Includes `openshift-ai-workspace` and `cnv-vm-workshop`.
 

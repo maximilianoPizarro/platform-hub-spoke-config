@@ -1,0 +1,23 @@
+clusterDomain: ""
+
+neuroface:
+  backend:
+    image:
+      tag: v1.2.0
+  frontend:
+    image:
+      tag: v1.2.0
+  chat:
+    enabled: true
+    modelEndpoint: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
+    modelName: "llama-scout-17b"
+    apiKey: ""
+    autoServiceAccount: true
+  ovms:
+    modelmesh:
+      enabled: true
+  litellm:
+    enabled: false
+  route:
+    enabled: true
+    host: ""

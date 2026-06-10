@@ -45,6 +45,7 @@ This repository models a **GitOps-first platform** where:
 | Scaffolding | [Scaffolding](scaffolding.md) |
 | Troubleshooting | [Troubleshooting](troubleshooting.md) |
 | Service Interconnect | [Service Interconnect](service-interconnect.md) |
+| **Hybrid Mesh AI Workshop** | [Workshop (GitHub Pages mirror)](workshop/) |
 | Branch strategy | [Branch Strategy](branch-strategy.md) |
 
 ## Recommended reading order

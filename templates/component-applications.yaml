@@ -476,6 +476,64 @@ spec:
               displayName: DeepSeek R1 Distill Qwen 14B
             - id: codellama-7b-instruct
               displayName: CodeLlama 7B Instruct
+    {{- else if eq .path "workshop-registration" }}
+    helm:
+      valuesObject:
+        deployer:
+          domain: {{ $domain }}
+        clusters:
+          east:
+            domain: {{ $eastDomain | quote }}
+          west:
+            domain: {{ $westDomain | quote }}
+        registration:
+          maxUsers: {{ $.Values.userCount | default 50 }}
+        showroom:
+          url: {{ printf "https://showroom-showroom.%s" $domain | quote }}
+        keycloak:
+          adminPassword: {{ $.Values.defaultPassword | default "Welcome123!" | quote }}
+    {{- else if eq .path "showroom" }}
+    helm:
+      valuesObject:
+        deployer:
+          domain: {{ $domain }}
+        clusters:
+          hub:
+            domain: {{ $hubDomain | quote }}
+          east:
+            domain: {{ $eastDomain | quote }}
+          west:
+            domain: {{ $westDomain | quote }}
+        registration:
+          url: {{ printf "https://workshop-registration.%s" $domain | quote }}
+        demo:
+          namespace: industrial-edge-tst-all
+          appName: line-dashboard
+    {{- else if eq .path "workshop-demos" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        hubClusterDomain: {{ $hubDomain | quote }}
+        eastClusterDomain: {{ $eastDomain | quote }}
+        gitea:
+          url: {{ printf "https://gitea-gitea.%s" $domain | quote }}
+    {{- else if eq .path "neuroface" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        neuroface:
+          route:
+            host: {{ printf "neuroface.%s" $domain | quote }}
+          chat:
+            enabled: true
+            modelEndpoint: {{ $.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1" | quote }}
+            modelName: {{ $.Values.litemaas.model | default "llama-scout-17b" | quote }}
+            apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
+          ovms:
+            modelmesh:
+              enabled: true
+          litellm:
+            enabled: false
     {{- else if eq .path "cnv-example" }}
     helm:
       valuesObject:

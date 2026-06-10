@@ -106,7 +106,21 @@ docs/
     ├── index.md                 # Community & Third-Party (has_children: true, nav_order: 6)
     ├── kubecost.md              # Kubecost cost monitoring (Red Hat certified)
     └── mailpit.md               # Mailpit SMTP testing
+└── workshop/                    # Hybrid Mesh AI Workshop (Jekyll mirror of Showroom)
+    ├── index.md                 # nav_order: 11, has_children: true
+    ├── registration.md
+    ├── showroom-live.md
+    ├── shared-demos.md
+    ├── parte-a/                 # Executive modules 01–05
+    └── parte-b/                 # Hands-on modules 10–28
 ```
+
+**Workshop (`docs/workshop/`):**
+- Root: **Hybrid Mesh AI Workshop** — child pages use `parent: Hybrid Mesh AI Workshop`.
+- Live URLs use placeholder `YOUR_HUB_DOMAIN`; link to in-cluster Showroom for hands-on.
+- Regenerate from Antora: `python3 scripts/generate-workshop-content.py`.
+- Images: `docs/assets/images/workshop/` via `scripts/generate-showroom-images.sh`.
+- **Never commit video:** no MP4/MKV in repo; see root `.gitignore` and module 28.
 
 ## Front matter conventions
 

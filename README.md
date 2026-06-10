@@ -322,7 +322,10 @@ helm template test . -f values-west.yaml --set deployer.domain=apps.west.example
 
 Full documentation available at: https://maximilianoPizarro.github.io/platform-hub-spoke-config
 
-Key doc: [GitOps deployment chain](docs/gitops-deployment-chain.md) — hub ApplicationSet `industrial-edge-spoke` and spoke app naming with YAML.
+| Topic | Link |
+|-------|------|
+| GitOps deployment chain | [docs/gitops-deployment-chain.md](docs/gitops-deployment-chain.md) |
+| **Hybrid Mesh AI Workshop** | [docs/workshop/](docs/workshop/index.md) — Showroom Antora: [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) |
 
 ## Releases (OpenShift 4.20)
 

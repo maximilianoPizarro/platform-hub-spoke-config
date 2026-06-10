@@ -33,3 +33,15 @@ Hub (ACM, GitOps, Gitea, Quay, Developer Hub)
 - Users: `user1` … `user50` (up to `user200` if enabled by admins)
 - Password (demo): `Welcome123!`
 - Same password for: OpenShift console (htpasswd), Developer Hub (Keycloak), Gitea, DevSpaces on the spoke where you work
+
+## Hybrid Mesh AI Workshop (Showroom)
+
+| Resource | URL |
+|----------|-----|
+| Registration (get userN) | `https://workshop-registration.<hub-apps-domain>` |
+| Showroom live (terminal `oc`) | `https://showroom-showroom.<hub-apps-domain>/?USER_NAME=userN` |
+| GitHub Pages mirror | [docs/workshop/](https://maximilianopizarro.github.io/platform-hub-spoke-config/workshop/) |
+| Plan B shared demos | Developer Hub → System `hybrid-mesh-shared-demos` |
+| NeuroFace (AI demo) | `https://neuroface.<hub-apps-domain>` |
+
+Screen recordings from live events are **not** stored in Git — see the workshop module on recording policy.

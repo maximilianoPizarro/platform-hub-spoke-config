@@ -368,6 +368,38 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: workshop-registration
+      enabled: true
+      path: workshop-registration
+      destinationNamespace: showroom
+      syncWave: "4"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: showroom
+      enabled: true
+      path: showroom
+      destinationNamespace: showroom
+      syncWave: "5"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: workshop-demos
+      enabled: true
+      path: workshop-demos
+      destinationNamespace: developer-hub
+      syncWave: "6"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
+    - id: neuroface
+      enabled: true
+      path: neuroface
+      destinationNamespace: neuroface
+      syncWave: "7"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     - id: cnv-example
       enabled: true
       path: cnv-example
