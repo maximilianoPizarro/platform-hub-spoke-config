@@ -52,7 +52,11 @@ metadata:
     openshift.io/display-name: MaaS RHDP API Key
 type: Opaque
 stringData:
+  {{- if $maas.apiKey }}
+  {{ $secretKey }}: {{ $maas.apiKey | quote }}
+  {{- else }}
   {{ $secretKey }}: "CHANGEME-inject-via-RHDP-or-oc-create-secret"
+  {{- end }}
   OPENAI_API_BASE: {{ printf "%s/v1" (trimSuffix "/" $endpoint) | quote }}
 ---
 apiVersion: v1

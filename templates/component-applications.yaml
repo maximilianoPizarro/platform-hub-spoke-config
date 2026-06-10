@@ -466,6 +466,7 @@ spec:
         clusterDomain: {{ $domain }}
         maas:
           endpoint: {{ $.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1" | trimSuffix "/v1" | quote }}
+          apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
           credentialsSecretName: openshift-ai-maas-credentials
           credentialsSecretKey: api-key
           models:

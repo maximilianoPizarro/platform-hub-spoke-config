@@ -1,6 +1,8 @@
 clusterDomain: ""
 maas:
   endpoint: "https://maas-rhdp.apps.maas.redhatworkshops.io"
+  # Injected at runtime from litemaas.apiKey (RHDP); never commit to Git.
+  apiKey: ""
   credentialsSecretName: openshift-ai-maas-credentials
   credentialsSecretKey: api-key
   models:
