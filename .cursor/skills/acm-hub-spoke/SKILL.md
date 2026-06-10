@@ -1,6 +1,6 @@
 ---
 name: acm-hub-spoke
-description: ACM hub-spoke GitOps patterns for OpenShift—placement, ApplicationSet, cluster registration, mesh ambient, gateway, observability.
+description: ACM hub-spoke GitOps patterns for OpenShift—placement, ApplicationSet, cluster registration, mesh ambient, gateway, observability, Hybrid Mesh AI Workshop.
 ---
 
 # ACM Hub-Spoke Platform Skill
@@ -15,6 +15,7 @@ Apply this skill when designing or troubleshooting **fleet GitOps** that combine
 4. **ApplicationSet fans out** — `industrial-edge-spoke` (persistent manifest in `components/acm-hub-spoke/templates/applicationset.yaml`, sync-wave 4) generates `east-spoke-components` / `west-spoke-components`; each spoke's Argo CD syncs `east/` or `west/` locally. See `docs/gitops-deployment-chain.md` for YAML chain.
 5. **No `helm install` on spokes** — spoke charts are pushed by the hub ApplicationSet via ACM Placement + GitOpsCluster.
 6. **Adding a spoke** — label + `east/` or `west/` folder + one `helm upgrade` line for domain/token.
+7. **Hybrid Mesh AI Workshop (optional)** — after hub apps sync waves 0–3, apps `workshop-registration` (4), `showroom` (5), `workshop-demos` (6), `neuroface` (7) deploy from same root chart. Runtime: `acs-init-credentials` in `stackrox`, RHDP domains/tokens. Full checklist: **hybrid-mesh-ai-workshop** skill.
 
 ### ApplicationSet destination (SSA pitfall)
 

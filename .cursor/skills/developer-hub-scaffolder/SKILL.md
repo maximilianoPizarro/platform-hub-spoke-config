@@ -1,6 +1,6 @@
 ---
 name: developer-hub-scaffolder
-description: Red Hat Developer Hub (RHDH) scaffolder, multi-cluster Kubernetes/Topology, OCM, notifications, Gitea, Quay, and GitHub Pages templates for platform-hub-spoke-config.
+description: Red Hat Developer Hub (RHDH) scaffolder, multi-cluster Kubernetes/Topology, OCM, notifications, Gitea, Quay, GitHub Pages templates, Hybrid Mesh AI Workshop catalog.
 ---
 
 # Developer Hub & Scaffolder Skill
@@ -38,18 +38,33 @@ Reference patterns:
 
 ## Hybrid Mesh AI Workshop (Showroom userN)
 
-- **Registration:** `components/workshop-registration/` → `https://workshop-registration.<hub-domain>` assigns `userN`, redirects to Showroom with `USER_NAME`, `EAST_DOMAIN`, `WEST_DOMAIN`.
-- **Showroom:** `components/showroom/` + Antora repo `showroom-hybrid-mesh-ai/` (content generated via `scripts/generate-workshop-content.py`).
-- **Plan B shared demos:** `components/workshop-demos/` ConfigMap `developer-hub-catalog-demos` → System `hybrid-mesh-shared-demos` (browse without scaffolding).
-- **NeuroFace:** `components/neuroface/` — shared AI demo; **no LibreChat**.
-- **Progress API:** `POST /api/progress` on registration service; Showroom `progress-tracker.js` posts module completion.
-- **GitHub Pages mirror:** `docs/workshop/` — static read-only; hands-on uses in-cluster Showroom terminal `oc`.
+Full greenfield checklist: **hybrid-mesh-ai-workshop** skill.
+
+| Component | Integration in Developer Hub |
+|-----------|------------------------------|
+| `workshop-demos` | ConfigMap `developer-hub-catalog-demos` → location `/opt/app-root/src/catalog-data/demos/hybrid-mesh-shared-demos.yaml` |
+| Plan B System | `hybrid-mesh-shared-demos` — browse without scaffolder |
+| Quay CVEs (userN) | Entity annotation `quay.io/repository-slug: workshop/<name>` — **enabled** |
+| Security Insights | `/rhacs` proxy + `RHACS_API_TOKEN` in `developer-hub-oidc-auth` — **disabled** by default (`plugins.acsSecurityInsights.enabled: false`) |
+
+**New install — Developer Hub deps for workshop:**
+
+1. Sync `field-content-developer-hub` before `workshop-demos` (catalog mount).
+2. PostSync `developer-hub-spoke-tokens` must succeed (Topology on east/west).
+3. Optional ACS: after `acs-init-bundle-sync`, create ACS API token → `rhacsApiToken` Helm value.
+4. Registration is **outside** Developer Hub — ConsoleLink + Showroom redirect; users need not log into Keycloak before registering.
+
+- **Registration:** `components/workshop-registration/` → `https://workshop-registration.<hub-domain>`
+- **Showroom:** `components/showroom/` → Antora [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai)
+- **NeuroFace:** shared demo route; catalog Component `demo-neuroface`
+- **Progress API:** `POST /api/progress`; Showroom `progress-tracker.js`
+- **GitHub Pages mirror:** `docs/workshop/` (read-only)
 
 ## Authentication (Keycloak OIDC, not GitHub)
 
 - **`signInPage: oidc`** with Keycloak realm `backstage` at `https://sso.<clusterDomain>`
 - Auth in **separate** ConfigMap `app-config-auth-rhdh` (prevents YAML merge flattening `signIn.resolvers`)
-- Secret `developer-hub-oidc-auth`: `OIDC_CLIENT_SECRET`, `GITEA_TOKEN`, `SESSION_SECRET`
+- Secret `developer-hub-oidc-auth`: `OIDC_CLIENT_SECRET`, `GITEA_TOKEN`, `SESSION_SECRET`, optional `RHACS_API_TOKEN` (`rhacsApiToken` Helm value)
 - Resolver: `preferredUsernameMatchingUserEntityName` + `dangerouslyAllowSignInWithoutUserInCatalog: true`
 
 ## Catalog mounting (RHDH operator extraFiles)

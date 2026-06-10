@@ -1,6 +1,6 @@
 ---
 name: helm-app-of-apps
-description: Create and extend App-of-Apps Helm charts like platform-hub-spoke-config (components, values, sync waves, testing).
+description: Create and extend App-of-Apps Helm charts like platform-hub-spoke-config (components, values, sync waves, testing, Hybrid Mesh AI Workshop apps).
 ---
 
 # Helm App-of-Apps (platform-hub-spoke-config)
@@ -562,6 +562,8 @@ Secrets via Helm `--set` (never Git): `keycloakOidcClientSecret`, `giteaToken`, 
 
 Antora content repo is **not** in this monorepo (`showroom-hybrid-mesh-ai/` gitignored). Regenerate: `python3 scripts/generate-workshop-content.py` then push the external repo. GitHub Pages mirror: `docs/workshop/`.
 
+**Greenfield workshop validation:** `bash scripts/verify-workshop-e2e.sh`. Full install order, runtime secrets, and userN flow: **hybrid-mesh-ai-workshop** skill.
+
 Software templates live in `docs/assets/backstage/` (GitHub Pages), not a separate component. Includes `openshift-ai-workspace` and `cnv-vm-workshop`.
 
 See `.cursor/skills/developer-hub-scaffolder/SKILL.md` for Topology, scaffolder, RBAC CSV deployment mount, Lightspeed PostSync hook, and troubleshooting.
@@ -710,4 +712,9 @@ curl -sk -o /dev/null -w '%{http_code}\n' https://line-dashboard-industrial-edge
 
 # Developer Hub
 curl -sk -o /dev/null -w '%{http_code}\n' https://developer-hub.<hub-apps>/.backstage/health/v1/readiness
+
+# Hybrid Mesh AI Workshop (after sync waves 4–7)
+curl -sk -o /dev/null -w '%{http_code}\n' https://workshop-registration.<hub-apps>/api/health
+curl -sk -o /dev/null -w '%{http_code}\n' https://showroom-showroom.<hub-apps>/
+curl -sk -o /dev/null -w '%{http_code}\n' https://neuroface.<hub-apps>/api/health
 ```

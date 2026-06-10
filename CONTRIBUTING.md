@@ -73,7 +73,7 @@ This prevents stale failed jobs from blocking org/user bootstrap (e.g. `ws-platf
 If behavior changes for operators/developers, update all relevant artifacts in the same PR:
 
 - runtime docs under `docs/`,
-- skills under `.cursor/skills/`,
+- skills under `.cursor/skills/` (including **hybrid-mesh-ai-workshop** for Showroom/userN installs),
 - this `CONTRIBUTING.md` if process changed.
 
 Keep troubleshooting notes aligned with real cluster behavior and known failure signatures.

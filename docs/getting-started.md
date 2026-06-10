@@ -17,8 +17,9 @@ This guide bootstraps the **hub** with one Helm install, registers **east** and 
 - [ ] **Grafana / Kiali / Kafka Console** — hub fleet views
 - [ ] **Developer Hub** — catalog + software templates
 - [ ] **Dev Spaces** — CheCluster on east and west spokes (not hub)
+- [ ] **Hybrid Mesh AI Workshop** (optional) — registration, Showroom, Plan B demos, NeuroFace
 
-**Next:** [Scaffolding](scaffolding.md) for a new edge instance on east or west, or **Camel CDC (Kaoto + Continue AI)** for a standalone route on the target spoke.
+**Next:** [Scaffolding](scaffolding.md) for a new edge instance on east or west, **[Workshop](workshop/)** for Showroom userN lab, or **Camel CDC (Kaoto + Continue AI)** for a standalone route on the target spoke.
 
 ## Prerequisites
 
@@ -202,6 +203,31 @@ Keycloak realm `backstage` on `sso.<hub-domain>`. Set `keycloakOidcClientSecret`
 ### Continue AI (DevSpaces)
 
 Create `continue-ai-config` Secret with MaaS API key after deploy (not in Git).
+
+### Hybrid Mesh AI Workshop (hub)
+
+Enabled by default in hub `values.yaml` (sync waves 4–7). Antora content: [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) (separate repo).
+
+1. After hub sync, create ACS init bundle credentials (clusters empty in ACS UI until this runs):
+
+```bash
+oc create secret generic acs-init-credentials -n stackrox \
+  --from-literal=ROX_ADMIN_PASSWORD='<central-admin-password>'
+```
+
+Re-sync Argo app `field-content-acs-init-bundle-sync`.
+
+2. Verify workshop routes:
+
+```bash
+bash scripts/verify-workshop-e2e.sh
+curl -sk -o /dev/null -w '%{http_code}\n' https://workshop-registration.apps.<hub-domain>/api/health
+curl -sk -o /dev/null -w '%{http_code}\n' https://showroom-showroom.apps.<hub-domain>/
+```
+
+3. Facilitator test: register at `workshop-registration` → redirect Showroom with `USER_NAME=user1`; Developer Hub → System **`hybrid-mesh-shared-demos`**.
+
+Detail: [Workshop docs](workshop/index.md) · Cursor skill **hybrid-mesh-ai-workshop** (`.cursor/skills/hybrid-mesh-ai-workshop/SKILL.md`).
 
 ---
 

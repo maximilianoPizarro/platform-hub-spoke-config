@@ -67,6 +67,8 @@ oc auth can-i list smartscalingpolicies --as=system:serviceaccount:kairos-system
 ## MaaS credentials (hub)
 
 - Default `aiModel.apiURL`: `https://maas-rhdp.apps.maas.redhatworkshops.io/v1/chat/completions`
+
+Same MaaS endpoint pattern as **NeuroFace** (`components/neuroface`), OpenShift AI hub, and Developer Hub Lightspeed — inject `litemaas.apiKey` on hub field-content (never Git). Workshop install: **hybrid-mesh-ai-workshop** skill.
 - Default model: `llama-scout-17b` — API key in `kairos-system/kairos-ai-credentials` (RHDP `litemaas.apiKey`, never Git)
 - If operator CSV missing: verify `community-operators` catalog and `candidate-v2` channel; check `Subscription/kairos-operator` in `kairos-system`
 

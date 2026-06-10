@@ -1,6 +1,6 @@
 ---
 name: github-pages-docs
-description: Jekyll + Just the Docs for platform-hub-spoke-config GitHub Pages under docs/.
+description: Jekyll + Just the Docs for platform-hub-spoke-config GitHub Pages under docs/, including docs/workshop Hybrid Mesh AI mirror.
 ---
 
 # GitHub Pages Documentation (Just the Docs)
@@ -118,9 +118,12 @@ docs/
 **Workshop (`docs/workshop/`):**
 - Root: **Hybrid Mesh AI Workshop** — child pages use `parent: Hybrid Mesh AI Workshop`.
 - Live URLs use placeholder `YOUR_HUB_DOMAIN`; link to in-cluster Showroom for hands-on.
-- Regenerate from Antora: `python3 scripts/generate-workshop-content.py`.
+- Regenerate from Antora: `python3 scripts/generate-workshop-content.py` (requires clone of [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) beside monorepo, or script creates `showroom-hybrid-mesh-ai/` locally).
 - Images: `docs/assets/images/workshop/` via `scripts/generate-showroom-images.sh`.
 - **Never commit video:** no MP4/MKV in repo; see root `.gitignore` and module 28.
+- **New installs:** Pages builds automatically on push to `main`; in-cluster Showroom pulls Antora repo directly — keep both repos in sync when editing modules.
+
+Install / ops for Showroom + registration: **hybrid-mesh-ai-workshop** skill.
 
 ## Front matter conventions
 
