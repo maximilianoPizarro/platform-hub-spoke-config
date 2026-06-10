@@ -536,6 +536,7 @@ spec:
       valuesObject:
         clusterDomain: {{ $domain }}
         neuroface:
+          fullnameOverride: neuroface
           route:
             host: {{ printf "neuroface.%s" $domain | quote }}
           chat:
@@ -544,8 +545,7 @@ spec:
             modelName: {{ $.Values.litemaas.model | default "llama-scout-17b" | quote }}
             apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
           ovms:
-            modelmesh:
-              enabled: true
+            enabled: false
           litellm:
             enabled: false
     {{- else if eq .path "cnv-example" }}

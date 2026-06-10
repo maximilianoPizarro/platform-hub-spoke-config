@@ -1,6 +1,7 @@
 clusterDomain: ""
 
 neuroface:
+  fullnameOverride: neuroface
   backend:
     image:
       tag: v1.2.0
@@ -14,8 +15,7 @@ neuroface:
     apiKey: ""
     autoServiceAccount: true
   ovms:
-    modelmesh:
-      enabled: true
+    enabled: false
   litellm:
     enabled: false
   route:
