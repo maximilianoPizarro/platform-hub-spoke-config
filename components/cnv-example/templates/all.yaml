@@ -1,5 +1,14 @@
 {{- if .Values.vm.enabled }}
 ---
+apiVersion: hco.kubevirt.io/v1beta1
+kind: HyperConverged
+metadata:
+  name: kubevirt-hyperconverged
+  namespace: openshift-cnv
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec: {}
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -18,7 +27,7 @@ metadata:
     app: cnv-workshop
     app.kubernetes.io/part-of: platform-hub-spoke
   annotations:
-    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   running: true
   template:
