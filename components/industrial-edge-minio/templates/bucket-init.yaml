@@ -17,11 +17,15 @@ spec:
       containers:
         - name: mc
           image: {{ .Values.bucketInit.image | default "quay.io/minio/mc:latest" | quote }}
+          env:
+            - name: MC_CONFIG_DIR
+              value: /tmp/.mc
           command:
             - /bin/sh
             - -c
             - |
               set -e
+              mkdir -p /tmp/.mc
               MC="mc --insecure"
               $MC alias set local http://minio.industrial-edge-ml-workspace.svc:9000 {{ .Values.minioAccessKey | default "minio" }} {{ .Values.minioSecretKey | default "minio123" }}
               for bucket in {{ join " " .Values.bucketInit.buckets }}; do
