@@ -257,7 +257,7 @@ def module_context_section(slug: str) -> str:
     return f"""
 == What you will do
 
-{banner}{(MODULE_CONTEXT[slug] if isinstance(MODULE_CONTEXT[slug], str) else MODULE_CONTEXT[slug]["en"]).strip()}
+{banner}{MODULE_CONTEXT[slug].strip()}
 """
 
 
@@ -336,7 +336,7 @@ def adoc_page(num: str, slug: str, title: str, is_index: bool) -> str:
     mid = "00-index" if is_index else f"{num}-{slug}"
     minutes = ESTIMATED_MIN.get(slug, 15)
     time_label = time_badge(minutes)
-    narrative = NARRATIVES[slug] if isinstance(NARRATIVES[slug], str) else NARRATIVES[slug]["en"]
+    narrative = NARRATIVES[slug]
     show_tell = SHOW_TELL_EN[slug]
     todos_raw = TODO_EN[slug]
     todos = "\n".join(todos_raw) if isinstance(todos_raw, list) else todos_raw
@@ -700,7 +700,7 @@ Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** —
                 "{: .mb-4 }\n"
             )
 
-        narrative = (NARRATIVES[slug] if isinstance(NARRATIVES[slug], str) else NARRATIVES[slug]["en"]).strip()
+        narrative = NARRATIVES[slug].strip()
         show_tell = SHOW_TELL_EN[slug].strip()
         todos = TODO_EN[slug]
         todo_lines = (

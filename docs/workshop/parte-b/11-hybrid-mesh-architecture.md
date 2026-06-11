@@ -14,11 +14,11 @@ nav_order: 2
 
 ## Overview
 
-Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with Gateway API HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
+Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with link:https://gateway-api.sigs.k8s.io/[Gateway API] HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
 
 In this workshop, the hub gateway terminates external traffic and forwards to Industrial Edge frontends on east/west via Skupper Sites and Connectors defined under `components/service-interconnect/` and `components/hub-gateway/`. This is the lab analogue to ROSA ALB plus private connectivity into factory networks — same OpenShift routes and policies, different underlay.
 
-Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20.
+Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20. Verify with: `oc get httproutes -n hub-gateway-system`.
 
 ### Learn more
 

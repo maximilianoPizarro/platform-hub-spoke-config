@@ -14,13 +14,30 @@ nav_order: 13
 
 ## Overview
 
-OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity.
+OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.
 
 **Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
 
 **Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
 
 GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
+
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/openshift-ai-hub/templates/dsc.yaml
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+spec:
+  components:
+    dashboard: { managementState: Managed }
+    modelmeshserving: { managementState: Managed }
+    kserve: { managementState: Managed }
+    workbenches: { managementState: Managed }
+----
 
 ### Learn more
 

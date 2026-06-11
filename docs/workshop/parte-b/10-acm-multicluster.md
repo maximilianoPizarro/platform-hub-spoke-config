@@ -14,11 +14,29 @@ nav_order: 1
 
 ## Overview
 
-Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly.
+Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.
 
 In this lab, open ACM Clusters on the hub and locate east and west — each spoke was bootstrapped from `components/acm-hub-spoke/` GitOps manifests. As `%USER_NAME%`, your workloads land on east by default; Topology in Developer Hub uses OCM APIs to show the same graph ACM displays.
 
 This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
+
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/managed-clusters.yaml
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: east
+  labels:
+    cloud: Amazon
+    vendor: OpenShift
+    cluster.open-cluster-management.io/clusterset: workshop
+spec:
+  hubAcceptsClient: true
+  leaseDurationSeconds: 60
+----
 
 ### Learn more
 

@@ -20,6 +20,28 @@ This workshop applies a demo NetworkPolicy in `industrial-edge-tst-all` from `co
 
 Compare to ROSA security groups plus Kubernetes NP: defense in depth at cloud VPC and pod layers. Pair this module with ACS (module 20) for runtime anomaly detection when policies are misconfigured or bypassed.
 
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/workshop-demos/templates/network-policy-demo.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dashboard-ingress
+  namespace: industrial-edge-tst-all
+spec:
+  podSelector:
+    matchLabels: { app: line-dashboard }
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { network.openshift.io/policy-group: ingress }
+      ports:
+        - { protocol: TCP, port: 8080 }
+  policyTypes: [Ingress]
+----
+
 ### Learn more
 
 ### Learn more

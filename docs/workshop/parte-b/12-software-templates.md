@@ -14,7 +14,7 @@ nav_order: 3
 
 ## Overview
 
-Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets.
+Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets. See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.
 
 This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails due to quota or Gitea timing, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
 

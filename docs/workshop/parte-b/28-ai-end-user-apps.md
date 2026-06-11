@@ -18,7 +18,7 @@ End-user applications — operator dashboards, mobile alerts, MES integrations �
 
 This module integrates modules 13–25: verify line-dashboard displays live IE data, trigger ie-anomaly-alerter thresholds, and optionally embed a NeuroFace iframe or chat link for contextual AI help. Camel K Integrations from templates `demo-camel-kaoto-east` and `demo-camel-cdc-east` show event-driven patterns factory teams deploy on OpenShift alongside OT systems.
 
-Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and NeuroFace become services catalog entries — app squads bind them through Developer Hub dependencies without rebuilding ML pipelines per plant.
+Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and NeuroFace become services catalog entries — app squads bind them through link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub] dependencies without rebuilding ML pipelines per plant.
 
 ### Learn more
 

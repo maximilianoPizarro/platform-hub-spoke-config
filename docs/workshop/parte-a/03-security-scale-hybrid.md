@@ -14,7 +14,7 @@ nav_order: 3
 
 ## Overview
 
-Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices.
+Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policy details.
 
 In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes — note that the `stackrox` namespace deliberately avoids ambient mesh labels so ACS sensors are not disrupted. NetworkPolicy demos in module 19 use OVN on spokes, analogous to security groups plus Kubernetes NP on ROSA. Kuadrant AuthPolicy at the hub gateway shows how API traffic is authenticated and rate-limited before it reaches Industrial Edge backends.
 

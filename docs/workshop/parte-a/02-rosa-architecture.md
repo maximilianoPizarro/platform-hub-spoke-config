@@ -18,7 +18,7 @@ Red Hat OpenShift Service on AWS (ROSA) provides a fully managed control plane i
 
 This workshop's hub-spoke layout maps cleanly to ROSA concepts: the hub is your fleet management cluster (like an ACM hub on ROSA), spokes are regional or edge clusters importing via ManagedCluster resources. You will inspect `ManagedCluster` objects and GitOpsCluster links in module 10 — the same CRDs a ROSA customer uses when joining factory edge clusters to a central governance hub.
 
-Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later.
+Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[ROSA documentation] for architecture and planning guides.
 
 ### Learn more
 

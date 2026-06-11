@@ -18,7 +18,7 @@ Industrial Edge on OpenShift combines event streaming, integration, and visualiz
 
 Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all` (or your user-scoped equivalent). Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
 
-This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling.
+This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling. GitOps path: `oc get applications -n openshift-gitops | grep industrial-edge`.
 
 ### Learn more
 

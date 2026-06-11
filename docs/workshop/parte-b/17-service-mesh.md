@@ -14,11 +14,30 @@ nav_order: 8
 
 ## Overview
 
-OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces.
+OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.
 
 In this workshop, OSSM3 is subscribed via `components/operators/templates/servicemeshoperator3.yaml` and configured for ambient dataplane mode on IE namespaces — excluding `stackrox` where ACS requires direct network visibility. Compare this to ROSA deployments using App Mesh or third-party meshes: OpenShift keeps mesh CRDs and policies native to the platform lifecycle.
 
 Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
+
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/servicemeshoperator3/templates/istio.yaml
+apiVersion: sailoperator.io/v1alpha1
+kind: Istio
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  version: v1.24.3
+  namespace: istio-system
+  values:
+    pilot:
+      env:
+        ENABLE_AMBIENT: "true"
+----
 
 ### Learn more
 

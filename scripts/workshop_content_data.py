@@ -67,29 +67,13 @@ NEXT_PAGE: dict[str, str | None] = {
 FACILITATOR_ONLY_SLUGS: frozenset[str] = frozenset({"full-verification", "agent-browser-recording"})
 
 # Practical learner context (what to do in the lab — not marketing copy)
-MODULE_CONTEXT: dict[str, dict[str, str]] = {
-    "acm-multicluster": {
-        "en": """In this module you open the **ACM Clusters** view on the hub and confirm `east` and `west` spokes are `Available`. Use the Showroom terminal: `oc get managedclusters`. Every later Part B exercise assumes you know which cluster hosts your workloads (usually `east`).""",
-        "es": """En este módulo abres **ACM Clusters** en el hub y confirmas que los spokes `east` y `west` están `Available`. Usa la terminal Showroom: `oc get managedclusters`. Cada ejercicio posterior asume que sabes en qué cluster corren tus cargas (normalmente `east`).""",
-    },
-    "hybrid-mesh-architecture": {
-        "en": """You will trace how external traffic reaches Industrial Edge on a spoke: hub Gateway API `HTTPRoute`, Skupper interconnect, and the IE route. Open the Skupper observer and IE UI from the lab access table — no separate ACM or ROSA documentation site is required.""",
-        "es": """Rastrearás cómo el tráfico externo llega a Industrial Edge en un spoke: `HTTPRoute` Gateway API en hub, interconnect Skupper y ruta IE. Abre el observer Skupper y la UI IE desde la tabla de acceso — no necesitas sitios externos de ACM o ROSA.""",
-    },
-    "software-templates": {
-        "en": """You will create (or browse) a workload from **Developer Hub → Create**. If your `%USER_NAME%` scaffold fails, open **Plan B** system `hybrid-mesh-shared-demos` — same URLs, pre-deployed. Check Gitea only if you successfully scaffolded.""",
-        "es": """Crearás (o explorarás) una carga desde **Developer Hub → Create**. Si falla el scaffold de `%USER_NAME%`, abre el system **Plan B** `hybrid-mesh-shared-demos`. Revisa Gitea solo si el scaffold tuvo éxito.""",
-    },
-    "deploy-industrial-edge": {
-        "en": """Goal: confirm Industrial Edge workloads are reachable — line dashboard, Kafka topics, and (optional) your user-scoped namespace. Use Plan B demo `demo-industrial-edge-east` if you did not scaffold.""",
-        "es": """Objetivo: confirmar que las cargas Industrial Edge responden — line dashboard, topics Kafka y (opcional) tu namespace. Usa demo Plan B `demo-industrial-edge-east` si no hiciste scaffold.""",
-    },
-    "acs-kuadrant": {
-        "en": """You will use **ACS Central** on this cluster (`central-stackrox` route) for runtime security context and **Developer Hub → Kuadrant** to request an API key for `workshop-apis`. Test with `curl` and your key — not a generic Red Hat marketing URL.""",
-        "es": """Usarás **ACS Central** en este cluster (ruta `central-stackrox`) y **Developer Hub → Kuadrant** para solicitar API key de `workshop-apis`. Prueba con `curl` y tu key — no URLs genéricas de marketing.""",
-    },
-    "ai-gateway": {
-        "en": """In this module you expose **Model-as-a-Service (MaaS)** LLM inference through a governed **AI Gateway** — not by sharing raw OpenShift AI routes. You will:
+MODULE_CONTEXT: dict[str, str] = {
+    "acm-multicluster": """In this module you open the **ACM Clusters** view on the hub and confirm `east` and `west` spokes are `Available`. Use the Showroom terminal: `oc get managedclusters`. Every later Part B exercise assumes you know which cluster hosts your workloads (usually `east`).""",
+    "hybrid-mesh-architecture": """You will trace how external traffic reaches Industrial Edge on a spoke: hub Gateway API `HTTPRoute`, Skupper interconnect, and the IE route. Open the Skupper observer and IE UI from the lab access table — no separate ACM or ROSA documentation site is required.""",
+    "software-templates": """You will create (or browse) a workload from **Developer Hub → Create**. If your `%USER_NAME%` scaffold fails, open **Plan B** system `hybrid-mesh-shared-demos` — same URLs, pre-deployed. Check Gitea only if you successfully scaffolded.""",
+    "deploy-industrial-edge": """Goal: confirm Industrial Edge workloads are reachable — line dashboard, Kafka topics, and (optional) your user-scoped namespace. Use Plan B demo `demo-industrial-edge-east` if you did not scaffold.""",
+    "acs-kuadrant": """You will use **ACS Central** on this cluster (`central-stackrox` route) for runtime security context and **Developer Hub → Kuadrant** to request an API key for `workshop-apis`. Test with `curl` and your key — not a generic Red Hat marketing URL.""",
+    "ai-gateway": """In this module you expose **Model-as-a-Service (MaaS)** LLM inference through a governed **AI Gateway** — not by sharing raw OpenShift AI routes. You will:
 
 . Open **Developer Hub → Catalog → workshop-ai-gateway** and follow links to Topology, TechDocs, and the Kuadrant API portal.
 . Trace GitOps in `components/workshop-kuadrant-apis/` — `HTTPRoute` on the hub Gateway API, Istio `Gateway`, and Kuadrant `AuthPolicy` + `TokenRateLimitPolicy`.
@@ -97,29 +81,10 @@ MODULE_CONTEXT: dict[str, dict[str, str]] = {
 . Compare latency, headers, and error responses against direct MaaS from the OpenShift AI notebook (module 22) — the gateway adds auth, rate limits, and a stable external hostname for factory apps.
 
 *Prerequisite:* module **22 OpenShift AI** — you need a running `maas-workshop` playground and familiarity with chat-completions JSON.""",
-        "es": """En este módulo expones inferencia LLM **Model-as-a-Service (MaaS)** a través de un **AI Gateway** gobernado — no compartiendo rutas crudas de OpenShift AI. Harás:
-
-. Abrir **Developer Hub → Catálogo → workshop-ai-gateway** y seguir enlaces a Topology, TechDocs y portal API Kuadrant.
-. Rastrear GitOps en `components/workshop-kuadrant-apis/` — `HTTPRoute` Gateway API, `Gateway` Istio, y políticas Kuadrant.
-. Crear API key para `%USER_NAME%` en UI Kuadrant y llamar `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` con Bearer token.
-. Comparar latencia y errores contra MaaS directo desde notebook OpenShift AI (módulo 22).
-
-*Prerrequisito:* módulo **22 OpenShift AI** — playground `maas-workshop` activo.""",
-    },
-    "mcp-gateway": {
-        "en": """Verify MCP Gateway in `mcp-system`, then use **Developer Hub → Lightspeed** with prompts that invoke ArgoCD/k8s MCP tools. Register OpenShift AI MCP server in dashboard (maas-workshop).""",
-        "es": """Verifica MCP Gateway en `mcp-system`, usa **Developer Hub → Lightspeed** con tools MCP, y registra MCP server OpenShift AI en el dashboard.""",
-    },
-    "openshift-ai": {
-        "en": """Open the **OpenShift AI dashboard** → project **ai-%USER_NAME%** → **Workbenches → workshop-notebook** and run the MaaS smoke-test notebook. Catalog entity **OpenShift AI — %USER_NAME%** links Topology and dashboard.""",
-        "es": """Abre **dashboard OpenShift AI** → proyecto **ai-%USER_NAME%** → **Workbenches → workshop-notebook** y ejecuta el notebook MaaS. La entidad **OpenShift AI — %USER_NAME%** enlaza Topology y dashboard.""",
-    },
-    "neuroface": {
-        "en": """Open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] and **Developer Hub → Catalog → neuroface-workshop** for Topology. OVMS is enabled for local vision; chat uses MaaS. Allow webcam and test detection + `/api/chat`.""",
-        "es": """Abre link:https://neuroface.%HUB_DOMAIN%[NeuroFace] y **Developer Hub → Catálogo → neuroface-workshop**. OVMS habilitado para visión local; chat usa MaaS.""",
-    },
-    "ai-end-user-apps": {
-        "en": """Capstone module **28 — AI in End-User Apps**. You will connect everything operators touch on the factory floor:
+    "mcp-gateway": """Verify MCP Gateway in `mcp-system`, then use **Developer Hub → Lightspeed** with prompts that invoke ArgoCD/k8s MCP tools. Register OpenShift AI MCP server in dashboard (maas-workshop).""",
+    "openshift-ai": """Open the **OpenShift AI dashboard** → project **ai-%USER_NAME%** → **Workbenches → workshop-notebook** and run the MaaS smoke-test notebook. Catalog entity **OpenShift AI — %USER_NAME%** links Topology and dashboard.""",
+    "neuroface": """Open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] and **Developer Hub → Catalog → neuroface-workshop** for Topology. OVMS is enabled for local vision; chat uses MaaS. Allow webcam and test detection + `/api/chat`.""",
+    "ai-end-user-apps": """Capstone module **28 — AI in End-User Apps**. You will connect everything operators touch on the factory floor:
 
 . Open link:https://industrial-edge.%HUB_DOMAIN%[Industrial Edge line-dashboard] — confirm live Kafka sensor metrics for east spoke workloads.
 . Developer Hub → **Catalog** — locate `%USER_NAME%` IE components, Grafana dashboards, and AI catalog dependencies.
@@ -128,24 +93,8 @@ MODULE_CONTEXT: dict[str, dict[str, str]] = {
 . Trace Camel K demos `demo-camel-kaoto-east` / `demo-camel-cdc-east` in catalog Topology for event-driven OT/IT integration.
 
 *Success criteria:* line-dashboard shows data, at least one catalog entity links IE → AI, and you can explain how AWS Kinesis or Azure Event Hubs would mirror the same event path in production.""",
-        "es": """Módulo cierre **28 — IA en apps finales**. Conectarás lo que operadores usan en planta:
-
-. Abrir link:https://industrial-edge.%HUB_DOMAIN%[line-dashboard IE] — confirmar métricas Kafka en vivo.
-. Developer Hub → **Catálogo** — componentes `%USER_NAME%`, Grafana y dependencias IA.
-. Revisar alertas **ie-anomaly-alerter** en terminal Showroom.
-. Opcional: link:https://neuroface.%HUB_DOMAIN%[NeuroFace] para asistencia IA.
-. Rastrear demos Camel K en Topology.
-
-*Éxito:* dashboard con datos, entidad catálogo IE → IA, y explicar equivalente AWS/Azure del flujo de eventos.""",
-    },
-    "full-verification": {
-        "en": """**Facilitator / agent only.** Run `scripts/verify-workshop-e2e.sh` and `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — not shown to learners in the workshop nav.""",
-        "es": """**Solo facilitador / agente.** Ejecuta `scripts/verify-workshop-e2e.sh` y `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — no aparece en la navegación del participante.""",
-    },
-    "agent-browser-recording": {
-        "en": """**Facilitator / agent only.** Agent Browser YAML under `verification/agent-browser/` replays UI flows for CI. Recordings stay local (`*.mp4` gitignored).""",
-        "es": """**Solo facilitador / agente.** YAML Agent Browser bajo `verification/agent-browser/` reproduce flujos UI para CI. Grabaciones locales (`*.mp4` gitignored).""",
-    },
+    "full-verification": """**Facilitator / agent only.** Run `scripts/verify-workshop-e2e.sh` and `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — not shown to learners in the workshop nav.""",
+    "agent-browser-recording": """**Facilitator / agent only.** Agent Browser YAML under `verification/agent-browser/` replays UI flows for CI. Recordings stay local (`*.mp4` gitignored).""",
 }
 
 HYBRID_INTEGRATION_EN = """
@@ -607,60 +556,68 @@ spec:
 In this lab, line-dashboard and related IE deployments include HPAs defined in workload manifests under `components/industrial-edge-tst/`. Trigger load via workshop scripts or simulated sensor rates, then watch pods scale in the Topology view as `%USER_NAME%`. Kafka scaling complements HPA by absorbing event bursts before pods reject traffic.
 
 This module completes the capacity story started in module 14: Kairos proposes nodes, HPA adds pods, Kafka buffers events — together they mirror how a ROSA customer scales factory edge during production peaks without manual cluster admin intervention. Verify with: `oc get hpa -n industrial-edge-tst-all`.""",
-    "network-policies": {
-        "en": """Kubernetes NetworkPolicy on OpenShift OVN enforces micro-segmentation: only labeled pods and namespaces you explicitly allow can communicate — essential for zero-trust factory networks where compromised sensors must not lateral-move to MES backends. Red Hat OpenShift ships OVN-Kubernetes as the default CNI with policy-aware routing.
+    "network-policies": """Kubernetes NetworkPolicy on OpenShift OVN enforces micro-segmentation: only labeled pods and namespaces you explicitly allow can communicate — essential for zero-trust factory networks where compromised sensors must not lateral-move to MES backends. Red Hat OpenShift ships OVN-Kubernetes as the default CNI with policy-aware routing.
 
 This workshop applies a demo NetworkPolicy in `industrial-edge-tst-all` from `components/workshop-demos/templates/network-policy-demo.yaml`, allowing dashboard ingress while denying unexpected cross-namespace traffic. As `%USER_NAME%`, test allowed and denied paths using `oc exec` curl probes from the Showroom terminal.
 
-Compare to ROSA security groups plus Kubernetes NP: defense in depth at cloud VPC and pod layers. Pair this module with ACS (module 20) for runtime anomaly detection when policies are misconfigured or bypassed.""",
-        "es": """NetworkPolicy Kubernetes en OpenShift OVN aplica micro-segmentación: solo pods y namespaces etiquetados que permitas explícitamente pueden comunicarse — esencial en redes zero-trust de fábrica donde sensores comprometidos no deben moverse lateralmente a backends MES. Red Hat OpenShift incluye OVN-Kubernetes como CNI por defecto con enrutamiento consciente de políticas.
+Compare to ROSA security groups plus Kubernetes NP: defense in depth at cloud VPC and pod layers. Pair this module with ACS (module 20) for runtime anomaly detection when policies are misconfigured or bypassed.
 
-Este taller aplica una NetworkPolicy demo en `industrial-edge-tst-all` desde `components/workshop-demos/templates/network-policy-demo.yaml`, permitiendo ingress al dashboard mientras niega tráfico cross-namespace inesperado. Como `%USER_NAME%`, prueba rutas permitidas y denegadas con probes curl `oc exec` desde la terminal Showroom.
+The configuration is declarative and minimal:
 
-Compara con security groups ROSA más NP Kubernetes: defensa en profundidad en VPC cloud y capas pod. Combina este módulo con ACS (módulo 20) para detección runtime de anomalías cuando políticas están mal configuradas o bypassed.""",
-    },
-    "acs-kuadrant": {
-        "en": """Red Hat Advanced Cluster Security provides vulnerability scanning, compliance benchmarks, and runtime threat detection across ACM-managed clusters. SecuredCluster agents on spokes report to ACS Central on the hub; init bundles sync via GitOps jobs in `components/acs-init-bundle-sync/`.
+[source,yaml]
+----
+# components/workshop-demos/templates/network-policy-demo.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dashboard-ingress
+  namespace: industrial-edge-tst-all
+spec:
+  podSelector:
+    matchLabels: { app: line-dashboard }
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: { network.openshift.io/policy-group: ingress }
+      ports:
+        - { protocol: TCP, port: 8080 }
+  policyTypes: [Ingress]
+----""",
+    "acs-kuadrant": """Red Hat Advanced Cluster Security provides vulnerability scanning, compliance benchmarks, and runtime threat detection across ACM-managed clusters. SecuredCluster agents on spokes report to ACS Central on the hub; init bundles sync via GitOps jobs in `components/acs-init-bundle-sync/`. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policies and link:https://www.kuadrant.io/docs/[Kuadrant documentation] for API management CRDs.
 
 Connectivity Link and Kuadrant extend API management to the hub gateway: AuthPolicy validates tokens, RateLimitPolicy protects backends, and APIProduct publishes Industrial Edge APIs for external consumers. Demo `demo-ie-api-product` in Plan B catalog exposes the same Kuadrant resources without scaffolding.
 
 As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct routes through the hub gateway. Remember ACS runs outside ambient mesh — this coexistence pattern is deliberate and matches production ROSA + ACS deployments.""",
-        "es": """Red Hat Advanced Cluster Security ofrece escaneo de vulnerabilidades, benchmarks de cumplimiento y detección de amenazas runtime en clusters gestionados por ACM. Agentes SecuredCluster en spokes reportan a ACS Central en el hub; init bundles sincronizan vía jobs GitOps en `components/acs-init-bundle-sync/`.
-
-Connectivity Link y Kuadrant extienden gestión de APIs al gateway del hub: AuthPolicy valida tokens, RateLimitPolicy protege backends y APIProduct publica APIs Industrial Edge para consumidores externos. El demo `demo-ie-api-product` en catálogo Plan B expone los mismos recursos Kuadrant sin scaffolding.
-
-Como `%USER_NAME%`, verifica que ACS ve tus cargas spoke y prueba rutas APIProduct vía gateway del hub. Recuerda que ACS corre fuera del mesh ambient — este patrón de coexistencia es deliberado y coincide con despliegues ROSA + ACS en producción.""",
-    },
-    "finops-kubecost": {
-        "en": """Kubecost on OpenShift allocates Kubernetes spend by namespace, label, and cluster — federating data from hub primary and spoke agents into MinIO-backed ETL storage. Platform teams charge back factory edge tenants and compare ROSA node costs versus on-prem depreciation using consistent Kubernetes unit economics.
+    "finops-kubecost": """Kubecost on OpenShift allocates Kubernetes spend by namespace, label, and cluster — federating data from hub primary and spoke agents into MinIO-backed ETL storage. Platform teams charge back factory edge tenants and compare ROSA node costs versus on-prem depreciation using consistent Kubernetes unit economics.
 
 In this lab, Kubecost deploys from `components/kubecost/` with agents on east/west reporting to the hub primary. Filter allocations to namespaces owned by `%USER_NAME%` and correlate idle capacity with Kairos recommendations from module 14.
 
-FinOps closes the executive loop from module 01: hybrid strategy without cost visibility fails in CFO review. Kubecost complements AWS Cost Explorer tags on ROSA by exposing pod-level waste inside the cluster boundary.""",
-        "es": """Kubecost en OpenShift asigna gasto Kubernetes por namespace, label y cluster — federando datos del primario hub y agentes spoke en almacenamiento ETL respaldado por MinIO. Los equipos de plataforma cargan back tenants edge de fábrica y comparan costos de nodos ROSA versus depreciación on-prem con economía unitaria Kubernetes consistente.
-
-En este lab, Kubecost se despliega desde `components/kubecost/` con agentes en east/west reportando al primario hub. Filtra asignaciones a namespaces de `%USER_NAME%` y correlaciona capacidad ociosa con recomendaciones Kairos del módulo 14.
-
-FinOps cierra el loop ejecutivo del módulo 01: estrategia híbrida sin visibilidad de costo falla en revisión CFO. Kubecost complementa tags AWS Cost Explorer en ROSA exponiendo desperdicio a nivel pod dentro del límite del cluster.""",
-    },
-    "openshift-ai": {
-        "en": """OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity.
+FinOps closes the executive loop from module 01: hybrid strategy without cost visibility fails in CFO review. Kubecost complements AWS Cost Explorer tags on ROSA by exposing pod-level waste inside the cluster boundary. Verify with: `oc get pods -n kubecost -l app=cost-analyzer`.""",
+    "openshift-ai": """OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.
 
 **Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
 
 **Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
 
-GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.""",
-        "es": """OpenShift AI en el hub ejecuta **ModelMesh + Serverless (Knative)** vía `default-dsc`. Cada usuario tiene **`ai-%USER_NAME%`** con **notebook Jupyter** `workshop-notebook`, secret MaaS y entidad en Developer Hub.
+GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
 
-**Solo visualización (~10 min):** Catálogo → **OpenShift AI — %USER_NAME%**; mostrar Playground en `maas-workshop`.
+The configuration is declarative and minimal:
 
-**Hands-on (~30 min):** Abrir **workshop-notebook**, ejecutar `maas-smoke-test.ipynb`, registrar **MCP Server** `ods-maas-mcp-server` en extensiones OpenShift AI. En **ai-%USER_NAME%** → **Models**, confirmar **`workshop-sklearn`** (ModelMesh) Ready y probar inferencia.
-
-GitOps: `components/openshift-ai-hub/`. Verificar: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.""",
-    },
-    "ai-gateway": {
-        "en": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **Gateway API** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **Kuadrant** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
+[source,yaml]
+----
+# components/openshift-ai-hub/templates/dsc.yaml
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+spec:
+  components:
+    dashboard: { managementState: Managed }
+    modelmeshserving: { managementState: Managed }
+    kserve: { managementState: Managed }
+    workbenches: { managementState: Managed }
+----""",
+    "ai-gateway": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **link:https://www.kuadrant.io/docs/[Kuadrant]** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
 
 **Why Kuadrant on OpenShift AI workloads:** Kuadrant extends Gateway API with first-class API management — API keys, usage limits, and policy attachment to routes that front inference services. This matches how platform teams govern REST and gRPC APIs while still allowing data science teams to iterate in OpenShift AI projects. See the Kuadrant documentation for policy CRDs and the Developer Hub Kuadrant plugin for self-service key minting.
 
@@ -681,101 +638,102 @@ curl -sk "https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions" \\
 
 Compare response time and HTTP 429 behavior (if you exceed limits) to a direct call from the **workshop-notebook** in project `ai-%USER_NAME%`. Record which headers prove the request passed through the gateway (auth, rate-limit counters).
 
-**Operations angle:** The same gateway hostname can front additional model routes (embeddings, vision) without changing client apps — add `HTTPRoute` rules and Kuadrant policies in GitOps, sync with Argo CD, validate in module **29 Full verification**.""",
-        "es": """El patrón **AI Gateway** centraliza cómo aplicaciones de fábrica, edge y partners consumen LLM en OpenShift. El tráfico entra por **`workshop-apis.%HUB_DOMAIN%`**, con **Gateway API** `HTTPRoute`, gateway Istio y políticas **Kuadrant** (`AuthPolicy`, `TokenRateLimitPolicy`).
+**Operations angle:** The same gateway hostname can front additional model routes (embeddings, vision) without changing client apps — add `HTTPRoute` rules and Kuadrant policies in GitOps, sync with Argo CD, validate in module **29 Full verification**.
 
-**Por qué Kuadrant:** extiende Gateway API con gestión de APIs — keys, límites de uso y políticas en rutas que frontean inferencia. GitOps: `components/workshop-kuadrant-apis/`. Entidad catálogo **workshop-ai-gateway** documenta el flujo para `%USER_NAME%`.
+The configuration is declarative and minimal:
 
-**Solo visualización (~5 min):** Catálogo → **workshop-ai-gateway**; UI Kuadrant → forma de API key.
-
-**Hands-on (~25 min):** Crear key, `curl` a `/llm/v1/chat/completions` con JSON chat-completions; comparar con MaaS directo desde notebook en `ai-%USER_NAME%`.""",
-    },
-    "mcp-gateway": {
-        "en": """**MCP Gateway** deploys Kuadrant community CRDs (`MCPGatewayExtension`, `MCPServerRegistration`), `mcp-controller`, Gateway API `Gateway`, **ArgoCD MCP**, and **k8s MCP** — pattern from test-drive-pe-oscg. Public URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/routes.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: workshop-llm
+  namespace: hub-gateway-system
+spec:
+  parentRefs:
+    - name: hub-gateway
+  hostnames:
+    - "workshop-apis.{{ .Values.deployer.domain }}"
+  rules:
+    - matches:
+        - path: { type: PathPrefix, value: /llm }
+      backendRefs:
+        - name: maas-service
+          namespace: maas-workshop
+          port: 8080
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: workshop-auth
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-llm
+  rules:
+    authentication:
+      api-key:
+        apiKey:
+          selector: {}
+----""",
+    "mcp-gateway": """**MCP Gateway** deploys Kuadrant community CRDs (`MCPGatewayExtension`, `MCPServerRegistration`), `mcp-controller`, Gateway API `Gateway`, **ArgoCD MCP**, and **k8s MCP** — pattern from test-drive-pe-oscg. Public URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
 
 **Overview-only (~8 min):** Catalog → **workshop-mcp-gateway**; `oc get mcpserverregistration -n mcp-system`; Lightspeed demo prompt.
 
-**Hands-on (~30 min):** Developer Hub **/lightspeed** — activity: "List Argo CD apps in OutOfSync state and suggest sync." Llama-stack uses `remote::mcp` to gateway (`components/developer-hub/files/lightspeed/llama-stack-run.yaml`).""",
-        "es": """**MCP Gateway** despliega CRDs Kuadrant, controlador, Gateway API, **ArgoCD MCP** y **k8s MCP** — patrón test-drive-pe-oscg. URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
+**Hands-on (~30 min):** Developer Hub **/lightspeed** — activity: "List Argo CD apps in OutOfSync state and suggest sync." Llama-stack uses `remote::mcp` to gateway (`components/developer-hub/files/lightspeed/llama-stack-run.yaml`).
 
-**Solo visualización (~8 min):** Catálogo → **workshop-mcp-gateway**; demo Lightspeed.
+The configuration is declarative and minimal:
 
-**Hands-on (~30 min):** **/lightspeed** — actividad: listar apps Argo CD OutOfSync y proponer sync.""",
-    },
-    "llm-rag": {
-        "en": """Large language models and retrieval-augmented generation (RAG) on OpenShift combine centralized inference with domain-specific context from factory docs, runbooks, and sensor logs — without exporting proprietary data to public SaaS. Red Hat Developer Hub Lightspeed assists developers in-catalog; Kairos Console agents answer scaling questions; Continue AI in DevSpaces suggests code inline using the same MaaS backend.
+[source,yaml]
+----
+# components/mcp-gateway/templates/mcp-server-registration.yaml
+apiVersion: kuadrant.io/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: argocd-mcp
+  namespace: mcp-system
+spec:
+  url: "http://argocd-mcp-server.mcp-system.svc:8080"
+  description: "Argo CD fleet operations via MCP"
+  tools:
+    - name: list-applications
+    - name: sync-application
+    - name: get-application-health
+----""",
+    "llm-rag": """Large language models and retrieval-augmented generation (RAG) on OpenShift combine centralized inference with domain-specific context from factory docs, runbooks, and sensor logs — without exporting proprietary data to public SaaS. Red Hat Developer Hub Lightspeed assists developers in-catalog; Kairos Console agents answer scaling questions; Continue AI in DevSpaces suggests code inline using the same MaaS backend.
 
-RAG architecture in hybrid manufacturing typically indexes PDFs and SOPs into a vector store (customer choice) while the LLM runs on OpenShift AI ModelMesh or external MaaS. In this lab, you configure Lightspeed deployment in `components/developer-hub/templates/lightspeed.yaml` and test prompts against the shared MaaS endpoint — observe latency and token usage suitable for shop-floor Wi-Fi constraints.
+RAG architecture in hybrid manufacturing typically indexes PDFs and SOPs into a vector store (customer choice) while the LLM runs on link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI] ModelMesh or external MaaS. In this lab, you configure Lightspeed deployment in `components/developer-hub/templates/lightspeed.yaml` and test prompts against the shared MaaS endpoint — observe latency and token usage suitable for shop-floor Wi-Fi constraints.
 
 As `%USER_NAME%`, open Developer Hub, trigger Lightspeed on a catalog Component, and compare responses with Continue AI in a DevSpaces workspace. Module 25 extends the same MaaS path to multimodal NeuroFace chat — proving one governance model serves dev, ops, and end-user AI surfaces.""",
-        "es": """Los modelos de lenguaje grande y RAG (retrieval-augmented generation) en OpenShift combinan inferencia centralizada con contexto de dominio desde docs de fábrica, runbooks y logs de sensores — sin exportar datos propietarios a SaaS público. Red Hat Developer Hub Lightspeed asiste desarrolladores en catálogo; agentes Kairos Console responden preguntas de escalado; Continue AI en DevSpaces sugiere código inline usando el mismo backend MaaS.
-
-La arquitectura RAG en manufactura híbrida típicamente indexa PDFs y SOPs en un vector store (elección del cliente) mientras el LLM corre en OpenShift AI ModelMesh o MaaS externo. En este lab, configuras el despliegue Lightspeed en `components/developer-hub/templates/lightspeed.yaml` y pruebas prompts contra el endpoint MaaS compartido — observa latencia y uso de tokens adecuados para restricciones Wi-Fi de planta.
-
-Como `%USER_NAME%`, abre Developer Hub, dispara Lightspeed en un Component de catálogo y compara respuestas con Continue AI en un workspace DevSpaces. El módulo 25 extiende la misma ruta MaaS a chat multimodal NeuroFace — demostrando un modelo de gobernanza para superficies IA de dev, ops y usuario final.""",
-    },
-    "text-ai-predictive": {
-        "en": """Generative AI assists operators with natural-language summaries of alarms; predictive AI forecasts failures before downtime. On OpenShift, the ie-anomaly-alerter deployment watches Prometheus metrics from Industrial Edge sensors and emits alerts when statistical thresholds breach — a lightweight predictive pattern without mandatory KServe for this workshop track.
+    "text-ai-predictive": """Generative AI assists operators with natural-language summaries of alarms; predictive AI forecasts failures before downtime. On OpenShift, the ie-anomaly-alerter deployment watches Prometheus metrics from Industrial Edge sensors and emits alerts when statistical thresholds breach — a lightweight predictive pattern without mandatory KServe for this workshop track.
 
 Optional KServe InferenceService resources on the hub demonstrate full model serving for custom scikit-learn or ONNX models trained in DS workspaces. MaaS playground endpoints let `%USER_NAME%` test generative prompts for incident postmortems: "Summarize last hour Kafka lag and ACS violations for my namespace."
 
-Connect predictive alerts to module 26 end-user apps: Camel routes can fan out anomaly events to line-dashboard overlays and NeuroFace notifications. This closes the loop from telemetry → ML/statistical detection → human + generative AI response on the same OpenShift footprint.""",
-        "es": """La IA generativa asiste operadores con resúmenes en lenguaje natural de alarmas; la IA predictiva pronostica fallos antes del downtime. En OpenShift, el despliegue ie-anomaly-alerter observa métricas Prometheus de sensores Industrial Edge y emite alertas cuando umbrales estadísticos se violan — un patrón predictivo ligero sin KServe obligatorio en esta pista del taller.
-
-Recursos opcionales KServe InferenceService en el hub demuestran model serving completo para modelos scikit-learn u ONNX entrenados en workspaces DS. Endpoints playground MaaS permiten a `%USER_NAME%` probar prompts generativos para postmortems de incidentes: "Resume lag Kafka y violaciones ACS de la última hora para mi namespace."
-
-Conecta alertas predictivas al módulo 26 de apps finales: rutas Camel pueden distribuir eventos de anomalía a overlays line-dashboard y notificaciones NeuroFace. Esto cierra el loop telemetría → detección ML/estadística → respuesta humana + IA generativa en el mismo footprint OpenShift.""",
-    },
-    "neuroface": {
-        "en": """NeuroFace combines **OVMS local vision** (face/object detection via `components/neuroface/` with `ovms.enabled: true`) and **MaaS chat** at `/api/chat`. Hub **ModelMesh** serves platform models; NeuroFace OVMS handles low-latency webcam inference on the app namespace.
+Connect predictive alerts to module 26 end-user apps: Camel routes can fan out anomaly events to line-dashboard overlays and NeuroFace notifications. This closes the loop from telemetry → ML/statistical detection → human + generative AI response on the same OpenShift footprint. Verify with: `oc logs -l app=ie-anomaly-alerter -n industrial-edge-tst-all --tail=10`.""",
+    "neuroface": """NeuroFace combines **OVMS local vision** (face/object detection via `components/neuroface/` with `ovms.enabled: true`) and **MaaS chat** at `/api/chat`. Hub **ModelMesh** serves platform models; NeuroFace OVMS handles low-latency webcam inference on the app namespace. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for model serving patterns.
 
 **Overview-only (~10 min):** Developer Hub → **neuroface-workshop** → Topology; open UI without webcam.
 
 **Hands-on (~30 min):** Register as `%USER_NAME%`, test webcam + chat, inspect OVMS Service/route in namespace `neuroface`.
 
 Catalog: System `hybrid-mesh-ai-platform` → Component **neuroface-workshop** (links UI + OpenShift AI dashboard).""",
-        "es": """NeuroFace combina **visión OVMS local** (`ovms.enabled: true`) y **chat MaaS** en `/api/chat`. **ModelMesh** en el hub sirve modelos de plataforma; OVMS NeuroFace maneja inferencia webcam de baja latencia.
-
-**Solo visualización (~10 min):** Developer Hub → **neuroface-workshop** → Topology.
-
-**Hands-on (~30 min):** Probar webcam + chat; inspeccionar Service OVMS en namespace `neuroface`.""",
-    },
-    "ai-end-user-apps": {
-        "en": """End-user applications — operator dashboards, mobile alerts, MES integrations — consume AI insights where work happens, not only in data science notebooks. line-dashboard on the east spoke visualizes Kafka sensor streams; Camel integrations route anomaly events; NeuroFace and MaaS summaries embed into the same UX `%USER_NAME%` sees in production rollouts.
+    "ai-end-user-apps": """End-user applications — operator dashboards, mobile alerts, MES integrations — consume AI insights where work happens, not only in data science notebooks. line-dashboard on the east spoke visualizes Kafka sensor streams; Camel integrations route anomaly events; NeuroFace and MaaS summaries embed into the same UX `%USER_NAME%` sees in production rollouts.
 
 This module integrates modules 13–25: verify line-dashboard displays live IE data, trigger ie-anomaly-alerter thresholds, and optionally embed a NeuroFace iframe or chat link for contextual AI help. Camel K Integrations from templates `demo-camel-kaoto-east` and `demo-camel-cdc-east` show event-driven patterns factory teams deploy on OpenShift alongside OT systems.
 
-Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and NeuroFace become services catalog entries — app squads bind them through Developer Hub dependencies without rebuilding ML pipelines per plant.""",
-        "es": """Las aplicaciones finales — dashboards de operador, alertas móviles, integraciones MES — consumen insights de IA donde ocurre el trabajo, no solo en notebooks de data science. line-dashboard en spoke east visualiza streams Kafka de sensores; integraciones Camel enrutan eventos de anomalía; NeuroFace y resúmenes MaaS se embeben en la misma UX que `%USER_NAME%` ve en rollouts de producción.
-
-Este módulo integra módulos 13–25: verifica que line-dashboard muestra datos IE en vivo, dispara umbrales ie-anomaly-alerter y opcionalmente embebe iframe NeuroFace o enlace chat para ayuda IA contextual. Integraciones Camel K de plantillas `demo-camel-kaoto-east` y `demo-camel-cdc-east` muestran patrones event-driven que equipos de fábrica despliegan en OpenShift junto a sistemas OT.
-
-Los equipos de plataforma ganan cuando la IA es infraestructura invisible: OpenShift AI, MaaS y NeuroFace son entradas de catálogo — squads de app los vinculan vía dependencias Developer Hub sin reconstruir pipelines ML por planta.""",
-    },
-    "full-verification": {
-        "en": """Full stack verification confirms Part A narrative comprehension and Part B hands-on outcomes for `%USER_NAME%`: registration redirect, Showroom terminal `oc`, ACM spoke visibility, IE sync, Kubecost allocations, DSC Ready, NeuroFace health, and progress API persistence.
+Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and NeuroFace become services catalog entries — app squads bind them through link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub] dependencies without rebuilding ML pipelines per plant.""",
+    "full-verification": """Full stack verification confirms Part A narrative comprehension and Part B hands-on outcomes for `%USER_NAME%`: registration redirect, Showroom terminal `oc`, ACM spoke visibility, IE sync, Kubecost allocations, DSC Ready, NeuroFace health, and progress API persistence.
 
 Run `bash scripts/verify-workshop-e2e.sh` from the repo or follow the checklist in `verification/progress-checklist.yaml`. The workshop registration service at `https://workshop-registration.%HUB_DOMAIN%` and Showroom progress endpoint (`POST /api/progress`) must accept your module completions — facilitators use aggregate progress to pace the room.
 
 Treat this module as your graduation gate: if any check fails, revisit the linked module or switch to Plan B shared demos documented in Developer Hub System `hybrid-mesh-shared-demos`.""",
-        "es": """La verificación full stack confirma comprensión narrativa Parte A y resultados hands-on Parte B para `%USER_NAME%`: redirect de registro, terminal Showroom `oc`, visibilidad spoke ACM, sync IE, asignaciones Kubecost, DSC Ready, salud NeuroFace y persistencia API de progreso.
-
-Ejecuta `bash scripts/verify-workshop-e2e.sh` desde el repo o sigue el checklist en `verification/progress-checklist.yaml`. El servicio de registro en `https://workshop-registration.%HUB_DOMAIN%` y el endpoint de progreso Showroom (`POST /api/progress`) deben aceptar tus completados de módulo — facilitadores usan progreso agregado para marcar ritmo de sala.
-
-Trata este módulo como puerta de graduación: si algún check falla, revisita el módulo enlazado o cambia a demos compartidos Plan B documentados en Developer Hub System `hybrid-mesh-shared-demos`.""",
-    },
-    "agent-browser-recording": {
-        "en": """Agent Browser automations in `verification/agent-browser/` replay workshop flows for CI-style smoke testing — navigating Developer Hub, ACM, and NeuroFace without manual clicks. Recordings support facilitator dry-runs and post-event highlights but are intentionally gitignored (`*.mp4`) per `verification/recording-runbook.md`.
+    "agent-browser-recording": """Agent Browser automations in `verification/agent-browser/` replay workshop flows for CI-style smoke testing — navigating Developer Hub, ACM, and NeuroFace without manual clicks. Recordings support facilitator dry-runs and post-event highlights but are intentionally gitignored (`*.mp4`) per `verification/recording-runbook.md`.
 
 Use Win+G or OBS locally to capture demos; never commit MP4 assets to `platform-hub-spoke-config`. Agent Browser YAML scripts document expected selectors and URLs with `%HUB_DOMAIN%` placeholders for forked environments.
 
 As `%USER_NAME%`, optionally execute a read-only Agent Browser script against your assigned namespaces to validate UI regressions before executive sessions. This module closes the workshop loop: human learners, automated verification, and reproducible demo capture on OpenShift.""",
-        "es": """Las automatizaciones Agent Browser en `verification/agent-browser/` reproducen flujos del taller para smoke testing estilo CI — navegando Developer Hub, ACM y NeuroFace sin clicks manuales. Las grabaciones apoyan dry-runs de facilitadores y highlights post-evento pero están intencionalmente en gitignore (`*.mp4`) según `verification/recording-runbook.md`.
-
-Usa Win+G u OBS localmente para capturar demos; nunca commitees assets MP4 a `platform-hub-spoke-config`. Scripts YAML Agent Browser documentan selectores y URLs esperados con placeholders `%HUB_DOMAIN%` para entornos forked.
-
-Como `%USER_NAME%`, opcionalmente ejecuta un script Agent Browser read-only contra tus namespaces asignados para validar regresiones UI antes de sesiones ejecutivas. Este módulo cierra el loop del taller: aprendices humanos, verificación automatizada y captura de demo reproducible en OpenShift.""",
-    },
 }
 
 SHOW_TELL_EN: dict[str, str] = {

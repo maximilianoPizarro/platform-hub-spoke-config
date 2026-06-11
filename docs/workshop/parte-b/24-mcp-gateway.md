@@ -20,6 +20,25 @@ nav_order: 15
 
 **Hands-on (~30 min):** Developer Hub **/lightspeed** — activity: "List Argo CD apps in OutOfSync state and suggest sync." Llama-stack uses `remote::mcp` to gateway (`components/developer-hub/files/lightspeed/llama-stack-run.yaml`).
 
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/mcp-gateway/templates/mcp-server-registration.yaml
+apiVersion: kuadrant.io/v1alpha1
+kind: MCPServerRegistration
+metadata:
+  name: argocd-mcp
+  namespace: mcp-system
+spec:
+  url: "http://argocd-mcp-server.mcp-system.svc:8080"
+  description: "Argo CD fleet operations via MCP"
+  tools:
+    - name: list-applications
+    - name: sync-application
+    - name: get-application-health
+----
+
 ### Learn more
 
 ### Learn more

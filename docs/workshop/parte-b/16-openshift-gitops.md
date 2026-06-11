@@ -14,11 +14,37 @@ nav_order: 7
 
 ## Overview
 
-OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories.
+OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.
 
 In this lab, hub Applications under `templates/component-applications.yaml` deploy shared services while spoke Applications (for example Industrial Edge) sync from user Gitea repos created in module 13. ApplicationSet `industrial-edge-spoke` demonstrates matrix generators targeting east/west labels.
 
 Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
+
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# templates/component-applications.yaml (App-of-Apps pattern)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: field-content-{{ .name }}
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .syncWave }}"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config.git
+    path: components/{{ .name }}
+    targetRevision: main
+    helm:
+      valueFiles: [values.yaml]
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+----
 
 ### Learn more
 

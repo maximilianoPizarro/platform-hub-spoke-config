@@ -14,7 +14,7 @@ nav_order: 14
 
 ## Overview
 
-The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **Gateway API** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **Kuadrant** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
+The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **link:https://www.kuadrant.io/docs/[Kuadrant]** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
 
 **Why Kuadrant on OpenShift AI workloads:** Kuadrant extends Gateway API with first-class API management — API keys, usage limits, and policy attachment to routes that front inference services. This matches how platform teams govern REST and gRPC APIs while still allowing data science teams to iterate in OpenShift AI projects. See the Kuadrant documentation for policy CRDs and the Developer Hub Kuadrant plugin for self-service key minting.
 
@@ -36,6 +36,45 @@ curl -sk "https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions" \
 Compare response time and HTTP 429 behavior (if you exceed limits) to a direct call from the **workshop-notebook** in project `ai-%USER_NAME%`. Record which headers prove the request passed through the gateway (auth, rate-limit counters).
 
 **Operations angle:** The same gateway hostname can front additional model routes (embeddings, vision) without changing client apps — add `HTTPRoute` rules and Kuadrant policies in GitOps, sync with Argo CD, validate in module **29 Full verification**.
+
+The configuration is declarative and minimal:
+
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/routes.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: workshop-llm
+  namespace: hub-gateway-system
+spec:
+  parentRefs:
+    - name: hub-gateway
+  hostnames:
+    - "workshop-apis.{{ .Values.deployer.domain }}"
+  rules:
+    - matches:
+        - path: { type: PathPrefix, value: /llm }
+      backendRefs:
+        - name: maas-service
+          namespace: maas-workshop
+          port: 8080
+---
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: workshop-auth
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-llm
+  rules:
+    authentication:
+      api-key:
+        apiKey:
+          selector: {}
+----
 
 ### Learn more
 
