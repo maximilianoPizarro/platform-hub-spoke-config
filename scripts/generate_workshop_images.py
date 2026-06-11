@@ -52,8 +52,8 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     ),
     (
         "03-security-scale-hybrid.png",
-        "Cybersecurity and autoscaling hybrid cloud diagram, shield lock HPA graph factory sensors, ACS and service mesh concept, Red Hat red accent, 16:9 illustration, no text",
-        "",
+        "Defense in depth hybrid security, Kuadrant gateway ACS ambient mesh NetworkPolicy layers hub and spokes, white background Red Hat red accents, 16:9",
+        "ACS-2.png",
     ),
     (
         "04-aws-ai-integration.png",
@@ -103,27 +103,27 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     (
         "17-service-mesh.png",
         "OpenShift Service Mesh ambient mode Kiali service graph mTLS microservices factory apps, 16:9, no text",
-        "product-kiali-service-mesh.png",
+        "product-kiali-service-mesh-2.png",
     ),
     (
         "18-scalability.png",
         "Horizontal Pod Autoscaler HPA Kafka streaming scale sensor spike factory workload, 16:9, no text",
-        "",
+        "kairos-observability.png",
     ),
     (
         "19-network-policies.png",
         "Kubernetes network policy microsegmentation allowed denied traffic paths OVN factory namespace, 16:9, no text",
-        "",
+        "arch-spoke-gateway.png",
     ),
     (
         "20-acs-kuadrant.png",
         "Red Hat ACS security shield and Kuadrant API gateway keys rate limits, combined illustration, 16:9, no text",
-        "ACS.png",
+        "ACS-2.png",
     ),
     (
         "21-finops-kubecost.png",
         "FinOps Kubecost Kubernetes cost allocation charts namespace spend, teal red, 16:9, no text",
-        "kubecost.png",
+        "kubecost-2.png",
     ),
     (
         "22-openshift-ai.png",
@@ -138,27 +138,27 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     (
         "24-mcp-gateway.png",
         "Model Context Protocol MCP gateway federated tools ArgoCD Kubernetes developer AI assistant, 16:9, no text",
-        "",
+        "kairos-ia-agents.png",
     ),
     (
         "25-llm-rag.png",
         "LLM RAG retrieval augmented generation vector database factory runbooks OpenShift AI, 16:9, no text",
-        "",
+        "openshift-ia.png",
     ),
     (
         "27-neuroface.png",
         "NeuroFace AI webcam face detection dashboard chat MaaS factory operator UI, 16:9, no text",
-        "",
+        "openshift-ia.png",
     ),
     (
         "28-ai-end-user-apps.png",
         "End user factory operator dashboard mobile alerts line dashboard AI insights embedded manufacturing UX, 16:9, no text",
-        "",
+        "industrial-edge.png",
     ),
     (
         "29-full-verification.png",
         "Full stack verification checklist workshop graduation green checks OpenShift multicluster AI, 16:9, no text",
-        "",
+        "arch-overview.png",
     ),
 ]
 
