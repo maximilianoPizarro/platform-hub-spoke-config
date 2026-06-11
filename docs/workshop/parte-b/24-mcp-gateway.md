@@ -9,7 +9,7 @@ nav_order: 15
 # MCP Gateway + Lightspeed
 
 
-![MCP Gateway federated tools]({{ site.baseurl }}/assets/images/workshop/24-mcp-gateway.png)
+![MCP Gateway — federated Argo CD and Kubernetes tools for Lightspeed]({{ site.baseurl }}/assets/images/workshop/24-mcp-gateway.png)
 {: .mb-4 }
 
 ## Overview

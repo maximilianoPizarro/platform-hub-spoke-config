@@ -9,7 +9,7 @@ nav_order: 9
 # Scalability HPA Kafka
 
 
-![HPA and Kafka scalability]({{ site.baseurl }}/assets/images/workshop/18-scalability.png)
+![Three-tier scaling — Kairos nodes, HPA pods, Kafka buffering]({{ site.baseurl }}/assets/images/workshop/18-scalability.png)
 {: .mb-4 }
 
 ## Overview

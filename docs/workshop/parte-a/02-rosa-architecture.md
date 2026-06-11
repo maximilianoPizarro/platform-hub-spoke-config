@@ -9,7 +9,7 @@ nav_order: 2
 # ROSA Architecture & Benefits
 
 
-![ROSA and OpenShift hub-spoke architecture]({{ site.baseurl }}/assets/images/workshop/02-rosa-architecture.png)
+![Red Hat OpenShift hub-spoke topology — same fleet pattern as ROSA + ACM in production]({{ site.baseurl }}/assets/images/workshop/02-rosa-architecture.png)
 {: .mb-4 }
 
 ## Overview

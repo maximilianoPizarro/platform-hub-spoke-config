@@ -9,7 +9,7 @@ nav_order: 1
 # Hybrid Cloud Strategy
 
 
-![Hybrid cloud strategy overview]({{ site.baseurl }}/assets/images/workshop/01-hybrid-strategy.png)
+![Hybrid Mesh AI platform — centralized hub, edge and cloud spokes]({{ site.baseurl }}/assets/images/workshop/01-hybrid-strategy.png)
 {: .mb-4 }
 
 ## Overview

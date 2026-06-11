@@ -9,7 +9,7 @@ nav_order: 10
 # Network Policies
 
 
-![Network policies workshop demo]({{ site.baseurl }}/assets/images/workshop/19-network-policies.png)
+![OVN-Kubernetes NetworkPolicy micro-segmentation for IE dashboard]({{ site.baseurl }}/assets/images/workshop/19-network-policies.png)
 {: .mb-4 }
 
 ## Overview

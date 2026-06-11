@@ -811,4 +811,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if "--docs-only" in sys.argv:
+        write_github_pages()
+    else:
+        main()

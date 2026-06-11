@@ -9,7 +9,7 @@ nav_order: 19
 # AI in End-User Apps
 
 
-![AI in end-user applications]({{ site.baseurl }}/assets/images/workshop/28-ai-end-user-apps.png)
+![AI embedded in factory operator apps — dashboard and alerts]({{ site.baseurl }}/assets/images/workshop/28-ai-end-user-apps.png)
 {: .mb-4 }
 
 ## Overview

@@ -9,7 +9,7 @@ nav_order: 4
 # AWS Services & AI Integration
 
 
-![AWS and AI integration on OpenShift]({{ site.baseurl }}/assets/images/workshop/04-aws-ai-integration.png)
+![OpenShift AI inference architecture — portable alternative to Bedrock and SageMaker]({{ site.baseurl }}/assets/images/workshop/04-aws-ai-integration.png)
 {: .mb-4 }
 
 ## Overview

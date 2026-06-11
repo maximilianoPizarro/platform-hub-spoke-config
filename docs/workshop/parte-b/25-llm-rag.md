@@ -9,7 +9,7 @@ nav_order: 16
 # LLMs & RAG
 
 
-![LLM and RAG with MaaS]({{ site.baseurl }}/assets/images/workshop/25-llm-rag.png)
+![LLM + RAG — factory runbooks via governed MaaS]({{ site.baseurl }}/assets/images/workshop/25-llm-rag.png)
 {: .mb-4 }
 
 ## Overview

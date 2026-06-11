@@ -9,7 +9,7 @@ nav_order: 2
 # Hybrid Mesh Architecture
 
 
-![Hybrid mesh traffic flow hub to spokes]({{ site.baseurl }}/assets/images/workshop/11-hybrid-mesh.png)
+![Hybrid mesh — Gateway API on hub, Skupper tunnels to spoke services]({{ site.baseurl }}/assets/images/workshop/11-hybrid-mesh.png)
 {: .mb-4 }
 
 ## Overview

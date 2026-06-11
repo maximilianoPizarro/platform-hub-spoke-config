@@ -9,7 +9,7 @@ nav_order: 18
 # Face & Object AI + Chat
 
 
-![NeuroFace AI dashboard with webcam and chat]({{ site.baseurl }}/assets/images/workshop/27-neuroface.png)
+![NeuroFace — OVMS vision plus MaaS chat for factory operators]({{ site.baseurl }}/assets/images/workshop/27-neuroface.png)
 {: .mb-4 }
 
 ## Overview

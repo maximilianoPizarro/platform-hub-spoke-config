@@ -9,7 +9,7 @@ nav_order: 1
 # Multicluster Fleet & ACM
 
 
-![ACM multicluster fleet management]({{ site.baseurl }}/assets/images/workshop/10-acm-multicluster.png)
+![ACM multicluster fleet — hub governing east and west OpenShift spokes]({{ site.baseurl }}/assets/images/workshop/10-acm-multicluster.png)
 {: .mb-4 }
 
 ## Overview

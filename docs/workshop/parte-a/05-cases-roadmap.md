@@ -9,7 +9,7 @@ nav_order: 5
 # Real Cases & Roadmap
 
 
-![Customer cases and workshop roadmap]({{ site.baseurl }}/assets/images/workshop/05-cases-roadmap.png)
+![Industrial Edge data flow — factory sensors through Kafka to dashboards and AI]({{ site.baseurl }}/assets/images/workshop/05-cases-roadmap.png)
 {: .mb-4 }
 
 ## Overview

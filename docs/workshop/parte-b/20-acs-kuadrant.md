@@ -9,7 +9,7 @@ nav_order: 11
 # ACS & Connectivity Link
 
 
-![ACS and Kuadrant API security]({{ site.baseurl }}/assets/images/workshop/20-acs-kuadrant.png)
+![ACS runtime security plus Kuadrant API management at hub gateway]({{ site.baseurl }}/assets/images/workshop/20-acs-kuadrant.png)
 {: .mb-4 }
 
 ## Overview

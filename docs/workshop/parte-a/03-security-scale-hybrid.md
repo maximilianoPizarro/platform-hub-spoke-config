@@ -9,7 +9,7 @@ nav_order: 3
 # Security & Scale in Hybrid
 
 
-![Hybrid cloud security and scale]({{ site.baseurl }}/assets/images/workshop/03-security-scale-hybrid.png)
+![Defense in depth — Kuadrant, ambient mesh, ACS, and NetworkPolicy]({{ site.baseurl }}/assets/images/workshop/03-security-scale-hybrid.png)
 {: .mb-4 }
 
 ## Overview
