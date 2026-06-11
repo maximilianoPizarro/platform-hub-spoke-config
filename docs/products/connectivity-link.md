@@ -7,7 +7,7 @@ nav_order: 6
 
 # Connectivity Link
 
-**Connectivity Link** brings multi-cluster ingress and policy using **Kubernetes Gateway API** with **Kuadrant**-family controllers for DNS, TLS, rate limiting, and auth patterns.
+**Red Hat Connectivity Link (RHCL)** is an Application Foundation bundle that brings multi-cluster ingress and API policy using **Kubernetes Gateway API** with **Kuadrant** controllers (installed via `components/rhcl-operator/`). Kuadrant CRDs such as **APIProduct**, **AuthPolicy**, **PlanPolicy**, and **TokenRateLimitPolicy** are part of RHCL — not a separate product alongside it.
 
 ![Connectivity Link – Policy Topology]({{ site.baseurl }}/assets/images/connectivity-link-hub.png)
 {: .mb-4 }
@@ -40,7 +40,7 @@ nav_order: 6
 
 ## Operator discovery
 
-Connectivity Link / Kuadrant controllers reconcile **Gateway API** **`Gateway`**, **`HTTPRoute`**, **`GatewayClass`**, plus Kuadrant **`DNSPolicy`**, **`TLSPolicy`**, **`AuthPolicy`**, **`RateLimitPolicy`** pairs explicitly referenced in manifests — controllers watch clusters via operator subscriptions (`components/rhcl-operator`), **not** via blanket Deployment annotations.
+Connectivity Link (RHCL) / Kuadrant controllers reconcile **Gateway API** **`Gateway`**, **`HTTPRoute`**, **`GatewayClass`**, plus Kuadrant **`DNSPolicy`**, **`TLSPolicy`**, **`AuthPolicy`**, **`PlanPolicy`**, **`TokenRateLimitPolicy`**, and **`APIProduct`** — controllers watch clusters via operator subscriptions (`components/rhcl-operator`), **not** via blanket Deployment annotations.
 
 Typical hub/spoke wiring attaches **`HTTPRoute`** `spec.parentRefs` to Gateway objects (`hub-gateway-system`, …); verify reconciliation by inspecting **`Gateway`** status conditions rather than Pod labels alone.
 

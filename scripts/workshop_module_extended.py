@@ -134,7 +134,7 @@ az aro list --output table
 
 * ACS Central for image/runtime policy across hub and spokes.
 * OVN-Kubernetes NetworkPolicies on spokes; mesh ambient on app namespaces.
-* Kuadrant rate limits at hub ingress before traffic reaches OT backends.
+* Kuadrant (via RHCL) rate limits at hub ingress before traffic reaches OT backends.
 
 === Business benefits
 
@@ -424,8 +424,8 @@ az aks nodepool add --resource-group rg-workshop --cluster-name factory-east --n
 === Key features
 
 * **ACS Central** — vulnerability and runtime policy for containers across fleet.
-* **Kuadrant** — API keys, AuthPolicy, rate limits on `workshop-apis` routes.
-* Developer Hub Kuadrant plugin for self-service key minting.
+* **Connectivity Link (RHCL)** — Kuadrant APIProduct, AuthPolicy, PlanPolicy, TokenRateLimitPolicy on `workshop-apis` routes.
+* Developer Hub Kuadrant plugin for self-service key minting (RHCL-backed).
 
 === Business benefits
 

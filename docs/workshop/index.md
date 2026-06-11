@@ -145,9 +145,9 @@ Any application that speaks the OpenAI REST API can consume MaaS without code ch
 
 
 
-## Kuadrant API gateway
+## Connectivity Link — API management
 
-Kuadrant manages API rate limiting and auth policies across the hub gateway. Each workshop user gets their own API key scoped to a plan:
+**Red Hat Connectivity Link (RHCL)** is an Application Foundation bundle (operator in `components/rhcl-operator/`) that includes **Kuadrant** controllers for Gateway API ingress and API management. Workshop policies live in `components/workshop-kuadrant-apis/`. Each workshop user gets an API key scoped to a plan:
 
 ```yaml
 # APIProduct — exposes the workshop AI endpoints under a single managed product

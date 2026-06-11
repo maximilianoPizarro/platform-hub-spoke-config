@@ -282,9 +282,9 @@ Any application that speaks the OpenAI REST API can consume MaaS without code ch
 """
 
 INDEX_KUADRANT_EN = """
-== Kuadrant API gateway
+== Connectivity Link — API management
 
-Kuadrant manages API rate limiting and auth policies across the hub gateway. Each workshop user gets their own API key scoped to a plan:
+**Red Hat Connectivity Link (RHCL)** is an Application Foundation bundle (operator in `components/rhcl-operator/`) that includes **Kuadrant** controllers for Gateway API ingress and API management. Workshop policies live in `components/workshop-kuadrant-apis/`. Each workshop user gets an API key scoped to a plan:
 
 [source,yaml]
 ----
@@ -386,8 +386,7 @@ PRODUCT_CATALOG_EN = """
 
 === Red Hat Application Foundation
 * **Apache Camel on Kubernetes** — integrations and CDC pipelines in the Industrial Edge demo.
-* **Connectivity Link** — Gateway API ingress/egress patterns at the hub gateway (Skupper, HTTPRoute, external backends).
-* **Kuadrant** — APIProduct catalog, AuthPolicy, PlanPolicy, and TokenRateLimitPolicy (separate from Connectivity Link).
+* **Red Hat Connectivity Link (RHCL)** — Application Foundation bundle (`components/rhcl-operator/`) that delivers Gateway API ingress and **Kuadrant** API management at the hub: APIProduct catalog, AuthPolicy, PlanPolicy, and TokenRateLimitPolicy. Workshop routes and policies are in `components/workshop-kuadrant-apis/` and `components/hub-gateway/`.
 
 === Red Hat Advanced Developer Suite
 * **Developer Hub (Backstage)** — software catalog, scaffolder templates, and Topology for multicluster views.
@@ -1285,9 +1284,9 @@ spec:
         - { protocol: TCP, port: 8080 }
   policyTypes: [Ingress]
 ----""",
-    "acs-kuadrant": """Red Hat Advanced Cluster Security provides vulnerability scanning, compliance benchmarks, and runtime threat detection across ACM-managed clusters. SecuredCluster agents on spokes report to ACS Central on the hub; init bundles sync via GitOps jobs in `components/acs-init-bundle-sync/`. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policies and link:https://www.kuadrant.io/docs/[Kuadrant documentation] for API management CRDs.
+    "acs-kuadrant": """Red Hat Advanced Cluster Security provides vulnerability scanning, compliance benchmarks, and runtime threat detection across ACM-managed clusters. SecuredCluster agents on spokes report to ACS Central on the hub; init bundles sync via GitOps jobs in `components/acs-init-bundle-sync/`. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policies and link:https://docs.redhat.com/en/documentation/red_hat_connectivity_link/[Connectivity Link documentation] for the RHCL bundle (Kuadrant API management CRDs).
 
-Connectivity Link and Kuadrant extend API management to the hub gateway: AuthPolicy validates tokens, RateLimitPolicy protects backends, and APIProduct publishes Industrial Edge APIs for external consumers. Demo `demo-ie-api-product` in Plan B catalog exposes the same Kuadrant resources without scaffolding.
+**Red Hat Connectivity Link (RHCL)** is a separate Application Foundation bundle — Kuadrant is included, not a standalone product beside it. RHCL extends the hub gateway with APIProduct catalog, AuthPolicy, PlanPolicy, and TokenRateLimitPolicy (`components/workshop-kuadrant-apis/`). Demo `demo-ie-api-product` in Plan B catalog exposes the same resources without scaffolding.
 
 As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct routes through the hub gateway. Remember ACS runs outside ambient mesh — this coexistence pattern is deliberate and matches production ROSA + ACS deployments.""",
     "finops-kubecost": """Kubecost on OpenShift allocates Kubernetes spend by namespace, label, and cluster — federating data from hub primary and spoke agents into MinIO-backed ETL storage. Platform teams charge back factory edge tenants and compare ROSA node costs versus on-prem depreciation using consistent Kubernetes unit economics.
@@ -1351,7 +1350,7 @@ oc get pods -n maas-workshop -l app=ods-maas-mcp-server
 ----
 
 See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.""",
-    "ai-gateway": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **link:https://www.kuadrant.io/docs/[Kuadrant]** policies for authentication, authorization, plan tiers, and token-based rate limiting.
+    "ai-gateway": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **Red Hat Connectivity Link (RHCL)** Kuadrant policies for authentication, authorization, plan tiers, and token-based rate limiting.
 
 Three Kuadrant CRDs in `components/workshop-kuadrant-apis/templates/policies.yaml` govern the MaaS LLM endpoint — all attached to the same `HTTPRoute`:
 

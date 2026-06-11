@@ -177,7 +177,7 @@ See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_secur
 
 * ACS Central for image/runtime policy across hub and spokes.
 * OVN-Kubernetes NetworkPolicies on spokes; mesh ambient on app namespaces.
-* Kuadrant rate limits at hub ingress before traffic reaches OT backends.
+* Kuadrant (via RHCL) rate limits at hub ingress before traffic reaches OT backends.
 
 ### Business benefits
 
