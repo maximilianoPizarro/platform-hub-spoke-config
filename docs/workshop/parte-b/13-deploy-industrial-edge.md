@@ -14,11 +14,96 @@ nav_order: 4
 
 ## Overview
 
-Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. Apache Kafka buffers high-volume sensor topics; Camel K integrations transform and route events; line-dashboard provides operators a live view — all deployed via GitOps to spoke clusters after Developer Hub scaffolding.
+Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. The entire stack is defined in `components/industrial-edge-tst/` and deployed via GitOps to spoke clusters.
 
-Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all` (or your user-scoped equivalent). Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
+*Kafka cluster (KRaft mode):* A single-node KRaft broker with ephemeral storage, plus `temperature` and `vibration` topics for sensor data. Notice the Strimzi annotations and the Prometheus JMX exporter for observability:
 
-This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling. GitOps path: `oc get applications -n openshift-gitops | grep industrial-edge`.
+[source,yaml]
+----
+# components/industrial-edge-tst/templates/kafka-cluster.yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: broker
+  namespace: industrial-edge-tst-all
+  labels:
+    strimzi.io/cluster: dev-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: 1
+  roles: [controller, broker]        # KRaft combined mode — no ZooKeeper
+  storage:
+    type: ephemeral                   # workshop-scale; production uses persistent
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: dev-cluster
+  namespace: industrial-edge-tst-all
+  annotations:
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  kafka:
+    version: 4.2.0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+    metricsConfig:
+      type: jmxPrometheusExporter     # feeds Grafana dashboards (module 15)
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics-config
+          key: kafka-metrics-config.yml
+  entityOperator:
+    topicOperator: {}
+    template:
+      pod:
+        metadata:
+          labels:
+            istio.io/dataplane-mode: none   # entity-operator bypasses ambient mesh
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: temperature
+  namespace: industrial-edge-tst-all
+  labels:
+    strimzi.io/cluster: dev-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  partitions: 1
+  replicas: 1
+----
+
+*Sync-wave ordering:* Broker pool (wave 2) → Kafka cluster (wave 3) → Topics (wave 4) → Sensor deployments (wave 5). Argo CD respects this sequence so topics exist before producers start.
+
+Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all`. Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
+
+This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke.
+
+[source,bash]
+----
+# Verify Kafka cluster is ready
+oc get kafka dev-cluster -n industrial-edge-tst-all -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+
+# Check topics exist
+oc get kafkatopics -n industrial-edge-tst-all
+
+# Confirm line-dashboard is serving
+oc get route -n industrial-edge-tst-all -l app=line-dashboard
+
+# Check Argo CD sync status
+oc get applications -n openshift-gitops | grep industrial-edge
+----
 
 ### Learn more
 

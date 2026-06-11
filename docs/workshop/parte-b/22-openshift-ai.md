@@ -14,30 +14,62 @@ nav_order: 13
 
 ## Overview
 
-OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.
+OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. The configuration lives in `components/openshift-ai-hub/`.
+
+*App-of-Apps valuesObject for OpenShift AI* configures model serving modes, user projects, MCP integration, and available MaaS models — all declarative:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — openshift-ai-hub valuesObject
+helm:
+  valuesObject:
+    clusterDomain: {{ $domain }}
+    userCount: {{ $.Values.userCount | default 50 }}
+    userProjects:
+      enabled: true               # creates ai-user1..ai-userN projects
+      notebook:
+        enabled: true             # pre-provisions workshop-notebook per user
+    dashboardExtensions:
+      enabled: true
+    modelServing:
+      modelMeshEnabled: true      # shared multi-model serving
+      serverlessEnabled: true     # KServe for dedicated single-model
+      defaultDeploymentMode: ModelMesh
+    mcp:
+      enabled: true
+      deployServer: true          # deploys ods-maas-mcp-server in maas-workshop
+    maas:
+      endpoint: {{ $.Values.litemaas.apiUrl }}
+      apiKey: {{ $.Values.litemaas.apiKey }}
+      models:
+        - id: llama-scout-17b
+          displayName: Llama Scout 17B (workshop default)
+        - id: deepseek-r1-distill-qwen-14b
+          displayName: DeepSeek R1 Distill Qwen 14B
+        - id: codellama-7b-instruct
+          displayName: CodeLlama 7B Instruct
+----
 
 **Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
 
 **Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
 
-GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
-
-The configuration is declarative and minimal:
-
-[source,yaml]
+[source,bash]
 ----
-# components/openshift-ai-hub/templates/dsc.yaml
-apiVersion: datasciencecluster.opendatahub.io/v1
-kind: DataScienceCluster
-metadata:
-  name: default-dsc
-spec:
-  components:
-    dashboard: { managementState: Managed }
-    modelmeshserving: { managementState: Managed }
-    kserve: { managementState: Managed }
-    workbenches: { managementState: Managed }
+# Confirm DataScienceCluster is Ready
+oc get dsc default-dsc -o jsonpath='{.status.phase}'
+
+# Check your user project and notebook
+oc get notebook,inferenceservice -n ai-%USER_NAME%
+
+# List available MaaS models
+oc get configmap ods-mcp-server-registration -n maas-workshop -o yaml
+
+# MCP server deployment
+oc get pods -n maas-workshop -l app=ods-maas-mcp-server
 ----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.
 
 ### Learn more
 

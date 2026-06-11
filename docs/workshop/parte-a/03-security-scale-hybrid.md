@@ -14,11 +14,151 @@ nav_order: 3
 
 ## Overview
 
-Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policy details.
+Defense in depth in this lab spans four layers — each controlled by a single YAML manifest in Git:
 
-In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes — note that the `stackrox` namespace deliberately avoids ambient mesh labels so ACS sensors are not disrupted. NetworkPolicy demos in module 19 use OVN on spokes, analogous to security groups plus Kubernetes NP on ROSA. Kuadrant AuthPolicy at the hub gateway shows how API traffic is authenticated and rate-limited before it reaches Industrial Edge backends.
+*Layer 1: Kuadrant AuthPolicy at the hub gateway* — every API request is authenticated before reaching backend services. The annotation `secret.kuadrant.io/plan-id` on the API key Secret determines the user's rate limit tier:
 
-Scaling hybrid fleets means automating placement and capacity: ACM policies, Kairos SmartScalingPolicy, Kafka buffering, and HPA together handle sensor spikes without manual ticket queues. As `%USER_NAME%`, you will observe these controls in modules 14 and 18 on workloads that simulate factory telemetry bursts.
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/policies.yaml
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: workshop-maas-auth
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-maas
+  rules:
+    authentication:
+      api-key-users:
+        apiKey:
+          allNamespaces: true          # keys can live in any namespace
+          selector:
+            matchLabels:
+              app: workshop-maas
+        credentials:
+          authorizationHeader:
+            prefix: APIKEY
+----
+
+*Layer 2: Ambient mesh mTLS (zero config)* — namespaces get automatic encryption when labeled `istio.io/dataplane-mode: ambient`. But notice certain namespaces are deliberately excluded:
+
+[source,yaml]
+----
+# components/namespaces/templates/all.yaml — noMeshNamespaces
+# These namespaces NEVER get istio.io/dataplane-mode=ambient:
+#   - stackrox        (ACS sensors would be disrupted by ztunnel interception)
+#   - gitea           (internal git traffic — no mesh overhead needed)
+#   - redhat-connectivity-link-operator (CrashLoopBackOff on spokes when meshed)
+----
+
+*Layer 3: ACS Central + SecuredCluster* — hub runs Central with auto-scaling image scanner; spokes report via eBPF collector without sidecars:
+
+[source,yaml]
+----
+# components/acs-operator/templates/central.yaml
+apiVersion: platform.stackrox.io/v1alpha1
+kind: Central
+metadata:
+  name: stackrox-central-services
+  namespace: stackrox
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  central:
+    exposure:
+      loadBalancer:
+        enabled: false
+      route:
+        enabled: true             # OCP route for console access
+    persistence:
+      persistentVolumeClaim:
+        claimName: stackrox-db
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 3
+        minReplicas: 1
+    scannerComponent: Enabled
+----
+
+[source,yaml]
+----
+# components/acs-secured-cluster/templates/secured-cluster.yaml
+apiVersion: platform.stackrox.io/v1alpha1
+kind: SecuredCluster
+metadata:
+  name: stackrox-secured-cluster-services
+  namespace: stackrox
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  clusterName: {{ .Values.clusterName }}          # each spoke gets its own identity
+  centralEndpoint: central-stackrox.apps.hub-domain:443
+  admissionControl:
+    listenOnCreates: true
+    listenOnUpdates: true
+    listenOnEvents: true
+  perNode:
+    collector:
+      collection: EBPF   # kernel-level visibility without sidecars
+      imageFlavor: Regular
+    taintToleration: TolerateTaints
+----
+
+*Layer 4: OVN NetworkPolicy* — micro-segmentation at the pod level. Only the ingress controller and sensor pods can reach the dashboard:
+
+[source,yaml]
+----
+# components/workshop-demos/templates/network-policy-demo.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ie-workshop-allow-dashboard
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    workshop.demo/maximilianopizarro: network-policy-module-19
+spec:
+  podSelector:
+    matchLabels:
+      app: line-dashboard
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+      ports: [{protocol: TCP, port: 8080}]
+    - from:
+        - podSelector:
+            matchLabels:
+              app: machine-sensor
+      ports: [{protocol: TCP, port: 8080}]
+----
+
+Each layer is a **single CR in Git**. Argo CD applies them in sync-wave order (3→5→6). No imperative scripts, no manual firewall rules. Verify in the Showroom terminal:
+
+[source,bash]
+----
+# ACS Central pods on hub
+oc get pods -n stackrox -l app=central
+
+# SecuredCluster on spoke
+oc get securedclusters -n stackrox
+
+# NetworkPolicy demo on east
+oc get networkpolicy -n industrial-edge-tst-all
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS docs] and link:https://www.kuadrant.io/docs/[Kuadrant docs].
 
 ### Learn more
 

@@ -14,37 +14,103 @@ nav_order: 7
 
 ## Overview
 
-OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.
+OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke. The **App-of-Apps** pattern in `templates/component-applications.yaml` is the single entry point: one Application per component, each with its own sync-wave, ignoreDifferences, and Helm valuesObject. Platform teams commit desired state to Git; controllers reconcile drift automatically.
 
-In this lab, hub Applications under `templates/component-applications.yaml` deploy shared services while spoke Applications (for example Industrial Edge) sync from user Gitea repos created in module 13. ApplicationSet `industrial-edge-spoke` demonstrates matrix generators targeting east/west labels.
-
-Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
-
-The configuration is declarative and minimal:
+*The App-of-Apps template* iterates `.Values.connectivityLink.apps` and generates one Application per component. Notice the key patterns:
 
 [source,yaml]
 ----
-# templates/component-applications.yaml (App-of-Apps pattern)
+# templates/component-applications.yaml (simplified)
+{{- range .Values.connectivityLink.apps }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: field-content-{{ .name }}
+  name: {{ $.Release.Name }}-{{ .id }}
   namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
   annotations:
-    argocd.argoproj.io/sync-wave: "{{ .syncWave }}"
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}     # controls deployment order
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config.git
-    path: components/{{ .name }}
-    targetRevision: main
-    helm:
-      valueFiles: [values.yaml]
+    repoURL: {{ $.Values.gitops.repoUrl }}
+    targetRevision: {{ $.Values.gitops.revision }}
+    path: components/{{ .path }}                               # each component in its own dir
   destination:
     server: https://kubernetes.default.svc
+    namespace: {{ .destinationNamespace }}
   syncPolicy:
-    automated: { prune: true, selfHeal: true }
+    automated:
+      prune: {{ .prune }}
+      selfHeal: {{ .selfHeal }}         # drift is auto-corrected
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true   # prevents flip-flop on operator-managed fields
+{{- end }}
 ----
+
+*Why `ignoreDifferences` matters:* Operators and controllers mutate fields that would cause perpetual OutOfSync. The template includes a comprehensive list — here are the critical ones:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — ignoreDifferences (excerpt)
+ignoreDifferences:
+  - kind: Service
+    jsonPointers: [/spec/clusterIP, /spec/clusterIPs]
+  - group: route.openshift.io
+    kind: Route
+    jsonPointers: [/spec/host, /status]
+  - kind: Secret
+    jsonPointers: [/data]                   # never drift-check secret values
+  - group: sailoperator.io
+    kind: Istio
+    jsonPointers: [/spec/profile, /status]  # sail operator rewrites profile
+  - group: rhdh.redhat.com
+    kind: Backstage
+    jsonPointers:                            # RHDH operator shrinks spec after sync
+      - /spec/application/appConfig/configMaps
+      - /spec/application/extraFiles
+  - group: cluster.open-cluster-management.io
+    kind: "*"
+    jsonPointers: [/metadata/annotations, /metadata/labels, /status]
+----
+
+*Helm valuesObject per component:* Instead of static `values.yaml`, the template injects cluster-specific values inline. For example, `acm-hub-spoke` receives spoke API URLs and tokens:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — valuesObject for acm-hub-spoke
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        managedClusters:
+          east:
+            apiUrl: {{ $.Values.clusters.east.apiUrl }}
+            domain: {{ $eastDomain }}
+          west:
+            apiUrl: {{ $.Values.clusters.west.apiUrl }}
+            domain: {{ $westDomain }}
+----
+
+Verify GitOps health from the Showroom terminal:
+
+[source,bash]
+----
+# List all hub Applications and their sync status
+oc get applications -n openshift-gitops -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+# Check ApplicationSet for spoke propagation
+oc get applicationsets -n openshift-gitops
+
+# See which components are deployed and their sync waves
+oc get applications -n openshift-gitops -o jsonpath='{range .items[*]}{.metadata.name}{" wave="}{.metadata.annotations.argocd\.argoproj\.io/sync-wave}{"\n"}{end}'
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.
 
 ### Learn more
 

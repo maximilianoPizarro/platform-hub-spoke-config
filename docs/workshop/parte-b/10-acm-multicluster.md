@@ -14,29 +14,140 @@ nav_order: 1
 
 ## Overview
 
-Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.
+Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. The actual CRDs live in `components/acm-hub-spoke/` — three resources wire the entire fleet:
 
-In this lab, open ACM Clusters on the hub and locate east and west — each spoke was bootstrapped from `components/acm-hub-spoke/` GitOps manifests. As `%USER_NAME%`, your workloads land on east by default; Topology in Developer Hub uses OCM APIs to show the same graph ACM displays.
-
-This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
-
-The configuration is declarative and minimal:
+*Step 1: Register spokes as ManagedClusters.* The Helm template iterates `.Values.managedClusters` and creates one `ManagedCluster` + `KlusterletAddonConfig` per spoke:
 
 [source,yaml]
 ----
 # components/acm-hub-spoke/templates/managed-clusters.yaml
+{{- range $name, $cluster := .Values.managedClusters }}
 apiVersion: cluster.open-cluster-management.io/v1
 kind: ManagedCluster
 metadata:
-  name: east
+  name: {{ $name }}               # east, west
   labels:
-    cloud: Amazon
+    name: {{ $name }}
+    region: {{ $name }}
+    cloud: auto-detect
     vendor: OpenShift
-    cluster.open-cluster-management.io/clusterset: workshop
+    cluster.open-cluster-management.io/clusterset: global
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   hubAcceptsClient: true
   leaseDurationSeconds: 60
+---
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  name: {{ $name }}
+  namespace: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  clusterName: {{ $name }}
+  applicationManager:  { enabled: true }
+  certPolicyController: { enabled: true }
+  policyController:    { enabled: true }
+  searchCollector:     { enabled: true }
+{{- end }}
 ----
+
+*Step 2: Placement selects which clusters receive workloads.* Only spokes matching `region: east|west` are selected:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/placement.yaml
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: hub-spoke-placement
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  clusterSets: [global]
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: region
+              operator: In
+              values: [east, west]
+----
+
+*Step 3: GitOpsCluster bridges ACM placement to Argo CD.* This lets hub Argo CD deploy Applications to spoke clusters without manual kubeconfig:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/gitops-cluster.yaml
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: hub-spoke-gitops
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  argoServer:
+    cluster: local-cluster
+    argoNamespace: openshift-gitops
+  placementRef:
+    kind: Placement
+    name: hub-spoke-placement
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+----
+
+*Step 4: ApplicationSet generates spoke Applications automatically.* The `clusterDecisionResource` generator reads ACM placement decisions — when a new spoke joins, its Application appears without editing Git:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/applicationset.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: industrial-edge-spoke
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: hub-spoke-placement
+        requeueAfterSeconds: 180
+  template:
+    spec:
+      source:
+        repoURL: {{ .Values.gitops.repoUrl }}
+        path: '{{name}}'           # east/ or west/ directory
+      destination:
+        name: '{{name}}'           # deploys to that spoke
+      syncPolicy:
+        automated: { selfHeal: true, prune: true }
+----
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# Confirm both spokes are joined and available
+oc get managedclusters
+# NAME   HUB ACCEPTED   MANAGED CLUSTER URLS   JOINED   AVAILABLE
+# east   true           ...                    True     True
+# west   true           ...                    True     True
+
+# Check the GitOpsCluster bridge
+oc get gitopsclusters -n openshift-gitops
+
+# See ApplicationSet-generated spoke Applications
+oc get applicationsets -n openshift-gitops
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.
 
 ### Learn more
 

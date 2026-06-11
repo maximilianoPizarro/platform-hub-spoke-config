@@ -14,11 +14,51 @@ nav_order: 3
 
 ## Overview
 
-Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets. See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.
+Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails already wired. The Developer Hub deployment is configured via `components/developer-hub/` with the App-of-Apps template injecting extensive plugin configuration.
 
-This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails due to quota or Gitea timing, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
+*Developer Hub valuesObject in the App-of-Apps* shows how the platform team configures every plugin declaratively — RBAC, Lightspeed AI, Kuadrant, TechDocs, notifications, and multicluster Kubernetes Topology:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — developer-hub valuesObject (excerpt)
+helm:
+  valuesObject:
+    clusterDomain: {{ $domain }}
+    userCount: {{ $.Values.userCount | default 50 }}
+    plugins:
+      rbac: { enabled: true, policyAdminUser: platformadmin }
+      lightspeed:
+        enabled: true
+        aiModel:
+          apiURL: {{ $.Values.litemaas.apiUrl }}
+          model: {{ $.Values.litemaas.model | default "llama-scout-17b" }}
+      techdocs: { enabled: true }
+      kuadrant: { enabled: true }          # API key self-service (module 23)
+      argocd:   { enabled: true }
+      notificationsEmail: { enabled: true }
+      mcp:      { enabled: true }          # MCP Gateway integration (module 24)
+    kubernetesSpokes:
+      enabled: true
+      east:
+        apiUrl: {{ $.Values.clusters.east.apiUrl }}
+      west:
+        apiUrl: {{ $.Values.clusters.west.apiUrl }}
+----
+
+This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
 
 Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.
+
+[source,bash]
+----
+# List available templates in Developer Hub
+oc get configmaps -n developer-hub -l backstage.io/kind=Template
+
+# Check catalog entities registered by scaffolding
+oc get configmaps -n developer-hub -l backstage.io/kind=Component
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.
 
 ### Learn more
 

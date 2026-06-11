@@ -14,11 +14,81 @@ nav_order: 2
 
 ## Overview
 
-Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with link:https://gateway-api.sigs.k8s.io/[Gateway API] HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
+Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. The hub runs a single **Istio Gateway** that terminates all external traffic; Skupper tunnels carry requests to spoke services. The configuration lives in `components/hub-gateway/`.
 
-In this workshop, the hub gateway terminates external traffic and forwards to Industrial Edge frontends on east/west via Skupper Sites and Connectors defined under `components/service-interconnect/` and `components/hub-gateway/`. This is the lab analogue to ROSA ALB plus private connectivity into factory networks — same OpenShift routes and policies, different underlay.
+*Hub Gateway — the single entry point:* One Istio-class Gateway with a ClusterIP service (no LoadBalancer — OpenShift Routes handle TLS termination upstream):
 
-Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20. Verify with: `oc get httproutes -n hub-gateway-system`.
+[source,yaml]
+----
+# components/hub-gateway/templates/gateway.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: hub-gateway
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    networking.istio.io/service-type: ClusterIP   # OCP Route handles external TLS
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 8080
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same             # only HTTPRoutes in hub-gateway-system can attach
+----
+
+*HTTPRoutes attach to the Gateway* for each backend — IE dashboard, workshop APIs, Kuadrant endpoints. The Kuadrant API routes (module 23) use Istio `Hostname` backendRefs to reach external MaaS without proxy containers:
+
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/routes.yaml (pattern)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: workshop-{{ $name }}
+  namespace: hub-gateway-system
+  labels:
+    kuadrant.io/exposed: "true"
+    workshop.kuadrant.io/external-host: {{ $api.host }}
+spec:
+  parentRefs:
+    - name: hub-gateway
+      namespace: hub-gateway-system
+  hostnames: ["workshop-apis.{{ $hostname }}"]
+  rules:
+    - matches:
+        - path: { type: PathPrefix, value: {{ $api.pathPrefix }} }
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: {{ $api.host }}     # TLS origination via ServiceEntry
+      backendRefs:
+        - group: networking.istio.io
+          kind: Hostname
+          name: {{ $api.host }}
+          port: 443
+----
+
+*Skupper Sites and Connectors* in `components/service-interconnect/` bridge the hub-gateway-system to spoke namespaces, carrying traffic for IE frontends, Kafka Console, and cross-cluster observability — all encrypted over the Skupper tunnel without VPC peering.
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# List all HTTPRoutes attached to the hub gateway
+oc get httproutes -n hub-gateway-system
+
+# Check the Gateway status and attached routes
+oc get gateway hub-gateway -n hub-gateway-system -o yaml | grep -A5 conditions
+
+# Skupper status
+oc get sites,connectors,listeners -n service-interconnect
+----
+
+Understanding this layer explains why Kuadrant policies (module 20/23) attach at the hub gateway and why Industrial Edge traffic (module 13) flows through Skupper.
 
 ### Learn more
 

@@ -14,11 +14,94 @@ nav_order: 5
 
 ## Overview
 
-Kairos Community on OpenShift analyzes workload metrics and recommends node or machine set adjustments through SmartScalingPolicy resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). Operators approve recommendations in Kairos Console, preserving human oversight for factory edge sites where sudden scale-down is risky.
+Kairos Community on OpenShift analyzes workload metrics and recommends resource adjustments through `SmartScalingPolicy` resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). The policies live in `components/kairos/templates/sensor-scan-policies.yaml`.
 
-In this lab, the sensor-scan policy watches Industrial Edge metrics and proposes scaling when scan rates spike — analogous to ROSA MachineSet autoscaling triggered by custom CloudWatch metrics. Pair this module with module 18 (HPA + Kafka) to show two layers: pods scale horizontally while Kairos evaluates node capacity.
+*SmartScalingPolicy for sensor workloads:* Two policies monitor `machine-sensor-1` and `machine-sensor-2` deployments, each with CPU and memory rules that trigger resource increases with cooldown periods:
 
-Open Kairos Console from the OpenShift menu, locate pending recommendations tied to `%USER_NAME%` namespaces, and approve or discuss trade-offs with the facilitator. Run `oc get smartscalingpolicy -A` to correlate CRDs with UI actions.
+[source,yaml]
+----
+# components/kairos/templates/sensor-scan-policies.yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: SmartScalingPolicy
+metadata:
+  name: scan-policy-machine-sensor-1
+  namespace: kairos-system
+  labels:
+    kairos.io/policy-type: sensor-scan
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  scope: cluster
+  target:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: machine-sensor-1
+    namespace: industrial-edge-tst-all
+  otelEndpoint: "..."                  # OpenTelemetry collector on spoke
+  prometheusEndpoint: "..."            # Prometheus metrics for analysis
+  rules:
+    - name: sensor-cpu-hot
+      when:
+        metric: container_cpu_usage_seconds_total
+        operator: GreaterThan
+        threshold: "70"                # 70% CPU triggers action
+        for: 2m                        # sustained for 2 minutes
+      action:
+        type: IncreaseResources
+        increaseCPUPercent: 25         # bump CPU limit by 25%
+        maxCPU: "1"                    # never exceed 1 core
+        cooldown: 5m                   # wait 5 min before re-evaluating
+    - name: sensor-memory-hot
+      when:
+        metric: container_memory_working_set_bytes
+        operator: GreaterThan
+        threshold: "80"
+        for: 2m
+      action:
+        type: IncreaseResources
+        increaseMemoryPercent: 20
+        maxMemory: 1Gi
+        cooldown: 5m
+  ai:
+    enabled: true                      # AI-assisted recommendations
+  paused: false
+----
+
+*Kairos Console:* The console is deployed on the hub via `KairosConsole` CR — operators approve or reject recommendations through a web UI:
+
+[source,yaml]
+----
+# components/kairos/templates/kairos-console.yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: KairosConsole
+metadata:
+  name: kairos-console
+  namespace: kairos-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  replicas: 1
+  route:
+    enabled: true
+    host: "kairos-console-kairos-system.{{ .Values.clusterDomain }}"
+    tlsEnabled: true
+----
+
+*Hub mirror:* The App-of-Apps template passes `sensorScanPolicies.displayOnHub: true` so the hub Kairos Console can visualize spoke policy status without requiring direct spoke access — matching how ROSA customers centralize capacity decisions.
+
+Pair this module with module 18 (HPA + Kafka) to show two layers: pods scale horizontally while Kairos evaluates resource limits.
+
+[source,bash]
+----
+# List all SmartScalingPolicies across clusters
+oc get smartscalingpolicy -A
+
+# Check Kairos Console route
+oc get route -n kairos-system
+
+# See policy recommendations
+oc describe smartscalingpolicy scan-policy-machine-sensor-1 -n kairos-system
+----
 
 ### Learn more
 

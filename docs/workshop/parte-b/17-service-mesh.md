@@ -14,30 +14,137 @@ nav_order: 8
 
 ## Overview
 
-OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.
+OpenShift Service Mesh 3 uses ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars. The entire mesh stack is defined in `components/servicemeshoperator3/templates/all.yaml` — three CRDs deploy the control plane, CNI, and ztunnel:
 
-In this workshop, OSSM3 is subscribed via `components/operators/templates/servicemeshoperator3.yaml` and configured for ambient dataplane mode on IE namespaces — excluding `stackrox` where ACS requires direct network visibility. Compare this to ROSA deployments using App Mesh or third-party meshes: OpenShift keeps mesh CRDs and policies native to the platform lifecycle.
-
-Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
-
-The configuration is declarative and minimal:
+*Istio control plane (ambient profile):*
 
 [source,yaml]
 ----
-# components/servicemeshoperator3/templates/istio.yaml
-apiVersion: sailoperator.io/v1alpha1
+# components/servicemeshoperator3/templates/all.yaml
+apiVersion: sailoperator.io/v1
 kind: Istio
 metadata:
   name: default
   namespace: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
-  version: v1.24.3
   namespace: istio-system
+  profile: ambient                        # no sidecars — ztunnel handles mTLS
   values:
     pilot:
       env:
-        ENABLE_AMBIENT: "true"
+        PILOT_ENABLE_AMBIENT: "true"
+      trustedZtunnelNamespace: ztunnel
+    global:
+      platform: openshift
+    meshConfig:
+      extensionProviders:
+        - name: otel-tracing              # feeds distributed tracing (module 15)
+          opentelemetry:
+            service: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local
+            port: 4317
 ----
+
+*IstioCNI + ZTunnel:* CNI configures iptables interception; ZTunnel runs as a DaemonSet handling L4 mTLS:
+
+[source,yaml]
+----
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+  namespace: istio-cni
+spec:
+  profile: ambient
+  values:
+    cni:
+      ambient:
+        reconcileIptablesOnStartup: true   # ensures clean iptables on node restart
+---
+apiVersion: sailoperator.io/v1
+kind: ZTunnel
+metadata:
+  name: default
+  namespace: ztunnel
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  namespace: ztunnel
+----
+
+*Namespace enrollment:* Namespaces are labeled `istio.io/dataplane-mode: ambient` at sync-wave 2 — **after** the control plane is ready (wave 1). This prevents pods from starting before ztunnel can configure HBONE (port 15008):
+
+[source,yaml]
+----
+# Applied to: hub-gateway-system, developer-hub, industrial-edge-tst-all (spokes), etc.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hub-gateway-system
+  labels:
+    istio.io/dataplane-mode: ambient      # automatic mTLS — zero app changes
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+----
+
+*Waypoint proxies* add L7 policy where needed (AuthorizationPolicy, traffic splitting):
+
+[source,yaml]
+----
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: hub-gateway-system-waypoint
+  namespace: hub-gateway-system
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+----
+
+*Kafka PeerAuthentication bypass:* Strimzi brokers need permissive mTLS on inter-broker port 9092 so Kafka replication works alongside ambient mesh:
+
+[source,yaml]
+----
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: kafka-strimzi-bypass
+  namespace: industrial-edge-tst-all
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: dev-cluster
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9091: { mode: DISABLE }         # Strimzi admin port
+    9092: { mode: PERMISSIVE }      # Kafka broker plain listener
+----
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# Istio control plane status
+oc get istio -n istio-system
+
+# ZTunnel DaemonSet running on all nodes
+oc get ztunnel -n ztunnel
+
+# Which namespaces are meshed
+oc get ns -l istio.io/dataplane-mode=ambient
+
+# Waypoint proxies
+oc get gateways -A -l istio.io/waypoint-for=service
+----
+
+Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.
 
 ### Learn more
 

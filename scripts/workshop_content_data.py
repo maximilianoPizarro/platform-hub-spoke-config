@@ -433,11 +433,151 @@ Executives should note that OpenShift avoids replatforming twice: microservices,
 This workshop's hub-spoke layout maps cleanly to ROSA concepts: the hub is your fleet management cluster (like an ACM hub on ROSA), spokes are regional or edge clusters importing via ManagedCluster resources. You will inspect `ManagedCluster` objects and GitOpsCluster links in module 10 — the same CRDs a ROSA customer uses when joining factory edge clusters to a central governance hub.
 
 Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[ROSA documentation] for architecture and planning guides.""",
-    "security-scale-hybrid": """Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policy details.
+    "security-scale-hybrid": """Defense in depth in this lab spans four layers — each controlled by a single YAML manifest in Git:
 
-In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes — note that the `stackrox` namespace deliberately avoids ambient mesh labels so ACS sensors are not disrupted. NetworkPolicy demos in module 19 use OVN on spokes, analogous to security groups plus Kubernetes NP on ROSA. Kuadrant AuthPolicy at the hub gateway shows how API traffic is authenticated and rate-limited before it reaches Industrial Edge backends.
+*Layer 1: Kuadrant AuthPolicy at the hub gateway* — every API request is authenticated before reaching backend services. The annotation `secret.kuadrant.io/plan-id` on the API key Secret determines the user's rate limit tier:
 
-Scaling hybrid fleets means automating placement and capacity: ACM policies, Kairos SmartScalingPolicy, Kafka buffering, and HPA together handle sensor spikes without manual ticket queues. As `%USER_NAME%`, you will observe these controls in modules 14 and 18 on workloads that simulate factory telemetry bursts.""",
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/policies.yaml
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
+metadata:
+  name: workshop-maas-auth
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-maas
+  rules:
+    authentication:
+      api-key-users:
+        apiKey:
+          allNamespaces: true          # keys can live in any namespace
+          selector:
+            matchLabels:
+              app: workshop-maas
+        credentials:
+          authorizationHeader:
+            prefix: APIKEY
+----
+
+*Layer 2: Ambient mesh mTLS (zero config)* — namespaces get automatic encryption when labeled `istio.io/dataplane-mode: ambient`. But notice certain namespaces are deliberately excluded:
+
+[source,yaml]
+----
+# components/namespaces/templates/all.yaml — noMeshNamespaces
+# These namespaces NEVER get istio.io/dataplane-mode=ambient:
+#   - stackrox        (ACS sensors would be disrupted by ztunnel interception)
+#   - gitea           (internal git traffic — no mesh overhead needed)
+#   - redhat-connectivity-link-operator (CrashLoopBackOff on spokes when meshed)
+----
+
+*Layer 3: ACS Central + SecuredCluster* — hub runs Central with auto-scaling image scanner; spokes report via eBPF collector without sidecars:
+
+[source,yaml]
+----
+# components/acs-operator/templates/central.yaml
+apiVersion: platform.stackrox.io/v1alpha1
+kind: Central
+metadata:
+  name: stackrox-central-services
+  namespace: stackrox
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  central:
+    exposure:
+      loadBalancer:
+        enabled: false
+      route:
+        enabled: true             # OCP route for console access
+    persistence:
+      persistentVolumeClaim:
+        claimName: stackrox-db
+  scanner:
+    analyzer:
+      scaling:
+        autoScaling: Enabled
+        maxReplicas: 3
+        minReplicas: 1
+    scannerComponent: Enabled
+----
+
+[source,yaml]
+----
+# components/acs-secured-cluster/templates/secured-cluster.yaml
+apiVersion: platform.stackrox.io/v1alpha1
+kind: SecuredCluster
+metadata:
+  name: stackrox-secured-cluster-services
+  namespace: stackrox
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  clusterName: {{ .Values.clusterName }}          # each spoke gets its own identity
+  centralEndpoint: central-stackrox.apps.hub-domain:443
+  admissionControl:
+    listenOnCreates: true
+    listenOnUpdates: true
+    listenOnEvents: true
+  perNode:
+    collector:
+      collection: EBPF   # kernel-level visibility without sidecars
+      imageFlavor: Regular
+    taintToleration: TolerateTaints
+----
+
+*Layer 4: OVN NetworkPolicy* — micro-segmentation at the pod level. Only the ingress controller and sensor pods can reach the dashboard:
+
+[source,yaml]
+----
+# components/workshop-demos/templates/network-policy-demo.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ie-workshop-allow-dashboard
+  namespace: industrial-edge-tst-all
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+    workshop.demo/maximilianopizarro: network-policy-module-19
+spec:
+  podSelector:
+    matchLabels:
+      app: line-dashboard
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: openshift-ingress
+      ports: [{protocol: TCP, port: 8080}]
+    - from:
+        - podSelector:
+            matchLabels:
+              app: machine-sensor
+      ports: [{protocol: TCP, port: 8080}]
+----
+
+Each layer is a **single CR in Git**. Argo CD applies them in sync-wave order (3→5→6). No imperative scripts, no manual firewall rules. Verify in the Showroom terminal:
+
+[source,bash]
+----
+# ACS Central pods on hub
+oc get pods -n stackrox -l app=central
+
+# SecuredCluster on spoke
+oc get securedclusters -n stackrox
+
+# NetworkPolicy demo on east
+oc get networkpolicy -n industrial-edge-tst-all
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS docs] and link:https://www.kuadrant.io/docs/[Kuadrant docs].""",
     "aws-ai-integration": """AWS customers often pair ROSA with native AI services — Amazon Bedrock for foundation models, SageMaker for training pipelines, and IAM OIDC for secure workload identity. Red Hat's hybrid approach keeps inference and data pipelines on OpenShift AI while still allowing optional AWS service integration via credentials and external endpoints where policy permits.
 
 This workshop intentionally substitutes OpenShift AI plus Model-as-a-Service (MaaS) for Bedrock/SageMaker so you experience a portable pattern: a `DataScienceCluster` on the hub, shared LLM endpoint, and consumer apps (NeuroFace, Developer Hub Lightspeed) on spokes. The secret `openshift-ai-maas-credentials` and MaaS base URL mirror how production teams centralize model access instead of embedding API keys in every deployment.
@@ -448,109 +588,671 @@ Module 22 onward activates this stack hands-on. Executives should recognize that
 That customer roadmap led to OpenShift AI for predictive maintenance models and Developer Hub templates so each plant could scaffold compliant pipelines without shadow IT. This workshop reproduces that journey at lab scale: modules 13–18 deploy IE on spoke east/west, modules 22–26 add MaaS and NeuroFace, module 21 adds Kubecost chargeback by namespace.
 
 Your next step is Part B registration verification — ensure `%USER_NAME%` works in Showroom, then proceed to module 10 for ACM fleet visibility. Plan B shared demos remain available if your scaffold slot is unavailable.""",
-    "acm-multicluster": """Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.
+    "acm-multicluster": """Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. The actual CRDs live in `components/acm-hub-spoke/` — three resources wire the entire fleet:
 
-In this lab, open ACM Clusters on the hub and locate east and west — each spoke was bootstrapped from `components/acm-hub-spoke/` GitOps manifests. As `%USER_NAME%`, your workloads land on east by default; Topology in Developer Hub uses OCM APIs to show the same graph ACM displays.
-
-This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
-
-The configuration is declarative and minimal:
+*Step 1: Register spokes as ManagedClusters.* The Helm template iterates `.Values.managedClusters` and creates one `ManagedCluster` + `KlusterletAddonConfig` per spoke:
 
 [source,yaml]
 ----
 # components/acm-hub-spoke/templates/managed-clusters.yaml
+{{- range $name, $cluster := .Values.managedClusters }}
 apiVersion: cluster.open-cluster-management.io/v1
 kind: ManagedCluster
 metadata:
-  name: east
+  name: {{ $name }}               # east, west
   labels:
-    cloud: Amazon
+    name: {{ $name }}
+    region: {{ $name }}
+    cloud: auto-detect
     vendor: OpenShift
-    cluster.open-cluster-management.io/clusterset: workshop
+    cluster.open-cluster-management.io/clusterset: global
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   hubAcceptsClient: true
   leaseDurationSeconds: 60
+---
+apiVersion: agent.open-cluster-management.io/v1
+kind: KlusterletAddonConfig
+metadata:
+  name: {{ $name }}
+  namespace: {{ $name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  clusterName: {{ $name }}
+  applicationManager:  { enabled: true }
+  certPolicyController: { enabled: true }
+  policyController:    { enabled: true }
+  searchCollector:     { enabled: true }
+{{- end }}
+----
+
+*Step 2: Placement selects which clusters receive workloads.* Only spokes matching `region: east|west` are selected:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/placement.yaml
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: hub-spoke-placement
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  clusterSets: [global]
+  predicates:
+    - requiredClusterSelector:
+        labelSelector:
+          matchExpressions:
+            - key: region
+              operator: In
+              values: [east, west]
+----
+
+*Step 3: GitOpsCluster bridges ACM placement to Argo CD.* This lets hub Argo CD deploy Applications to spoke clusters without manual kubeconfig:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/gitops-cluster.yaml
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: hub-spoke-gitops
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  argoServer:
+    cluster: local-cluster
+    argoNamespace: openshift-gitops
+  placementRef:
+    kind: Placement
+    name: hub-spoke-placement
+    apiVersion: cluster.open-cluster-management.io/v1beta1
+----
+
+*Step 4: ApplicationSet generates spoke Applications automatically.* The `clusterDecisionResource` generator reads ACM placement decisions — when a new spoke joins, its Application appears without editing Git:
+
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/applicationset.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: industrial-edge-spoke
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  generators:
+    - clusterDecisionResource:
+        configMapRef: acm-placement
+        labelSelector:
+          matchLabels:
+            cluster.open-cluster-management.io/placement: hub-spoke-placement
+        requeueAfterSeconds: 180
+  template:
+    spec:
+      source:
+        repoURL: {{ .Values.gitops.repoUrl }}
+        path: '{{name}}'           # east/ or west/ directory
+      destination:
+        name: '{{name}}'           # deploys to that spoke
+      syncPolicy:
+        automated: { selfHeal: true, prune: true }
+----
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# Confirm both spokes are joined and available
+oc get managedclusters
+# NAME   HUB ACCEPTED   MANAGED CLUSTER URLS   JOINED   AVAILABLE
+# east   true           ...                    True     True
+# west   true           ...                    True     True
+
+# Check the GitOpsCluster bridge
+oc get gitopsclusters -n openshift-gitops
+
+# See ApplicationSet-generated spoke Applications
+oc get applicationsets -n openshift-gitops
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.""",
+    "hybrid-mesh-architecture": """Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. The hub runs a single **Istio Gateway** that terminates all external traffic; Skupper tunnels carry requests to spoke services. The configuration lives in `components/hub-gateway/`.
+
+*Hub Gateway — the single entry point:* One Istio-class Gateway with a ClusterIP service (no LoadBalancer — OpenShift Routes handle TLS termination upstream):
+
+[source,yaml]
+----
+# components/hub-gateway/templates/gateway.yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: hub-gateway
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    networking.istio.io/service-type: ClusterIP   # OCP Route handles external TLS
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 8080
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same             # only HTTPRoutes in hub-gateway-system can attach
+----
+
+*HTTPRoutes attach to the Gateway* for each backend — IE dashboard, workshop APIs, Kuadrant endpoints. The Kuadrant API routes (module 23) use Istio `Hostname` backendRefs to reach external MaaS without proxy containers:
+
+[source,yaml]
+----
+# components/workshop-kuadrant-apis/templates/routes.yaml (pattern)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: workshop-{{ $name }}
+  namespace: hub-gateway-system
+  labels:
+    kuadrant.io/exposed: "true"
+    workshop.kuadrant.io/external-host: {{ $api.host }}
+spec:
+  parentRefs:
+    - name: hub-gateway
+      namespace: hub-gateway-system
+  hostnames: ["workshop-apis.{{ $hostname }}"]
+  rules:
+    - matches:
+        - path: { type: PathPrefix, value: {{ $api.pathPrefix }} }
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: {{ $api.host }}     # TLS origination via ServiceEntry
+      backendRefs:
+        - group: networking.istio.io
+          kind: Hostname
+          name: {{ $api.host }}
+          port: 443
+----
+
+*Skupper Sites and Connectors* in `components/service-interconnect/` bridge the hub-gateway-system to spoke namespaces, carrying traffic for IE frontends, Kafka Console, and cross-cluster observability — all encrypted over the Skupper tunnel without VPC peering.
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# List all HTTPRoutes attached to the hub gateway
+oc get httproutes -n hub-gateway-system
+
+# Check the Gateway status and attached routes
+oc get gateway hub-gateway -n hub-gateway-system -o yaml | grep -A5 conditions
+
+# Skupper status
+oc get sites,connectors,listeners -n service-interconnect
+----
+
+Understanding this layer explains why Kuadrant policies (module 20/23) attach at the hub gateway and why Industrial Edge traffic (module 13) flows through Skupper.""",
+    "software-templates": """Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails already wired. The Developer Hub deployment is configured via `components/developer-hub/` with the App-of-Apps template injecting extensive plugin configuration.
+
+*Developer Hub valuesObject in the App-of-Apps* shows how the platform team configures every plugin declaratively — RBAC, Lightspeed AI, Kuadrant, TechDocs, notifications, and multicluster Kubernetes Topology:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — developer-hub valuesObject (excerpt)
+helm:
+  valuesObject:
+    clusterDomain: {{ $domain }}
+    userCount: {{ $.Values.userCount | default 50 }}
+    plugins:
+      rbac: { enabled: true, policyAdminUser: platformadmin }
+      lightspeed:
+        enabled: true
+        aiModel:
+          apiURL: {{ $.Values.litemaas.apiUrl }}
+          model: {{ $.Values.litemaas.model | default "llama-scout-17b" }}
+      techdocs: { enabled: true }
+      kuadrant: { enabled: true }          # API key self-service (module 23)
+      argocd:   { enabled: true }
+      notificationsEmail: { enabled: true }
+      mcp:      { enabled: true }          # MCP Gateway integration (module 24)
+    kubernetesSpokes:
+      enabled: true
+      east:
+        apiUrl: {{ $.Values.clusters.east.apiUrl }}
+      west:
+        apiUrl: {{ $.Values.clusters.west.apiUrl }}
+----
+
+This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
+
+Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.
+
+[source,bash]
+----
+# List available templates in Developer Hub
+oc get configmaps -n developer-hub -l backstage.io/kind=Template
+
+# Check catalog entities registered by scaffolding
+oc get configmaps -n developer-hub -l backstage.io/kind=Component
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.""",
+    "deploy-industrial-edge": """Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. The entire stack is defined in `components/industrial-edge-tst/` and deployed via GitOps to spoke clusters.
+
+*Kafka cluster (KRaft mode):* A single-node KRaft broker with ephemeral storage, plus `temperature` and `vibration` topics for sensor data. Notice the Strimzi annotations and the Prometheus JMX exporter for observability:
+
+[source,yaml]
+----
+# components/industrial-edge-tst/templates/kafka-cluster.yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: broker
+  namespace: industrial-edge-tst-all
+  labels:
+    strimzi.io/cluster: dev-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: 1
+  roles: [controller, broker]        # KRaft combined mode — no ZooKeeper
+  storage:
+    type: ephemeral                   # workshop-scale; production uses persistent
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: dev-cluster
+  namespace: industrial-edge-tst-all
+  annotations:
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
+    argocd.argoproj.io/sync-wave: "3"
+spec:
+  kafka:
+    version: 4.2.0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+    metricsConfig:
+      type: jmxPrometheusExporter     # feeds Grafana dashboards (module 15)
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics-config
+          key: kafka-metrics-config.yml
+  entityOperator:
+    topicOperator: {}
+    template:
+      pod:
+        metadata:
+          labels:
+            istio.io/dataplane-mode: none   # entity-operator bypasses ambient mesh
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: temperature
+  namespace: industrial-edge-tst-all
+  labels:
+    strimzi.io/cluster: dev-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  partitions: 1
+  replicas: 1
+----
+
+*Sync-wave ordering:* Broker pool (wave 2) → Kafka cluster (wave 3) → Topics (wave 4) → Sensor deployments (wave 5). Argo CD respects this sequence so topics exist before producers start.
+
+Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all`. Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
+
+This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke.
+
+[source,bash]
+----
+# Verify Kafka cluster is ready
+oc get kafka dev-cluster -n industrial-edge-tst-all -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+
+# Check topics exist
+oc get kafkatopics -n industrial-edge-tst-all
+
+# Confirm line-dashboard is serving
+oc get route -n industrial-edge-tst-all -l app=line-dashboard
+
+# Check Argo CD sync status
+oc get applications -n openshift-gitops | grep industrial-edge
 ----""",
-    "hybrid-mesh-architecture": """Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with link:https://gateway-api.sigs.k8s.io/[Gateway API] HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
+    "kairos-scaling": """Kairos Community on OpenShift analyzes workload metrics and recommends resource adjustments through `SmartScalingPolicy` resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). The policies live in `components/kairos/templates/sensor-scan-policies.yaml`.
 
-In this workshop, the hub gateway terminates external traffic and forwards to Industrial Edge frontends on east/west via Skupper Sites and Connectors defined under `components/service-interconnect/` and `components/hub-gateway/`. This is the lab analogue to ROSA ALB plus private connectivity into factory networks — same OpenShift routes and policies, different underlay.
+*SmartScalingPolicy for sensor workloads:* Two policies monitor `machine-sensor-1` and `machine-sensor-2` deployments, each with CPU and memory rules that trigger resource increases with cooldown periods:
 
-Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20. Verify with: `oc get httproutes -n hub-gateway-system`.""",
-    "software-templates": """Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets. See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.
+[source,yaml]
+----
+# components/kairos/templates/sensor-scan-policies.yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: SmartScalingPolicy
+metadata:
+  name: scan-policy-machine-sensor-1
+  namespace: kairos-system
+  labels:
+    kairos.io/policy-type: sensor-scan
+  annotations:
+    argocd.argoproj.io/sync-wave: "6"
+spec:
+  scope: cluster
+  target:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: machine-sensor-1
+    namespace: industrial-edge-tst-all
+  otelEndpoint: "..."                  # OpenTelemetry collector on spoke
+  prometheusEndpoint: "..."            # Prometheus metrics for analysis
+  rules:
+    - name: sensor-cpu-hot
+      when:
+        metric: container_cpu_usage_seconds_total
+        operator: GreaterThan
+        threshold: "70"                # 70% CPU triggers action
+        for: 2m                        # sustained for 2 minutes
+      action:
+        type: IncreaseResources
+        increaseCPUPercent: 25         # bump CPU limit by 25%
+        maxCPU: "1"                    # never exceed 1 core
+        cooldown: 5m                   # wait 5 min before re-evaluating
+    - name: sensor-memory-hot
+      when:
+        metric: container_memory_working_set_bytes
+        operator: GreaterThan
+        threshold: "80"
+        for: 2m
+      action:
+        type: IncreaseResources
+        increaseMemoryPercent: 20
+        maxMemory: 1Gi
+        cooldown: 5m
+  ai:
+    enabled: true                      # AI-assisted recommendations
+  paused: false
+----
 
-This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails due to quota or Gitea timing, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
+*Kairos Console:* The console is deployed on the hub via `KairosConsole` CR — operators approve or reject recommendations through a web UI:
 
-Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.""",
-    "deploy-industrial-edge": """Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. Apache Kafka buffers high-volume sensor topics; Camel K integrations transform and route events; line-dashboard provides operators a live view — all deployed via GitOps to spoke clusters after Developer Hub scaffolding.
+[source,yaml]
+----
+# components/kairos/templates/kairos-console.yaml
+apiVersion: kairos.maximilianopizarro.github.io/v1alpha1
+kind: KairosConsole
+metadata:
+  name: kairos-console
+  namespace: kairos-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  replicas: 1
+  route:
+    enabled: true
+    host: "kairos-console-kairos-system.{{ .Values.clusterDomain }}"
+    tlsEnabled: true
+----
 
-Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all` (or your user-scoped equivalent). Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
+*Hub mirror:* The App-of-Apps template passes `sensorScanPolicies.displayOnHub: true` so the hub Kairos Console can visualize spoke policy status without requiring direct spoke access — matching how ROSA customers centralize capacity decisions.
 
-This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling. GitOps path: `oc get applications -n openshift-gitops | grep industrial-edge`.""",
-    "kairos-scaling": """Kairos Community on OpenShift analyzes workload metrics and recommends node or machine set adjustments through SmartScalingPolicy resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). Operators approve recommendations in Kairos Console, preserving human oversight for factory edge sites where sudden scale-down is risky.
+Pair this module with module 18 (HPA + Kafka) to show two layers: pods scale horizontally while Kairos evaluates resource limits.
 
-In this lab, the sensor-scan policy watches Industrial Edge metrics and proposes scaling when scan rates spike — analogous to ROSA MachineSet autoscaling triggered by custom CloudWatch metrics. Pair this module with module 18 (HPA + Kafka) to show two layers: pods scale horizontally while Kairos evaluates node capacity.
+[source,bash]
+----
+# List all SmartScalingPolicies across clusters
+oc get smartscalingpolicy -A
 
-Open Kairos Console from the OpenShift menu, locate pending recommendations tied to `%USER_NAME%` namespaces, and approve or discuss trade-offs with the facilitator. Run `oc get smartscalingpolicy -A` to correlate CRDs with UI actions.""",
+# Check Kairos Console route
+oc get route -n kairos-system
+
+# See policy recommendations
+oc describe smartscalingpolicy scan-policy-machine-sensor-1 -n kairos-system
+----""",
     "observability": """OpenShift observability spans cluster metrics, logs, traces, and custom dashboards federated across ACM-managed clusters. Red Hat builds on Prometheus, Loki or Elasticsearch patterns, Grafana, and OpenTelemetry Instrumentation CRs so application teams inherit platform-wide collectors without sidecar sprawl on every pod.
 
 This workshop deploys multicluster Grafana dashboards on the hub, OpenTelemetry collectors via `components/opentelemetry/`, and Kafka Console for IE topic inspection. As `%USER_NAME%`, filter dashboards to your namespace and correlate latency spikes with mesh traces in module 17.
 
 Executives should connect this module to module 21 (Kubecost): metrics prove SLO compliance while cost metrics prove efficiency — both required for hybrid FinOps. Use Showroom `oc` to list `GrafanaDashboard` CRs and confirm IE workloads emit scrape targets. Verify with: `oc get grafanadashboard -A`.""",
-    "openshift-gitops": """OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.
+    "openshift-gitops": """OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke. The **App-of-Apps** pattern in `templates/component-applications.yaml` is the single entry point: one Application per component, each with its own sync-wave, ignoreDifferences, and Helm valuesObject. Platform teams commit desired state to Git; controllers reconcile drift automatically.
 
-In this lab, hub Applications under `templates/component-applications.yaml` deploy shared services while spoke Applications (for example Industrial Edge) sync from user Gitea repos created in module 13. ApplicationSet `industrial-edge-spoke` demonstrates matrix generators targeting east/west labels.
-
-Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
-
-The configuration is declarative and minimal:
+*The App-of-Apps template* iterates `.Values.connectivityLink.apps` and generates one Application per component. Notice the key patterns:
 
 [source,yaml]
 ----
-# templates/component-applications.yaml (App-of-Apps pattern)
+# templates/component-applications.yaml (simplified)
+{{- range .Values.connectivityLink.apps }}
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: field-content-{{ .name }}
+  name: {{ $.Release.Name }}-{{ .id }}
   namespace: openshift-gitops
+  labels:
+    app.kubernetes.io/part-of: platform-hub-spoke
   annotations:
-    argocd.argoproj.io/sync-wave: "{{ .syncWave }}"
+    argocd.argoproj.io/sync-wave: {{ .syncWave | quote }}     # controls deployment order
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   source:
-    repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config.git
-    path: components/{{ .name }}
-    targetRevision: main
-    helm:
-      valueFiles: [values.yaml]
+    repoURL: {{ $.Values.gitops.repoUrl }}
+    targetRevision: {{ $.Values.gitops.revision }}
+    path: components/{{ .path }}                               # each component in its own dir
   destination:
     server: https://kubernetes.default.svc
+    namespace: {{ .destinationNamespace }}
   syncPolicy:
-    automated: { prune: true, selfHeal: true }
-----""",
-    "service-mesh": """OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.
+    automated:
+      prune: {{ .prune }}
+      selfHeal: {{ .selfHeal }}         # drift is auto-corrected
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - RespectIgnoreDifferences=true   # prevents flip-flop on operator-managed fields
+{{- end }}
+----
 
-In this workshop, OSSM3 is subscribed via `components/operators/templates/servicemeshoperator3.yaml` and configured for ambient dataplane mode on IE namespaces — excluding `stackrox` where ACS requires direct network visibility. Compare this to ROSA deployments using App Mesh or third-party meshes: OpenShift keeps mesh CRDs and policies native to the platform lifecycle.
-
-Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
-
-The configuration is declarative and minimal:
+*Why `ignoreDifferences` matters:* Operators and controllers mutate fields that would cause perpetual OutOfSync. The template includes a comprehensive list — here are the critical ones:
 
 [source,yaml]
 ----
-# components/servicemeshoperator3/templates/istio.yaml
-apiVersion: sailoperator.io/v1alpha1
+# templates/component-applications.yaml — ignoreDifferences (excerpt)
+ignoreDifferences:
+  - kind: Service
+    jsonPointers: [/spec/clusterIP, /spec/clusterIPs]
+  - group: route.openshift.io
+    kind: Route
+    jsonPointers: [/spec/host, /status]
+  - kind: Secret
+    jsonPointers: [/data]                   # never drift-check secret values
+  - group: sailoperator.io
+    kind: Istio
+    jsonPointers: [/spec/profile, /status]  # sail operator rewrites profile
+  - group: rhdh.redhat.com
+    kind: Backstage
+    jsonPointers:                            # RHDH operator shrinks spec after sync
+      - /spec/application/appConfig/configMaps
+      - /spec/application/extraFiles
+  - group: cluster.open-cluster-management.io
+    kind: "*"
+    jsonPointers: [/metadata/annotations, /metadata/labels, /status]
+----
+
+*Helm valuesObject per component:* Instead of static `values.yaml`, the template injects cluster-specific values inline. For example, `acm-hub-spoke` receives spoke API URLs and tokens:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — valuesObject for acm-hub-spoke
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        managedClusters:
+          east:
+            apiUrl: {{ $.Values.clusters.east.apiUrl }}
+            domain: {{ $eastDomain }}
+          west:
+            apiUrl: {{ $.Values.clusters.west.apiUrl }}
+            domain: {{ $westDomain }}
+----
+
+Verify GitOps health from the Showroom terminal:
+
+[source,bash]
+----
+# List all hub Applications and their sync status
+oc get applications -n openshift-gitops -o custom-columns=NAME:.metadata.name,SYNC:.status.sync.status,HEALTH:.status.health.status
+
+# Check ApplicationSet for spoke propagation
+oc get applicationsets -n openshift-gitops
+
+# See which components are deployed and their sync waves
+oc get applications -n openshift-gitops -o jsonpath='{range .items[*]}{.metadata.name}{" wave="}{.metadata.annotations.argocd\\.argoproj\\.io/sync-wave}{"\\n"}{end}'
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.""",
+    "service-mesh": """OpenShift Service Mesh 3 uses ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars. The entire mesh stack is defined in `components/servicemeshoperator3/templates/all.yaml` — three CRDs deploy the control plane, CNI, and ztunnel:
+
+*Istio control plane (ambient profile):*
+
+[source,yaml]
+----
+# components/servicemeshoperator3/templates/all.yaml
+apiVersion: sailoperator.io/v1
 kind: Istio
 metadata:
   name: default
   namespace: istio-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
-  version: v1.24.3
   namespace: istio-system
+  profile: ambient                        # no sidecars — ztunnel handles mTLS
   values:
     pilot:
       env:
-        ENABLE_AMBIENT: "true"
-----""",
+        PILOT_ENABLE_AMBIENT: "true"
+      trustedZtunnelNamespace: ztunnel
+    global:
+      platform: openshift
+    meshConfig:
+      extensionProviders:
+        - name: otel-tracing              # feeds distributed tracing (module 15)
+          opentelemetry:
+            service: cluster-collector-collector.openshift-opentelemetry.svc.cluster.local
+            port: 4317
+----
+
+*IstioCNI + ZTunnel:* CNI configures iptables interception; ZTunnel runs as a DaemonSet handling L4 mTLS:
+
+[source,yaml]
+----
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+  namespace: istio-cni
+spec:
+  profile: ambient
+  values:
+    cni:
+      ambient:
+        reconcileIptablesOnStartup: true   # ensures clean iptables on node restart
+---
+apiVersion: sailoperator.io/v1
+kind: ZTunnel
+metadata:
+  name: default
+  namespace: ztunnel
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  namespace: ztunnel
+----
+
+*Namespace enrollment:* Namespaces are labeled `istio.io/dataplane-mode: ambient` at sync-wave 2 — **after** the control plane is ready (wave 1). This prevents pods from starting before ztunnel can configure HBONE (port 15008):
+
+[source,yaml]
+----
+# Applied to: hub-gateway-system, developer-hub, industrial-edge-tst-all (spokes), etc.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hub-gateway-system
+  labels:
+    istio.io/dataplane-mode: ambient      # automatic mTLS — zero app changes
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+----
+
+*Waypoint proxies* add L7 policy where needed (AuthorizationPolicy, traffic splitting):
+
+[source,yaml]
+----
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: hub-gateway-system-waypoint
+  namespace: hub-gateway-system
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+----
+
+*Kafka PeerAuthentication bypass:* Strimzi brokers need permissive mTLS on inter-broker port 9092 so Kafka replication works alongside ambient mesh:
+
+[source,yaml]
+----
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: kafka-strimzi-bypass
+  namespace: industrial-edge-tst-all
+spec:
+  selector:
+    matchLabels:
+      strimzi.io/cluster: dev-cluster
+  mtls:
+    mode: STRICT
+  portLevelMtls:
+    9091: { mode: DISABLE }         # Strimzi admin port
+    9092: { mode: PERMISSIVE }      # Kafka broker plain listener
+----
+
+Verify from the Showroom terminal:
+
+[source,bash]
+----
+# Istio control plane status
+oc get istio -n istio-system
+
+# ZTunnel DaemonSet running on all nodes
+oc get ztunnel -n ztunnel
+
+# Which namespaces are meshed
+oc get ns -l istio.io/dataplane-mode=ambient
+
+# Waypoint proxies
+oc get gateways -A -l istio.io/waypoint-for=service
+----
+
+Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.""",
     "scalability": """Scalability on OpenShift spans horizontal pod autoscaling, Kafka partition scaling, and node-level recommendations from Kairos. HPA v2 watches CPU, memory, or custom metrics from Prometheus adapters; KafkaNodePool resources expand broker capacity when IE topics saturate consumer lag.
 
 In this lab, line-dashboard and related IE deployments include HPAs defined in workload manifests under `components/industrial-edge-tst/`. Trigger load via workshop scripts or simulated sensor rates, then watch pods scale in the Topology view as `%USER_NAME%`. Kafka scaling complements HPA by absorbing event bursts before pods reject traffic.
@@ -593,54 +1295,183 @@ As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct route
 In this lab, Kubecost deploys from `components/kubecost/` with agents on east/west reporting to the hub primary. Filter allocations to namespaces owned by `%USER_NAME%` and correlate idle capacity with Kairos recommendations from module 14.
 
 FinOps closes the executive loop from module 01: hybrid strategy without cost visibility fails in CFO review. Kubecost complements AWS Cost Explorer tags on ROSA by exposing pod-level waste inside the cluster boundary. Verify with: `oc get pods -n kubecost -l app=cost-analyzer`.""",
-    "openshift-ai": """OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.
+    "openshift-ai": """OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity. The configuration lives in `components/openshift-ai-hub/`.
+
+*App-of-Apps valuesObject for OpenShift AI* configures model serving modes, user projects, MCP integration, and available MaaS models — all declarative:
+
+[source,yaml]
+----
+# templates/component-applications.yaml — openshift-ai-hub valuesObject
+helm:
+  valuesObject:
+    clusterDomain: {{ $domain }}
+    userCount: {{ $.Values.userCount | default 50 }}
+    userProjects:
+      enabled: true               # creates ai-user1..ai-userN projects
+      notebook:
+        enabled: true             # pre-provisions workshop-notebook per user
+    dashboardExtensions:
+      enabled: true
+    modelServing:
+      modelMeshEnabled: true      # shared multi-model serving
+      serverlessEnabled: true     # KServe for dedicated single-model
+      defaultDeploymentMode: ModelMesh
+    mcp:
+      enabled: true
+      deployServer: true          # deploys ods-maas-mcp-server in maas-workshop
+    maas:
+      endpoint: {{ $.Values.litemaas.apiUrl }}
+      apiKey: {{ $.Values.litemaas.apiKey }}
+      models:
+        - id: llama-scout-17b
+          displayName: Llama Scout 17B (workshop default)
+        - id: deepseek-r1-distill-qwen-14b
+          displayName: DeepSeek R1 Distill Qwen 14B
+        - id: codellama-7b-instruct
+          displayName: CodeLlama 7B Instruct
+----
 
 **Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
 
 **Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
 
-GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
+[source,bash]
+----
+# Confirm DataScienceCluster is Ready
+oc get dsc default-dsc -o jsonpath='{.status.phase}'
 
-The configuration is declarative and minimal:
+# Check your user project and notebook
+oc get notebook,inferenceservice -n ai-%USER_NAME%
+
+# List available MaaS models
+oc get configmap ods-mcp-server-registration -n maas-workshop -o yaml
+
+# MCP server deployment
+oc get pods -n maas-workshop -l app=ods-maas-mcp-server
+----
+
+See link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation] for DSC and model serving guides.""",
+    "ai-gateway": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **link:https://www.kuadrant.io/docs/[Kuadrant]** policies for authentication, authorization, plan tiers, and token-based rate limiting.
+
+Three Kuadrant CRDs in `components/workshop-kuadrant-apis/templates/policies.yaml` govern the MaaS LLM endpoint — all attached to the same `HTTPRoute`:
+
+*1. AuthPolicy — API key authentication + OPA authorization:*
 
 [source,yaml]
 ----
-# components/openshift-ai-hub/templates/dsc.yaml
-apiVersion: datasciencecluster.opendatahub.io/v1
-kind: DataScienceCluster
+# components/workshop-kuadrant-apis/templates/policies.yaml
+apiVersion: kuadrant.io/v1
+kind: AuthPolicy
 metadata:
-  name: default-dsc
+  name: workshop-maas-auth
+  namespace: hub-gateway-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
-  components:
-    dashboard: { managementState: Managed }
-    modelmeshserving: { managementState: Managed }
-    kserve: { managementState: Managed }
-    workbenches: { managementState: Managed }
-----""",
-    "ai-gateway": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **link:https://gateway-api.sigs.k8s.io/[Gateway API]** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **link:https://www.kuadrant.io/docs/[Kuadrant]** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
-
-**Why Kuadrant on OpenShift AI workloads:** Kuadrant extends Gateway API with first-class API management — API keys, usage limits, and policy attachment to routes that front inference services. This matches how platform teams govern REST and gRPC APIs while still allowing data science teams to iterate in OpenShift AI projects. See the Kuadrant documentation for policy CRDs and the Developer Hub Kuadrant plugin for self-service key minting.
-
-**Architecture in this lab:** GitOps repo path `components/workshop-kuadrant-apis/` defines the public hostname, routes `/llm` to the MaaS backend in `maas-workshop`, and attaches Kuadrant policies scoped per workshop user. Developer Hub catalog entity **workshop-ai-gateway** documents the flow for `%USER_NAME%` and links Topology to the live `HTTPRoute`.
-
-**Overview-only (~5 min):** Catalog → **workshop-ai-gateway** → Topology; Kuadrant UI → show API key shape and rate-limit policy names (do not run full curl).
-
-**Hands-on (~25 min):** Mint key for `%USER_NAME%`, then:
-
-[source,bash]
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-maas
+  rules:
+    authentication:
+      api-key-users:
+        apiKey:
+          allNamespaces: true      # keys can live in any namespace
+          selector:
+            matchLabels:
+              app: workshop-maas
+        credentials:
+          authorizationHeader:
+            prefix: APIKEY
+    response:
+      success:
+        filters:
+          identity:
+            json:
+              properties:
+                userid:            # extract user ID for per-user rate limiting
+                  selector: auth.identity.metadata.annotations.secret\.kuadrant\.io/user-id
+    authorization:
+      allow-groups:
+        opa:
+          rego: |
+            # Only "free" or "gold" plan users are authorized
+            plan := object.get(input.auth.identity.metadata.annotations,
+                               "secret.kuadrant.io/plan-id", "")
+            allow { plan == "free" }
+            allow { plan == "gold" }
 ----
-export KEY="<your-kuadrant-api-key>"
-curl -sk "https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions" \\
-  -H "Authorization: Bearer $KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"model":"granite-3-8b-instruct","messages":[{"role":"user","content":"Summarize hybrid mesh in one sentence."}]}'
+
+*2. PlanPolicy — tier-based request limits via CEL predicates:*
+
+[source,yaml]
+----
+apiVersion: extensions.kuadrant.io/v1alpha1
+kind: PlanPolicy
+metadata:
+  name: workshop-maas-plans
+  namespace: hub-gateway-system
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-maas
+  plans:
+    - tier: free
+      predicate: |
+        has(auth.identity) && auth.identity.metadata.annotations["secret.kuadrant.io/plan-id"] == "free"
+      limits:
+        custom:
+          - limit: 100
+            window: 1h
+    - tier: gold
+      predicate: |
+        has(auth.identity) && auth.identity.metadata.annotations["secret.kuadrant.io/plan-id"] == "gold"
+      limits:
+        custom:
+          - limit: 500
+            window: 1h
 ----
 
-Compare response time and HTTP 429 behavior (if you exceed limits) to a direct call from the **workshop-notebook** in project `ai-%USER_NAME%`. Record which headers prove the request passed through the gateway (auth, rate-limit counters).
+*3. TokenRateLimitPolicy — per-user token counters with CEL:*
 
-**Operations angle:** The same gateway hostname can front additional model routes (embeddings, vision) without changing client apps — add `HTTPRoute` rules and Kuadrant policies in GitOps, sync with Argo CD, validate in module **29 Full verification**.
+[source,yaml]
+----
+apiVersion: kuadrant.io/v1alpha1
+kind: TokenRateLimitPolicy
+metadata:
+  name: workshop-maas-token-limits
+  namespace: hub-gateway-system
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: workshop-maas
+  limits:
+    free:
+      rates:
+        - limit: {{ .Values.tokenRateLimit.free.limit }}
+          window: {{ .Values.tokenRateLimit.free.window }}
+      when:
+        - predicate: request.path == "/llm/v1/chat/completions"
+        - predicate: |
+            auth.identity.metadata.annotations["secret.kuadrant.io/plan-id"] == "free" ||
+            auth.identity.groups.split(",").exists(g, g == "free")
+      counters:
+        - expression: auth.identity.userid     # per-user counter, not global
+    gold:
+      rates:
+        - limit: {{ .Values.tokenRateLimit.gold.limit }}
+          window: {{ .Values.tokenRateLimit.gold.window }}
+      when:
+        - predicate: request.path == "/llm/v1/chat/completions"
+        - predicate: |
+            auth.identity.metadata.annotations["secret.kuadrant.io/plan-id"] == "gold"
+      counters:
+        - expression: auth.identity.userid
+----
 
-The configuration is declarative and minimal:
+*The HTTPRoute + external backend pattern:* Routes use Istio `Hostname` backendRefs to reach external MaaS without in-cluster proxy images:
 
 [source,yaml]
 ----
@@ -648,36 +1479,52 @@ The configuration is declarative and minimal:
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: workshop-llm
+  name: workshop-maas
   namespace: hub-gateway-system
+  labels:
+    kuadrant.io/exposed: "true"
 spec:
   parentRefs:
     - name: hub-gateway
-  hostnames:
-    - "workshop-apis.{{ .Values.deployer.domain }}"
+      namespace: hub-gateway-system
+  hostnames: ["workshop-apis.{{ .Values.clusterDomain }}"]
   rules:
     - matches:
         - path: { type: PathPrefix, value: /llm }
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: {{ .Values.apis.maas.host }}
       backendRefs:
-        - name: maas-service
-          namespace: maas-workshop
-          port: 8080
----
-apiVersion: kuadrant.io/v1
-kind: AuthPolicy
-metadata:
-  name: workshop-auth
-spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: workshop-llm
-  rules:
-    authentication:
-      api-key:
-        apiKey:
-          selector: {}
-----""",
+        - group: networking.istio.io
+          kind: Hostname
+          name: {{ .Values.apis.maas.host }}
+          port: 443
+----
+
+**Hands-on (~25 min):** Mint key for `%USER_NAME%` in Developer Hub Kuadrant UI, then:
+
+[source,bash]
+----
+export KEY="<your-kuadrant-api-key>"
+curl -sk "https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions" \\
+  -H "Authorization: APIKEY $KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"llama-scout-17b","messages":[{"role":"user","content":"Summarize hybrid mesh in one sentence."}],"max_tokens":50}'
+----
+
+Compare response time and HTTP 429 behavior (when token limits are exceeded) to a direct call from the **workshop-notebook** in project `ai-%USER_NAME%`.
+
+[source,bash]
+----
+# Verify Kuadrant policies are applied
+oc get authpolicy,planpolicy,tokenratelimitpolicy -n hub-gateway-system
+
+# Check APIProduct catalog
+oc get apiproducts -n hub-gateway-system
+----
+
+See link:https://www.kuadrant.io/docs/[Kuadrant docs] and link:https://gateway-api.sigs.k8s.io/[Gateway API specification].""",
     "mcp-gateway": """**MCP Gateway** deploys Kuadrant community CRDs (`MCPGatewayExtension`, `MCPServerRegistration`), `mcp-controller`, Gateway API `Gateway`, **ArgoCD MCP**, and **k8s MCP** — pattern from test-drive-pe-oscg. Public URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
 
 **Overview-only (~8 min):** Catalog → **workshop-mcp-gateway**; `oc get mcpserverregistration -n mcp-system`; Lightspeed demo prompt.
