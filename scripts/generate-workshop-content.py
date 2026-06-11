@@ -262,7 +262,7 @@ def module_context_section(slug: str) -> str:
 
 
 def callout_ref() -> str:
-    return "\nNOTE: For AWS/Azure integration snippets see xref:00-index.adoc#hybrid-integration[Module 00 — hybrid integration notes].\n"
+    return "\nNOTE: For AWS/Azure integration snippets see xref:index.adoc#hybrid-integration[Module 00 — hybrid integration notes].\n"
 
 
 def lab_access_section(slug: str) -> str:
@@ -333,7 +333,7 @@ NOTE: **Workshop pacing (~4 hours hands-on)** — Each module includes **Overvie
 
 
 def adoc_page(num: str, slug: str, title: str, is_index: bool) -> str:
-    mid = "00-index" if is_index else f"{num}-{slug}"
+    mid = "index" if is_index else f"{num}-{slug}"
     minutes = ESTIMATED_MIN.get(slug, 15)
     time_label = time_badge(minutes)
     narrative = NARRATIVES[slug]
@@ -776,17 +776,17 @@ nav:
 def main() -> None:
     if not SHOWROOM.is_dir():
         SHOWROOM.mkdir(parents=True, exist_ok=True)
-    write_antora_component("Hybrid Mesh AI Workshop (English)")
+    write_antora_component("Hybrid Mesh AI Workshop")
 
     pages = SHOWROOM / "content/modules/en/modules/ROOT/pages"
     pages.mkdir(parents=True, exist_ok=True)
 
-    nav_en = ["* xref:00-index.adoc[Welcome]\n", "\n.Part A — Strategy\n"]
+    nav_en = ["* xref:index.adoc[Welcome]\n", "\n.Part A — Strategy\n"]
 
     for item in MODULES:
         num, slug, title, parte, is_idx = item[:5]
         facilitator_only = item[5] if len(item) > 5 else False
-        fname = "00-index.adoc" if is_idx else f"{num}-{slug}.adoc"
+        fname = "index.adoc" if is_idx else f"{num}-{slug}.adoc"
         (SHOWROOM / "content/modules/en/modules/ROOT/pages" / fname).write_text(
             adoc_page(num, slug, title, is_idx), encoding="utf-8"
         )
