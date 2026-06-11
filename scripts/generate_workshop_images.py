@@ -47,7 +47,7 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     ),
     (
         "02-rosa-architecture.png",
-        "AWS ROSA Red Hat OpenShift Service architecture, managed control plane worker nodes VPC subnets, isometric cloud diagram, red gray palette, 16:9, no text",
+        "Red Hat OpenShift hub-spoke topology diagram, ACM fleet hub with east west spokes, ApplicationSet GitOps sync, Skupper VAN, clean white background, red EE0000 accents, flat professional 16:9, labeled components",
         "arch-hub-spoke-flow.png",
     ),
     (

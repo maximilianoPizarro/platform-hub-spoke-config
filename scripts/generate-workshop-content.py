@@ -175,7 +175,7 @@ MODULES = [
 IMAGE_BY_SLUG = {
     "index": ("00-index-hybrid-mesh.png", "Hybrid Mesh AI hub-spoke architecture diagram"),
     "hybrid-cloud-strategy": ("01-hybrid-strategy.png", "Hybrid cloud strategy overview"),
-    "rosa-architecture": ("02-rosa-architecture.png", "ROSA and OpenShift hub-spoke architecture"),
+    "rosa-architecture": ("02-rosa-architecture.png", "Red Hat OpenShift hub-spoke topology — same fleet pattern as ROSA + ACM in production"),
     "security-scale-hybrid": ("03-security-scale-hybrid.png", "Hybrid cloud security and scale"),
     "aws-ai-integration": ("04-aws-ai-integration.png", "AWS and AI integration on OpenShift"),
     "cases-roadmap": ("05-cases-roadmap.png", "Customer cases and workshop roadmap"),
