@@ -347,7 +347,7 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
     img = ""
     if slug in IMAGE_BY_SLUG:
         fname, alt = IMAGE_BY_SLUG[slug]
-        img = f"\nimage::images/{fname}[{alt},600]\n"
+        img = f"\nimage::{fname}[{alt},600]\n"
 
     index_block = ""
     if is_index:

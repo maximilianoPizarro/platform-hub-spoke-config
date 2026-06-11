@@ -307,8 +307,13 @@ data:
     <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Red Hat Text',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;flex-direction:column}
-    .header{background:#151515;padding:16px 32px;display:flex;align-items:center;gap:16px}
-    .header h1{color:#fff;font-family:'Red Hat Display',sans-serif;font-size:1.1rem;font-weight:500}
+    .header{background:#151515;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #ee0000}
+    .header-brand{display:flex;align-items:center;gap:16px}
+    .header-brand img{height:44px;width:auto}
+    .header-text h1{color:#fff;font-family:'Red Hat Display',sans-serif;font-size:1rem;font-weight:700;line-height:1.2}
+    .header-text p{color:#c7c7c7;font-size:.75rem;margin-top:2px}
+    .header-user{color:#73bcf7;font-size:.85rem;font-family:'Red Hat Display',sans-serif;font-weight:600}
+    .header-user strong{color:#f0ab00}
     .main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px}
     .card{background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.1);padding:48px;max-width:480px;width:100%}
     .card h2{font-family:'Red Hat Display',sans-serif;font-size:1.5rem;color:#151515;margin-bottom:8px}
@@ -327,14 +332,24 @@ data:
     .success-card .username{background:#f0f0f0;border-radius:4px;padding:12px;font-size:1.2rem;font-weight:700;color:#151515;margin:16px 0;font-family:'Red Hat Display',sans-serif}
     .success-card .btn{margin-top:24px;background:#0066cc}
     .success-card .btn:hover{background:#004080}
-    .footer{background:#151515;color:#6a6e73;text-align:center;padding:16px;font-size:.8rem}
+    .footer{background:#151515;color:#6a6e73;text-align:center;padding:16px;font-size:.8rem;line-height:1.6}
+    .footer strong{color:#73bcf7}
+    .footer a{color:#f0ab00;text-decoration:none}
+    .footer a:hover{text-decoration:underline}
     .spinner{display:inline-block;width:18px;height:18px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:8px}
     @keyframes spin{to{transform:rotate(360deg)}}
     </style>
     </head>
     <body>
     <div class="header">
-      <h1>From Zero To Hero with Red Hat Developer Hub</h1>
+      <div class="header-brand">
+        <img src="https://raw.githubusercontent.com/maximilianoPizarro/test-drive-pe-oscg/main/docs/assets/images/Logo-OSC_with_padding.png" alt="Red Hat OpenShift Commons">
+        <div class="header-text">
+          <h1>Hybrid Mesh AI Workshop</h1>
+          <p>OpenShift Commons Gathering — Buenos Aires 2026</p>
+        </div>
+      </div>
+      <div class="header-user" id="header-user-wrap">Lab user: <strong id="header-user">—</strong></div>
     </div>
     <div class="main">
       <div class="card" id="register-card">
@@ -357,9 +372,28 @@ data:
         <button class="btn" id="go-btn" onclick="goToLab()">Open Lab Environment</button>
       </div>
     </div>
-    <div class="footer">OpenShift Commons Gathering &mdash; Buenos Aires 2026</div>
+    <div class="footer">
+      OpenShift Commons Gathering &mdash; Buenos Aires 2026<br>
+      Lab user: <strong id="footer-user">—</strong> &middot;
+      <a id="footer-showroom-link" href="#">Open Showroom</a>
+    </div>
     <script>
     var redirectUrl = '';
+    var showroomBase = {{ $showroomUrl | quote }};
+    function setLabUser(name) {
+      var label = name || '—';
+      var hu = document.getElementById('header-user');
+      var fu = document.getElementById('footer-user');
+      if (hu) hu.textContent = label;
+      if (fu) fu.textContent = label;
+      if (name) localStorage.setItem('USER_NAME', name);
+      var sl = document.getElementById('footer-showroom-link');
+      if (sl && showroomBase && name) sl.href = showroomBase + (showroomBase.indexOf('?') >= 0 ? '&' : '?') + 'USER_NAME=' + encodeURIComponent(name);
+    }
+    (function(){
+      var params = new URLSearchParams(window.location.search);
+      setLabUser(params.get('USER_NAME') || params.get('user_name') || localStorage.getItem('USER_NAME') || '');
+    })();
     function register() {
       var email = document.getElementById('email').value.trim();
       var errEl = document.getElementById('error-msg');
@@ -388,6 +422,7 @@ data:
         }
         redirectUrl = res.data.redirect;
         document.getElementById('assigned-user').textContent = res.data.username;
+        setLabUser(res.data.username);
         document.getElementById('register-card').style.display = 'none';
         document.getElementById('success-card').style.display = 'block';
         setTimeout(function() { if (redirectUrl) window.location.href = redirectUrl; }, 3000);
@@ -416,8 +451,10 @@ data:
     <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Red Hat Text',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;flex-direction:column}
-    .header{background:#151515;padding:16px 32px;display:flex;align-items:center;gap:16px}
-    .header h1{color:#fff;font-family:'Red Hat Display',sans-serif;font-size:1.1rem;font-weight:500}
+    .header{background:#151515;padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #ee0000}
+    .header-brand{display:flex;align-items:center;gap:16px}
+    .header-brand img{height:44px;width:auto}
+    .header-text h1{color:#fff;font-family:'Red Hat Display',sans-serif;font-size:1rem;font-weight:700}
     .main{flex:1;padding:32px;max-width:960px;margin:0 auto;width:100%}
     .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
     .stat-card{background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,.08);text-align:center}
@@ -448,12 +485,18 @@ data:
     .form-group label{display:block;font-weight:500;margin-bottom:8px;font-size:.9rem}
     .form-group input{width:100%;padding:10px 14px;border:1px solid #d2d2d2;border-radius:4px;font-size:1rem;font-family:'Red Hat Text',sans-serif}
     .form-group input:focus{outline:none;border-color:#0066cc;box-shadow:0 0 0 1px #0066cc}
-    .footer{background:#151515;color:#6a6e73;text-align:center;padding:16px;font-size:.8rem}
+    .footer{background:#151515;color:#6a6e73;text-align:center;padding:16px;font-size:.8rem;line-height:1.6}
+    .footer strong{color:#73bcf7}
+    .footer a{color:#f0ab00;text-decoration:none}
+    .footer a:hover{text-decoration:underline}
     </style>
     </head>
     <body>
     <div class="header">
-      <h1>Workshop Admin Dashboard</h1>
+      <div class="header-brand">
+        <img src="https://raw.githubusercontent.com/maximilianoPizarro/test-drive-pe-oscg/main/docs/assets/images/Logo-OSC_with_padding.png" alt="Red Hat OpenShift Commons">
+        <div class="header-text"><h1>Workshop Admin</h1></div>
+      </div>
     </div>
 
     <div id="login-view" class="main" style="display:flex;align-items:center;justify-content:center">

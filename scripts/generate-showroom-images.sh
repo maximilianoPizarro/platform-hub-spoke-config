@@ -22,11 +22,15 @@ MODULES=(
   "17-service-mesh"
   "20-acs-kuadrant"
   "22-openshift-ai"
+  "23-ai-gateway"
   "23-llm-rag"
+  "24-mcp-gateway"
   "25-neuroface-dashboard"
   "26-ai-end-user-apps"
   "27-full-verification"
 )
+SHOWROOM_IMG_ES="${ROOT}/showroom-hybrid-mesh-ai/content/modules/es/modules/ROOT/images"
+mkdir -p "$SHOWROOM_IMG" "$SHOWROOM_IMG_ES" "$DOCS_IMG"
 
 for name in "${MODULES[@]}"; do
   out="${SHOWROOM_IMG}/${name}.png"
@@ -42,14 +46,17 @@ png = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 
 open(sys.argv[1], "wb").write(png)
 PY
     cp "$out" "$docs_out"
+    cp "$out" "${SHOWROOM_IMG_ES}/${name}.png"
   elif command -v magick >/dev/null 2>&1; then
     magick -size 1200x630 xc:'#151515' -fill white -gravity center -pointsize 36 -annotate 0 "Hybrid Mesh AI\n${name}" "$out"
     cp "$out" "$docs_out"
+    cp "$out" "${SHOWROOM_IMG_ES}/${name}.png"
   elif command -v convert >/dev/null 2>&1 && convert -version 2>/dev/null | grep -qi imagemagick; then
     convert -size 1200x630 xc:'#151515' \
       -fill white -gravity center -pointsize 36 -annotate 0 "Hybrid Mesh AI\n${name}" \
       "$out"
     cp "$out" "$docs_out"
+    cp "$out" "${SHOWROOM_IMG_ES}/${name}.png"
   else
     echo "Install python3 or ImageMagick to generate ${name}.png" >&2
     exit 1
