@@ -119,8 +119,24 @@ MODULE_CONTEXT: dict[str, dict[str, str]] = {
         "es": """Abre link:https://neuroface.%HUB_DOMAIN%[NeuroFace] y **Developer Hub → Catálogo → neuroface-workshop**. OVMS habilitado para visión local; chat usa MaaS.""",
     },
     "ai-end-user-apps": {
-        "en": """Capstone: tie together IE dashboard, Developer Hub catalog entries, and Grafana for `%USER_NAME%`. This is the **last learner module (28)** — facilitators run automated verification separately.""",
-        "es": """Cierre: conecta dashboard IE, entradas Developer Hub y Grafana para `%USER_NAME%`. Este es el **último módulo del participante (28)**.""",
+        "en": """Capstone module **28 — AI in End-User Apps**. You will connect everything operators touch on the factory floor:
+
+. Open link:https://industrial-edge.%HUB_DOMAIN%[Industrial Edge line-dashboard] — confirm live Kafka sensor metrics for east spoke workloads.
+. Developer Hub → **Catalog** — locate `%USER_NAME%` IE components, Grafana dashboards, and AI catalog dependencies.
+. Review **ie-anomaly-alerter** alerts: `oc logs -l app=ie-anomaly-alerter -n industrial-edge-tst-all --tail=30` in the Showroom **Terminal**.
+. Optional: open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] for operator AI assist; compare with MaaS summaries from module 23.
+. Trace Camel K demos `demo-camel-kaoto-east` / `demo-camel-cdc-east` in catalog Topology for event-driven OT/IT integration.
+
+*Success criteria:* line-dashboard shows data, at least one catalog entity links IE → AI, and you can explain how AWS Kinesis or Azure Event Hubs would mirror the same event path in production.""",
+        "es": """Módulo cierre **28 — IA en apps finales**. Conectarás lo que operadores usan en planta:
+
+. Abrir link:https://industrial-edge.%HUB_DOMAIN%[line-dashboard IE] — confirmar métricas Kafka en vivo.
+. Developer Hub → **Catálogo** — componentes `%USER_NAME%`, Grafana y dependencias IA.
+. Revisar alertas **ie-anomaly-alerter** en terminal Showroom.
+. Opcional: link:https://neuroface.%HUB_DOMAIN%[NeuroFace] para asistencia IA.
+. Rastrear demos Camel K en Topology.
+
+*Éxito:* dashboard con datos, entidad catálogo IE → IA, y explicar equivalente AWS/Azure del flujo de eventos.""",
     },
     "full-verification": {
         "en": """**Facilitator / agent only.** Run `scripts/verify-workshop-e2e.sh` and `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — not shown to learners in the workshop nav.""",

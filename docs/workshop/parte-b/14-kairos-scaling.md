@@ -28,6 +28,36 @@ Open Kairos Console from the OpenShift menu, locate pending recommendations tied
 * [ACM — capacity planning](https://www.redhat.com/en/technologies/management/advanced-cluster-management)
 * [Cluster autoscaler documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-cluster)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **SmartScalingPolicy** CRs recommend node/workload sizing.
+* **Kairos Console** agent answers scaling questions in natural language.
+* Correlates with HPA (module 18) and Kubecost (module 21).
+
+### Business benefits
+
+* Human-in-the-loop approval before edge node changes — safe for OT environments.
+* Data-driven rightsizing reduces cloud and hardware spend.
+
+### AWS — Cluster Autoscaler on ROSA
+
+```bash
+# ROSA machine pools scale workers
+rosa edit machinepool --cluster=workshop-hub --machinepool=worker --replicas=5
+aws autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[?contains(Tags[?Key==`rosa`].Value, `workshop-hub`)]'
+```
+
+### Azure — AKS cluster autoscaler
+
+```bash
+az aks update --resource-group rg-workshop --name factory-east --enable-cluster-autoscaler   --min-count 2 --max-count 10
+az aks nodepool update --resource-group rg-workshop --cluster-name factory-east   --name nodepool1 --enable-cluster-autoscaler --min-count 2 --max-count 8
+```
+
 ## Show and Tell
 
 . Open Kairos Console and walk through a pending SmartScalingPolicy recommendation.

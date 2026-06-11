@@ -29,6 +29,34 @@ nav_order: 15
 * [Developer Hub — Lightspeed and plugins](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
 * [Developer Hub product overview](https://developers.redhat.com/products/red-hat-developer-hub)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **MCP Gateway** — Kuadrant CRDs, ArgoCD MCP, k8s MCP tools.
+* **Developer Hub Lightspeed** invokes tools via `remote::mcp`.
+* Public URL `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
+
+### Business benefits
+
+* Developers ask natural-language questions that trigger safe, scoped automation.
+* Same MCP pattern for OpenShift AI assistant servers (module 22).
+
+### AWS — Lambda tools (contrast)
+
+```bash
+aws lambda create-function --function-name list-argocd-apps   --runtime python3.12 --handler app.handler --role arn:aws:iam::123456789012:role/lambda-basic   --zip-file fileb://function.zip
+# MCP Gateway on OpenShift replaces ad-hoc Lambda glue for K8s operations
+```
+
+### Azure — Functions
+
+```bash
+az functionapp create --resource-group rg-workshop --name hybrid-tools --storage-account hybridstore   --consumption-plan-location eastus --runtime python --functions-version 4
+```
+
 ## Show and Tell
 
 . `oc get mcpgatewayextension,mcpserverregistration -n mcp-system`.

@@ -50,6 +50,40 @@ Compare response time and HTTP 429 behavior (if you exceed limits) to a direct c
 * [API management on Kubernetes with Kuadrant](https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant)
 * [Building a trusted AI platform on OpenShift](https://www.redhat.com/en/blog/building-trusted-ai-platform-openshift)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Gateway API HTTPRoute** on hub with Istio ingress.
+* **Kuadrant AuthPolicy** + **TokenRateLimitPolicy** — API keys per workshop user.
+* Public hostname **`workshop-apis.%HUB_DOMAIN%`** routing `/llm` to MaaS backend.
+
+### Business benefits
+
+* Factory apps get stable external API with auth — no shared cluster-internal URLs.
+* Rate limits protect MaaS from runaway OT scripts or misconfigured loops.
+
+### AWS — API Gateway + ROSA analogy
+
+```bash
+aws apigateway create-rest-api --name factory-llm-gateway
+# Map to private integration (NLB → OpenShift route) — lab uses Kuadrant instead
+aws apigateway create-deployment --rest-api-id abc123 --stage-name prod
+
+# WAF rate limit (compare Kuadrant TokenRateLimitPolicy)
+aws wafv2 create-web-acl --name llm-rate-limit --scope REGIONAL   --default-action Allow={} --rules file://rate-limit-rules.json
+```
+
+### Azure — API Management
+
+```bash
+az apim create --resource-group rg-workshop --name factory-apim --publisher-name Hybrid --publisher-email admin@example.com
+az apim api create --resource-group rg-workshop --service-name factory-apim   --api-id maas-llm --path llm --display-name "MaaS LLM"
+az apim product create --resource-group rg-workshop --service-name factory-apim   --product-id plant-tier --product-name "Plant API tier" --subscription-required true
+```
+
 ## Show and Tell
 
 . Catalog → **workshop-ai-gateway** → inspect HTTPRoute in Topology.

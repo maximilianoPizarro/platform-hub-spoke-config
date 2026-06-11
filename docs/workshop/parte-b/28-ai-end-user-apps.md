@@ -9,7 +9,7 @@ nav_order: 19
 # AI in End-User Apps
 
 
-![AI in end-user applications]({{ site.baseurl }}/assets/images/workshop/26-ai-end-user-apps.png)
+![AI in end-user applications]({{ site.baseurl }}/assets/images/workshop/28-ai-end-user-apps.png)
 {: .mb-4 }
 
 ## Overview
@@ -27,6 +27,54 @@ Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and 
 * [Developer Hub — golden paths for apps](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
 * [OpenShift AI — production patterns](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
 * [Industrial Edge on OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/industrial-edge)
+
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **line-dashboard** — live Kafka sensor visualization on east spoke for operators.
+* **ie-anomaly-alerter** — statistical/predictive alerts surfaced in the plant UX.
+* **Camel K** integrations (`demo-camel-kaoto-east`, `demo-camel-cdc-east`) — event-driven OT/IT bridges.
+* **NeuroFace + MaaS** — contextual AI help embedded in end-user flows, not only notebooks.
+
+### Business benefits
+
+* Operators act on AI insights in the same dashboard they use for line status — no context switching.
+* Platform teams publish catalog dependencies once; each plant binds AI services via Developer Hub.
+* `%USER_NAME%` capstone proves multi-tenant factory rollout without shadow IT pipelines.
+
+### AWS — stream plant events to cloud analytics
+
+```bash
+# Mirror Kafka topics to Kinesis (optional hybrid analytics)
+aws kinesis create-stream --stream-name plant-sensors --shard-count 2
+# MSK cluster for ROSA-adjacent streaming
+aws kafka create-cluster --cluster-name factory-msk   --broker-node-group-info file://broker-nodes.json   --kafka-version 3.5.1
+
+# SNS mobile push for operator alerts (analog to anomaly → notification)
+aws sns create-topic --name plant-anomaly-alerts
+aws sns subscribe --topic-arn arn:aws:sns:us-east-1:123456789012:plant-anomaly-alerts   --protocol email --notification-endpoint ops@factory.example.com
+```
+
+### Azure — Event Hubs + IoT
+
+```bash
+az eventhubs namespace create --resource-group rg-workshop --name plant-events --sku Standard
+az eventhubs eventhub create --resource-group rg-workshop --namespace-name plant-events --name sensors
+az iot hub create --resource-group rg-workshop --name plant-iot --sku S1
+
+# Route IE anomaly events (conceptual CDC pattern from Camel demo)
+az eventhubs eventhub consumer-group create --resource-group rg-workshop   --namespace-name plant-events --eventhub-name sensors --name line-dashboard
+```
+
+### Lab hands-on sequence
+
+. Open [Industrial Edge line-dashboard](https://industrial-edge.%HUB_DOMAIN%) — confirm live metrics.
+. Developer Hub → catalog components for `%USER_NAME%` IE namespace and Grafana dashboards.
+. Trigger anomaly threshold or review ie-anomaly-alerter logs: `oc logs -l app=ie-anomaly-alerter -n industrial-edge-tst-all --tail=20`.
+. Optional: embed [NeuroFace](https://neuroface.%HUB_DOMAIN%) for operator AI assist.
 
 ## Show and Tell
 

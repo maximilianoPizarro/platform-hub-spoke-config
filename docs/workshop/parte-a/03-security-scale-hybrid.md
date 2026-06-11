@@ -29,6 +29,41 @@ Scaling hybrid fleets means automating placement and capacity: ACM policies, Kai
 * [ACM governance overview](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/governance/governance-overview)
 * [Red Hat security blog](https://www.redhat.com/en/blog/tag/security)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* ACS Central for image/runtime policy across hub and spokes.
+* OVN-Kubernetes NetworkPolicies on spokes; mesh ambient on app namespaces.
+* Kuadrant rate limits at hub ingress before traffic reaches OT backends.
+
+### Business benefits
+
+* Detect supply-chain and runtime threats without agents blocking mesh dataplane.
+* Scale sensor ingestion with Kafka + HPA while policy stays centralized in ACM.
+
+### AWS — security services alignment
+
+```bash
+# GuardDuty + ROSA (runtime signals complement ACS)
+aws guardduty create-detector --enable
+# PrivateLink endpoint for ROSA API (factory networks)
+aws ec2 create-vpc-endpoint --vpc-id vpc-xxx --service-name com.amazonaws.us-east-1.sts
+
+# Security group rules for worker nodes (analog to NP module 19)
+aws ec2 authorize-security-group-ingress --group-id sg-workers   --protocol tcp --port 443 --cidr 10.0.0.0/8
+```
+
+### Azure — Defender + AKS
+
+```bash
+az security pricing create --name VirtualMachines --tier Standard
+az aks update --resource-group rg-workshop --name factory-east --enable-defender
+az network nsg rule create --resource-group rg-workshop --nsg-name aks-nsg   --name allow-hub --priority 100 --destination-port-ranges 443 --access Allow
+```
+
 ## Show and Tell
 
 . Highlight ACS + mesh coexistence (`stackrox` without ambient labels).

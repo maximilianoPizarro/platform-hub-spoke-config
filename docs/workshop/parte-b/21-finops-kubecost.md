@@ -28,6 +28,35 @@ FinOps closes the executive loop from module 01: hybrid strategy without cost vi
 * [OpenShift capacity and nodes](https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/nodes/index)
 * [Red Hat FinOps blog tag](https://www.redhat.com/en/blog/tag/finops)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Kubecost** primary on hub with agents on east/west spokes.
+* Namespace-level allocation for `%USER_NAME%` and IE workloads.
+* Correlates with Kairos right-sizing recommendations (module 14).
+
+### Business benefits
+
+* CFO-ready chargeback without spreadsheet exports from each cluster.
+* Identify idle capacity before buying more edge hardware.
+
+### AWS — Cost Explorer + ROSA tags
+
+```bash
+aws ce get-cost-and-usage --time-period Start=2026-01-01,End=2026-02-01   --granularity MONTHLY --metrics BlendedCost   --group-by Type=TAG,Key=kubernetes.io/cluster/factory-east
+aws cur put-report-definition --report-definition file://rosa-cur.json
+```
+
+### Azure — Cost Management
+
+```bash
+az consumption usage list --start-date 2026-01-01 --end-date 2026-02-01
+az costmanagement export create --scope subscriptions/<sub-id> --name kubecost-sync   --storage-account hybridcost --storage-container exports --timeframe MonthToDate
+```
+
 ## Show and Tell
 
 . Kubecost UI: allocation by namespace for `%USER_NAME%`.

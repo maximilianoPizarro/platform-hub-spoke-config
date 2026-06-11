@@ -29,6 +29,42 @@ Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manage
 * [OpenShift architecture overview](https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/architecture/architecture-overview)
 * [Red Hat Developer blog — OpenShift](https://developers.redhat.com/blog/tag/openshift)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* Managed control plane (Red Hat SRE) with customer-owned worker MachineSets.
+* STS/IAM integration for pod identity to AWS services without long-lived keys.
+* PrivateLink and VPC isolation patterns for factory connectivity.
+
+### Business benefits
+
+* Predictable upgrades and CVE response on control plane while you control worker sizing.
+* Same ACM/GitOps/AI modules as on-prem — skills transfer directly to ROSA spokes.
+
+### AWS — ROSA cluster lifecycle
+
+```bash
+rosa verify permissions
+rosa create account-roles --mode auto
+rosa create cluster --cluster-name=workshop-hub   --region=us-east-1 --multi-az --replicas=3   --compute-machine-type=m5.4xlarge --version 4.16.12
+
+rosa describe cluster --cluster=workshop-hub
+rosa create idp --cluster=workshop-hub --type htpasswd --name workshop-users   --username admin --password 'ChangeMe123!'
+
+# Worker autoscaling (analog to module 14 Kairos recommendations)
+aws autoscaling put-scaling-policy --auto-scaling-group-name rosa-worker-asg   --policy-name scale-on-cpu --policy-type TargetTrackingScaling   --target-tracking-configuration file://cpu-target.json
+```
+
+### Azure — compare with ARO
+
+```bash
+az aro create --resource-group rg-workshop --name workshop-hub   --version 4.16 --worker-count 3 --master-vm-size Standard_D8s_v3
+az aro list --output table
+```
+
 ## Show and Tell
 
 . Whiteboard ROSA control plane vs worker responsibility split.

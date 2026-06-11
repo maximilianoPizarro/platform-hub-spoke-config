@@ -29,6 +29,35 @@ Observe `HTTPRoute` resources and Skupper status in the console; module 13 deplo
 * [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
 * [Gateway API for OpenShift Service Mesh](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Skupper** service interconnect — encrypted app networks without VPN mesh complexity.
+* **Gateway API HTTPRoute** on hub terminates north-south traffic.
+* Industrial Edge frontends on spokes reached through logical mesh.
+
+### Business benefits
+
+* No flat VPC peering between every plant and cloud hub.
+* Same OpenShift Routes and policies whether underlay is AWS, Azure, or MPLS.
+
+### AWS — ALB + PrivateLink to ROSA
+
+```bash
+aws elbv2 create-load-balancer --name hybrid-ingress --type application --subnets subnet-a subnet-b
+aws ec2 create-vpc-endpoint --vpc-id vpc-hub --service-name com.amazonaws.us-east-1.s3
+# Skupper analog: private connectivity to spoke services without public kube API
+```
+
+### Azure — Application Gateway
+
+```bash
+az network application-gateway create --resource-group rg-workshop --name hybrid-appgw   --capacity 2 --sku Standard_v2 --public-ip-address hybrid-pip
+```
+
 ## Show and Tell
 
 . Trace external URL → hub HTTPRoute → Skupper → spoke IE frontend.

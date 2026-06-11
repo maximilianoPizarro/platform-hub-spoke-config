@@ -28,6 +28,35 @@ Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revis
 * [Argo CD documentation](https://argo-cd.readthedocs.io/)
 * [ACM GitOps overview](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/gitops/gitops-overview)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Argo CD** on hub deploys hub and spoke components via ApplicationSet + Placements.
+* Sync waves order operators before workloads (see `templates/component-applications.yaml`).
+* `%USER_NAME%` changes flow: Gitea PR → Argo sync → live cluster.
+
+### Business benefits
+
+* Auditable drift detection — every factory config in Git.
+* ACM placement targets east/west without duplicate Application CRs per cluster.
+
+### AWS — CodePipeline deploy to ROSA
+
+```bash
+aws codebuild create-project --name gitops-sync --source type=GITHUB,location=org/platform-hub-spoke-config
+aws codepipeline create-pipeline --cli-input-json file://gitops-pipeline.json
+# Lab: OpenShift GitOps pulls directly from Gitea/GitHub
+```
+
+### Azure — DevOps pipeline
+
+```bash
+az pipelines create --name gitops-sync --repository platform-hub-spoke-config   --repository-type tfsgit --branch main --yaml-path azure-pipelines.yml
+```
+
 ## Show and Tell
 
 . Argo CD UI: hub Application vs user spoke Application sources.

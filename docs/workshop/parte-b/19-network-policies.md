@@ -27,6 +27,36 @@ Compare to ROSA security groups plus Kubernetes NP: defense in depth at cloud VP
 * [OpenShift network policies](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/network-policies)
 * [Understanding network policies](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/understanding-network-policies)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **NetworkPolicy** demo in `industrial-edge-tst-all` from GitOps.
+* OVN-Kubernetes enforcement on spokes — default-deny with explicit allow lists.
+* `%USER_NAME%` tests allowed vs denied curl paths from Showroom terminal.
+
+### Business benefits
+
+* Micro-segmentation for OT/IT convergence — contain lateral movement.
+* Complements ACS runtime policies and mesh mTLS.
+
+### AWS — Security groups + NP
+
+```bash
+aws ec2 authorize-security-group-ingress --group-id sg-ie --protocol tcp --port 8080 --cidr 10.128.0.0/14
+aws ec2 revoke-security-group-ingress --group-id sg-ie --protocol tcp --port 8080 --cidr 0.0.0.0/0
+oc get networkpolicy -n industrial-edge-tst-all
+```
+
+### Azure — NSG + NP
+
+```bash
+az network nsg rule create --resource-group rg-workshop --nsg-name ie-nsg   --name allow-dashboard --priority 200 --destination-port-ranges 8080 --access Allow   --source-address-prefixes VirtualNetwork
+oc exec -it deploy/curlpod -- curl -s -o /dev/null -w '%{http_code}' http://line-dashboard:8080
+```
+
 ## Show and Tell
 
 . Apply or review demo NetworkPolicy in `industrial-edge-tst-all`.

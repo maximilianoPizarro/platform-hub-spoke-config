@@ -9,7 +9,7 @@ nav_order: 16
 # LLMs & RAG
 
 
-![LLM and RAG with MaaS]({{ site.baseurl }}/assets/images/workshop/23-llm-rag.png)
+![LLM and RAG with MaaS]({{ site.baseurl }}/assets/images/workshop/25-llm-rag.png)
 {: .mb-4 }
 
 ## Overview
@@ -28,6 +28,35 @@ As `%USER_NAME%`, open Developer Hub, trigger Lightspeed on a catalog Component,
 * [Developer Hub Lightspeed plugin](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-lightspeed-plugin)
 * [AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
 * [What is RAG — Red Hat](https://www.redhat.com/en/topics/ai/what-is-retrieval-augmented-generation)
+
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Lightspeed** in Developer Hub for catalog-aware prompts.
+* **RAG** pattern: vector store + OpenShift AI inference (lab uses MaaS endpoint).
+* **Continue AI** in DevSpaces for inline code suggestions.
+
+### Business benefits
+
+* Factory runbooks and SOPs ground LLM answers — fewer hallucinations on the shop floor.
+* Same MaaS backend as NeuroFace and AI Gateway — unified governance.
+
+### AWS — Bedrock Knowledge Bases
+
+```bash
+aws bedrock-agent create-knowledge-base --name factory-sops   --role-arn arn:aws:iam::123456789012:role/BedrockKBRole   --knowledge-base-configuration file://kb-config.json
+aws bedrock-agent ingest-knowledge-base-documents --knowledge-base-id KB123   --documents file://sops.pdf
+```
+
+### Azure — AI Search + OpenAI
+
+```bash
+az search service create --name factory-search --resource-group rg-workshop --sku basic
+az cognitiveservices account deployment create --name hybrid-openai --resource-group rg-workshop   --deployment-name embeddings --model-name text-embedding-ada-002
+```
 
 ## Show and Tell
 

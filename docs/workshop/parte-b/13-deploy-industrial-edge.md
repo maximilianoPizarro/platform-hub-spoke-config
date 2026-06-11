@@ -28,6 +28,37 @@ This module is the operational heart of Part B: later observability, scaling, ne
 * [AMQ Streams documentation](https://docs.redhat.com/en/documentation/red_hat_amq_streams)
 * [Microservices learning hub](https://developers.redhat.com/topics/microservices)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Industrial Edge** stack — line dashboard, Kafka, Camel, ML inference at the edge.
+* Deployed on **east spoke** via ACM placement and GitOps.
+* Plan B demo `demo-industrial-edge-east` if scaffolder unavailable.
+
+### Business benefits
+
+* Process sensor data locally; sync summaries to hub for AI and FinOps.
+* Reduces cloud egress costs for high-frequency OT telemetry.
+
+### AWS — IoT Greengrass / edge ROSA
+
+```bash
+aws greengrassv2 create-component-version --inline-recipe file://line-recipe.yaml
+aws iot thing create --thing-name line-01-edge
+# ROSA single-node compact cluster at edge (3-node minimum production)
+rosa create cluster --cluster-name=line-01 --region=us-east-1 --compute-machine-type=m5.xlarge
+```
+
+### Azure — IoT Edge on AKS
+
+```bash
+az iot edge set-modules --device-id line-01 --hub-name plant-iot --content file://deployment.json
+az aks nodepool add --resource-group rg-workshop --cluster-name factory-east --name edgepool --node-count 2
+```
+
 ## Show and Tell
 
 . Confirm Gitea org `ws-%USER_NAME%` and Argo CD sync on east.

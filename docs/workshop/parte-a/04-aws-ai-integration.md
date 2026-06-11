@@ -29,6 +29,43 @@ Module 22 onward activates this stack hands-on. Executives should recognize that
 * [Developer article — AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
 * [AWS — Red Hat OpenShift Service on AWS](https://aws.amazon.com/rosa/)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* OpenShift AI DataScienceCluster with ModelMesh/KServe on hub.
+* MaaS shared LLM endpoint — portable alternative to Bedrock/SageMaker lock-in.
+* IAM OIDC patterns for optional AWS model service calls from OpenShift projects.
+
+### Business benefits
+
+* Keep inference on-cluster for data residency; call Bedrock only when policy allows.
+* One MaaS URL for Developer Hub Lightspeed, notebooks, and NeuroFace chat.
+
+### AWS — Bedrock + ROSA workload identity
+
+```bash
+# Enable Bedrock model access (console or CLI)
+aws bedrock put-model-invocation-logging-configuration   --logging-config cloudWatchConfig={logGroupName=/bedrock/invocations}
+
+# IRSA-style trust for OpenShift service account (conceptual — use cluster OIDC issuer)
+aws iam create-role --role-name rosa-ai-invoke-bedrock   --assume-role-policy-document file://trust-openshift-oidc.json
+aws iam attach-role-policy --role-name rosa-ai-invoke-bedrock   --policy-arn arn:aws:iam::aws:policy/AmazonBedrockFullAccess
+
+# Invoke (compare with lab MaaS curl in module 23)
+aws bedrock-runtime invoke-model   --model-id anthropic.claude-3-sonnet-20240229-v1:0   --body file://prompt.json --cli-binary-format raw-in-base64-out out.json
+```
+
+### Azure — OpenAI alternative
+
+```bash
+az cognitiveservices account create --name hybrid-openai --resource-group rg-workshop   --kind OpenAI --sku S0 --location eastus
+az cognitiveservices account deployment create --name hybrid-openai   --resource-group rg-workshop --deployment-name gpt-4o --model-name gpt-4o --model-version "2024-05-13"
+# Lab uses OpenShift AI MaaS instead — same consumer app pattern
+```
+
 ## Show and Tell
 
 . Contrast Bedrock/SageMaker with OpenShift AI + MaaS in this lab.

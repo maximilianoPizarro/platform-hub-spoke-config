@@ -27,6 +27,35 @@ This module completes the capacity story started in module 14: Kairos proposes n
 * [Horizontal Pod Autoscaler](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-deployment)
 * [AMQ Streams — Kafka on OpenShift](https://docs.redhat.com/en/documentation/red_hat_amq_streams)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **HPA** on IE and demo deployments; **Kafka** buffering for sensor spikes.
+* **Cluster Autoscaler** / machine pool growth on spokes under load tests.
+* `%USER_NAME%` namespaces include quota limits — observe scaling boundaries.
+
+### Business benefits
+
+* Handle shift-change telemetry bursts without manual node provisioning.
+* HPA + Kafka decouple ingestion from processing.
+
+### AWS — MSK + HPA on ROSA
+
+```bash
+aws kafka create-cluster --cluster-name ie-kafka --kafka-version 3.5.1   --number-of-broker-nodes 3 --broker-node-group-info file://brokers.json
+oc autoscale deployment line-dashboard --min=2 --max=10 --cpu-percent=70 -n industrial-edge-tst-all
+```
+
+### Azure — Event Hubs Kafka head
+
+```bash
+az eventhubs namespace create --name ie-kafka --resource-group rg-workshop --sku Standard   --enable-kafka true
+oc autoscale deployment line-dashboard --min=2 --max=10 --cpu-percent=70
+```
+
 ## Show and Tell
 
 . Watch HPA scale line-dashboard pods under simulated load.

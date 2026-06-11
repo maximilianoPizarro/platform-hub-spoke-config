@@ -29,6 +29,41 @@ This module establishes the mental model for every subsequent Part B exercise: t
 * [OpenShift GitOps — fleet patterns](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops)
 * [Red Hat Interactive Labs](https://access.redhat.com/labs/)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **ManagedCluster** import for east/west spokes without sharing kube-admin broadly.
+* **Placement** and **GitOpsCluster** — deploy apps to selected clusters from hub.
+* OCM APIs power Developer Hub Topology multicluster view.
+
+### Business benefits
+
+* Single pane for fleet health — critical for 10+ factory edge sites.
+* Policy violations visible before they reach production OT networks.
+
+### AWS — ROSA spoke registration
+
+```bash
+# On spoke ROSA cluster — bootstrap klusterlet (ACM auto-import flow)
+# Hub: oc get managedclusters
+rosa list clusters
+aws eks update-cluster-config --name factory-east --resources-vpc-config endpointPublicAccess=false
+
+# Hub credentials for import (use ACM console Import cluster wizard)
+oc get secret -n open-cluster-management hub-kubeconfig-secret -o yaml
+```
+
+### Azure — AKS attach
+
+```bash
+az aks get-credentials --resource-group rg-workshop --name factory-east
+# ACM: Clusters → Import → paste kubeconfig / auto import
+az aks update --resource-group rg-workshop --name factory-east --enable-aad --aad-admin-group-object-ids <guid>
+```
+
 ## Show and Tell
 
 . Open ACM Clusters UI — identify east and west spokes.

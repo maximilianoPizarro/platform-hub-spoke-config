@@ -28,6 +28,36 @@ Your next step is Part B registration verification — ensure `%USER_NAME%` work
 * [Developer Hub product page](https://developers.redhat.com/products/red-hat-developer-hub)
 * [ACM product page](https://www.redhat.com/en/technologies/management/advanced-cluster-management)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* Customer journey map from edge IoT → hub analytics → OpenShift AI → FinOps.
+* Plan B **hybrid-mesh-shared-demos** for rooms without scaffolder capacity.
+* Module numbering ties executive story to hands-on checkpoints.
+
+### Business benefits
+
+* Stakeholders see ROI metrics (downtime $, detection time, node savings) before deep technical labs.
+* Roadmap reduces "pilot purgatory" — each module is a production milestone.
+
+### AWS — landing zone alignment
+
+```bash
+# Organize ROSA accounts per plant (Control Tower / Organizations)
+aws organizations create-account --email plant-01@example.com --account-name factory-east
+aws servicecatalog provision-product --product-id prod-rosa-spoke --provisioned-product-name plant-01
+```
+
+### Azure — enterprise scale
+
+```bash
+az account create --enrollment-account-name hybrid --offer-type MS-AZR-0017P
+az deployment sub create --location eastus --template-file landing-zone.json
+```
+
 ## Show and Tell
 
 . Present the automotive IoT case metrics (12k events/min, $47k/hr downtime, 34% node savings).

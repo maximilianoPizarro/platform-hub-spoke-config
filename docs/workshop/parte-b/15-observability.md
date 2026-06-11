@@ -28,6 +28,35 @@ Executives should connect this module to module 21 (Kubecost): metrics prove SLO
 * [Distributed tracing](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/distributed_tracing/distributed-tracing-overview)
 * [Grafana documentation](https://grafana.com/docs/)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **Prometheus** federation hub ← spokes; **Grafana** dashboards for `%USER_NAME%`.
+* **Tempo/Jaeger** distributed tracing across mesh and IE services.
+* **Kiali** service graph for ambient mesh (module 17).
+
+### Business benefits
+
+* Mean time to resolution drops when traces link IE Kafka lag to specific pods.
+* Single Grafana entry for executives and SREs.
+
+### AWS — CloudWatch + ROSA
+
+```bash
+aws logs create-log-group --log-group-name /rosa/workshop-hub/application
+aws cloudwatch put-metric-alarm --alarm-name kafka-lag-high   --metric-name EstimatedLag --namespace AWS/Kafka --threshold 10000   --comparison-operator GreaterThanThreshold --evaluation-periods 2 --period 300
+```
+
+### Azure — Monitor + Container Insights
+
+```bash
+az monitor diagnostic-settings create --name aks-logs --resource /subscriptions/.../factory-east   --workspace hybrid-ops --logs '[{"category":"kube-audit","enabled":true}]'
+az monitor metrics alert create --name kafka-lag --resource-group rg-workshop   --scopes <resource-id> --condition "avg Percentage CPU > 80" --window-size 5m
+```
+
 ## Show and Tell
 
 . Open multicluster Grafana dashboard filtered to IE namespace.

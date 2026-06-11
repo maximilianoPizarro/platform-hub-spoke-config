@@ -29,6 +29,36 @@ Templates are the bridge between executive strategy (module 01) and spoke deploy
 * [Developer Hub getting started](https://developers.redhat.com/products/red-hat-developer-hub/getting-started)
 * [Developer Hub plugins](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* Backstage **Software Templates** in Developer Hub Create flow.
+* Parameters: namespace, quota, Git repo, Argo CD Application, catalog registration.
+* Templates under `docs/assets/backstage/software-templates/`.
+
+### Business benefits
+
+* Cut onboarding from weeks to minutes with guardrails baked in.
+* `%USER_NAME%` scaffold creates auditable GitOps path per developer.
+
+### AWS — CodeCommit + ROSA CI
+
+```bash
+aws codecommit create-repository --repository-name ie-app-user1
+aws codepipeline create-pipeline --cli-input-json file://pipeline.json
+# Lab uses Gitea + OpenShift GitOps instead
+```
+
+### Azure — DevOps + ARO
+
+```bash
+az devops project create --name hybrid-platform --organization https://dev.azure.com/myorg
+az repos create --name ie-app-user1 --project hybrid-platform
+```
+
 ## Show and Tell
 
 . Live Developer Hub Create flow for Industrial Edge template.

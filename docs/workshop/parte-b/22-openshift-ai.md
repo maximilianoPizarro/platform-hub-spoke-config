@@ -32,6 +32,37 @@ GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.
 * [Run AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
 * [Red Hat AI blog](https://www.redhat.com/en/blog/tag/artificial-intelligence)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **DataScienceCluster** (`default-dsc`) — ModelMesh, KServe, dashboard, notebooks.
+* Per-user project **`ai-%USER_NAME%`** with `workshop-notebook` and InferenceService `workshop-sklearn`.
+* MaaS playground in `maas-workshop` — shared LLM for all AI modules.
+
+### Business benefits
+
+* Data scientists and developers share one governed inference layer.
+* Notebooks and pipelines stay on-cluster — no export of factory data to public SaaS.
+
+### AWS — SageMaker vs OpenShift AI
+
+```bash
+# SageMaker endpoint (cloud alternative — lab uses OpenShift AI instead)
+aws sagemaker create-model --model-name sklearn-factory --primary-container   Image=246618743249.dkr.ecr.us-east-1.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3,ModelDataUrl=s3://models/sklearn.tar.gz
+aws sagemaker create-endpoint-config --endpoint-config-name sklearn-cfg   --production-variants VariantName=AllTraffic,ModelName=sklearn-factory,InitialInstanceCount=1,InstanceType=ml.m5.large
+aws sagemaker create-endpoint --endpoint-name sklearn-factory --endpoint-config-name sklearn-cfg
+```
+
+### Azure — ML workspace
+
+```bash
+az ml workspace create --resource-group rg-workshop --name factory-ml
+az ml online-deployment create --name sklearn-deploy --model sklearn:1 --workspace-name factory-ml
+```
+
 ## Show and Tell
 
 . `oc get dsc` — confirm Ready; open **workshop-notebook** in ai-%USER_NAME%.

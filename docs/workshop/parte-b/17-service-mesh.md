@@ -29,6 +29,36 @@ Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` depl
 * [Ambient mesh overview](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/ambient-overview)
 * [Kiali service mesh observability](https://kiali.io/docs/)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **OpenShift Service Mesh 3** ambient mode — no sidecar injection for many workloads.
+* **Kiali** observability, **mTLS** between services, **waypoint** proxies where needed.
+* `stackrox` namespace excluded from ambient to protect ACS sensors.
+
+### Business benefits
+
+* Zero-trust east-west without rewriting apps for sidecars.
+* Consistent telemetry for IE microservices crossing namespaces.
+
+### AWS — App Mesh contrast
+
+```bash
+aws appmesh create-mesh --mesh-name factory-mesh
+aws appmesh create-virtual-node --mesh-name factory-mesh --virtual-node-name ie-backend   --spec file://virtual-node.json
+# OpenShift Service Mesh preferred when already on ROSA/ARO
+```
+
+### Azure — Service Fabric mesh (legacy contrast)
+
+```bash
+# Prefer OpenShift Service Mesh on ARO for Kubernetes-native teams
+az network application-gateway create --name mesh-ingress --resource-group rg-workshop --sku Standard_v2
+```
+
 ## Show and Tell
 
 . Open Kiali graph for IE namespace — point out ambient ztunnel edges.

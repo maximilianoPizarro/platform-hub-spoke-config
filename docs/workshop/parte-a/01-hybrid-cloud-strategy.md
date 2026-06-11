@@ -29,6 +29,40 @@ Executives should note that OpenShift avoids replatforming twice: microservices,
 * [Red Hat Developer — learning paths](https://developers.redhat.com/learn)
 * [ACM — multicluster management](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* Workload placement framework: edge for latency, cloud for burst, hub for governance.
+* Unified OpenShift API across ROSA, bare metal, and edge — operators learn once.
+* ACM policy engine for fleet-wide compliance without per-cluster kubectl scripts.
+
+### Business benefits
+
+* Avoid double replatforming when AI or analytics moves from cloud to edge.
+* Faster plant onboarding: `%USER_NAME%` mirrors how squads get isolated namespaces and catalog entries.
+* Executive KPI alignment: security, automation, FinOps, and AI on one roadmap.
+
+### AWS configuration — ROSA fleet anchor
+
+```bash
+# Tag ROSA clusters for FinOps chargeback (module 21)
+aws ec2 create-tags --resources i-0123456789abcdef0   --tags Key=kubernetes.io/cluster/factory-east,Value=owned Key=cost-center,Value=plant-01
+
+# Cost and usage report bucket for Kubecost/AWS integration
+aws s3 mb s3://rosa-cur-export
+aws cur put-report-definition --report-definition file://cur-definition.json
+```
+
+### Azure configuration — policy at scale
+
+```bash
+az policy assignment create --name require-aro-tags   --policy SetDefinition --params '{"tagName":{"value":"cost-center"}}'
+az monitor log-analytics workspace create --resource-group rg-hybrid-workshop --name hybrid-ops
+```
+
 ## Show and Tell
 
 . Frame the four strategic pillars: modernize, secure, automate, monetize AI on OpenShift.

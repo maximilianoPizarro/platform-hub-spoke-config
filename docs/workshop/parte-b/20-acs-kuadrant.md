@@ -29,6 +29,35 @@ As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct route
 * [Developer Hub Kuadrant plugin](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-kuadrant-plugin)
 * [Developer article — API management with Kuadrant](https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **ACS Central** — vulnerability and runtime policy for containers across fleet.
+* **Kuadrant** — API keys, AuthPolicy, rate limits on `workshop-apis` routes.
+* Developer Hub Kuadrant plugin for self-service key minting.
+
+### Business benefits
+
+* Security and API governance on one OpenShift footprint — no separate API gateway appliance.
+* `%USER_NAME%` keys isolate usage for chargeback and audit.
+
+### AWS — WAF + Secrets Manager
+
+```bash
+aws secretsmanager create-secret --name kuadrant-api-keys --secret-string '{"user1":"..."}'
+aws wafv2 associate-web-acl --web-acl-arn arn:aws:wafv2:... --resource-arn arn:aws:elasticloadbalancing:...
+```
+
+### Azure — Key Vault + Front Door
+
+```bash
+az keyvault secret set --vault-name hybrid-kv --name kuadrant-user1 --value <api-key>
+az network front-door waf-policy create --resource-group rg-workshop --name api-waf --sku Premium_AzureFrontDoor
+```
+
 ## Show and Tell
 
 . ACS Central overview — violations and deployments on spokes.

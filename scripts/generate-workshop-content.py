@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+from workshop_module_extended import extended_section_body  # noqa: E402
 from workshop_content_data import (  # noqa: E402
     CRED_NOTE_EN,
     CRED_NOTE_ES,
@@ -204,10 +205,10 @@ IMAGE_BY_SLUG = {
     "openshift-ai": ("22-openshift-ai.png", "OpenShift AI DataScienceCluster"),
     "ai-gateway": ("23-ai-gateway.png", "AI Gateway Kuadrant MaaS"),
     "mcp-gateway": ("24-mcp-gateway.png", "MCP Gateway federated tools"),
-    "llm-rag": ("23-llm-rag.png", "LLM and RAG with MaaS"),
-    "neuroface": ("25-neuroface-dashboard.png", "NeuroFace AI dashboard with webcam and chat"),
-    "ai-end-user-apps": ("26-ai-end-user-apps.png", "AI in end-user applications"),
-    "full-verification": ("27-full-verification.png", "Full stack workshop verification"),
+    "llm-rag": ("25-llm-rag.png", "LLM and RAG with MaaS"),
+    "neuroface": ("27-neuroface.png", "NeuroFace AI dashboard with webcam and chat"),
+    "ai-end-user-apps": ("28-ai-end-user-apps.png", "AI in end-user applications"),
+    "full-verification": ("29-full-verification.png", "Full stack workshop verification"),
 }
 
 
@@ -328,6 +329,24 @@ def time_badge(minutes: int, lang: str) -> str:
 ++++
 <span class="workshop-time-badge">{label}</span>
 ++++
+"""
+
+
+def extended_section(slug: str, lang: str) -> str:
+    if slug in FACILITATOR_ONLY_SLUGS:
+        return ""
+    label = (
+        "Features, benefits & cloud configuration"
+        if lang == "en"
+        else "Características, beneficios y configuración cloud"
+    )
+    body = extended_section_body(slug, lang)
+    if not body:
+        return ""
+    return f"""
+== {label}
+
+{body}
 """
 
 
@@ -501,6 +520,7 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
 
 {track_pacing_section(lang) if (not is_index and num.isdigit() and int(num) >= 10) else ""}{narrative.strip()}
 {learn_more_section(slug, lang)}
+{extended_section(slug, lang)}
 """
     elif slug in FACILITATOR_ONLY_SLUGS:
         overview_section = module_context_section(slug, lang)
@@ -812,6 +832,11 @@ Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** —
             learn_md = "\n### Learn more\n\n" + asciidoc_to_md(
                 learn_more_section(slug, "en").strip()
             )
+        ext_md = ""
+        if slug not in FACILITATOR_ONLY_SLUGS:
+            ext_md = "\n## Features, benefits & cloud configuration\n\n" + asciidoc_to_md(
+                extended_section(slug, "en").strip()
+            )
 
         body = f"""{SHOWROOM_BANNER}
 
@@ -822,6 +847,7 @@ Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** —
 
 {narrative}
 {learn_md}
+{ext_md}
 
 ## Show and Tell
 

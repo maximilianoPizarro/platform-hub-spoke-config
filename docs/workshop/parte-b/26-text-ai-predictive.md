@@ -25,6 +25,36 @@ Connect predictive alerts to module 26 end-user apps: Camel routes can fan out a
 * [Notebooks and connected apps](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/working_with_connected_applications/index)
 * [Red Hat AI blog](https://www.redhat.com/en/blog/tag/artificial-intelligence)
 
+## Features, benefits & cloud configuration
+
+## Features, benefits & cloud configuration
+
+### Key features
+
+* **ie-anomaly-alerter** — Prometheus-driven statistical alerts from IE metrics.
+* Optional **KServe InferenceService** for custom sklearn models on hub.
+* MaaS generative prompts for incident summaries post-alert.
+
+### Business benefits
+
+* Predictive maintenance signals before catastrophic line stops.
+* Combine deterministic alerts with LLM postmortem drafts for shift handover.
+
+### AWS — Lookout for Equipment / SageMaker anomaly
+
+```bash
+aws lookoutequipment create-dataset --dataset-name vibration-line-01 --dataset-schema file://schema.json
+aws sagemaker create-model-bias-job-definition --job-definition-name ie-anomaly   --model-bias-baseline-config file://baseline.json
+# Lab: ie-anomaly-alerter + OpenShift AI instead
+```
+
+### Azure — Anomaly Detector
+
+```bash
+az cognitiveservices account create --name factory-anomaly --kind AnomalyDetector   --resource-group rg-workshop --sku S0
+az rest --method post --url "https://factory-anomaly.cognitiveservices.azure.com/anomalydetector/v1.0/timeseries/entire/detect"
+```
+
 ## Show and Tell
 
 . Show ie-anomaly-alerter firing on threshold breach in metrics.
