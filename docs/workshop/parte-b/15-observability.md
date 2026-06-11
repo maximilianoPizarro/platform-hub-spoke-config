@@ -1,52 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Metrics Logging Dashboards
+parent: Hybrid Mesh AI Workshop
+nav_order: 6
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Metrics Logging Dashboards
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Observability dashboards and tracing]({{ site.baseurl }}/assets/images/workshop/15-observability.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Grafana multicluster; OTEL; Kafka Console.
+OpenShift observability spans cluster metrics, logs, traces, and custom dashboards federated across ACM-managed clusters. Red Hat builds on Prometheus, Loki or Elasticsearch patterns, Grafana, and OpenTelemetry Instrumentation CRs so application teams inherit platform-wide collectors without sidecar sprawl on every pod.
+
+This workshop deploys multicluster Grafana dashboards on the hub, OpenTelemetry collectors via `components/opentelemetry/`, and Kafka Console for IE topic inspection. As `%USER_NAME%`, filter dashboards to your namespace and correlate latency spikes with mesh traces in module 17.
+
+Executives should connect this module to module 21 (Kubecost): metrics prove SLO compliance while cost metrics prove efficiency — both required for hybrid FinOps. Use Showroom `oc` to list `GrafanaDashboard` CRs and confirm IE workloads emit scrape targets.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **15** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Open multicluster Grafana dashboard filtered to IE namespace.
+. Show Kafka Console and a sample OTEL trace (or metrics gap if trace pending).
+. Link metrics SLO story to upcoming Kubecost module.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Grafana | components/grafana-dashboards/ | ConfigMap |
-| OTEL | components/opentelemetry/ | Instrumentation |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# Grafana multicluster dashboards on hub
-# Kafka Console: components/kafka-console/
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Grafana dashboards | `components/grafana-dashboards/` |
+| OTEL | `components/opentelemetry/` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get grafanadashboard -A | head
+oc get route -n openshift-cluster-observability-operator 2>/dev/null | head -3
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Open a multicluster Grafana dashboard for your IE namespace
+* [ ] Inspect Kafka Console topics for sensor data
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get route -n openshift-cluster-observability-operator 2>/dev/null | head -3
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

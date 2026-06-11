@@ -543,6 +543,281 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
 """
 
 
+SHOWROOM_BANNER = (
+    "> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — "
+    "register: `https://workshop-registration.YOUR_HUB_DOMAIN/`"
+)
+
+
+def asciidoc_to_md(text: str) -> str:
+    """Best-effort AsciiDoc → Markdown for GitHub Pages (English workshop mirror)."""
+    out: list[str] = []
+    in_source: str | None = None
+    source_delim_seen = False
+    skip_passthrough = False
+    for line in text.splitlines():
+        if line.strip() == "++++":
+            skip_passthrough = not skip_passthrough
+            continue
+        if skip_passthrough:
+            continue
+        if line.startswith("[source,"):
+            lang = line.split(",", 1)[1].rstrip("]").strip() or "text"
+            in_source = lang
+            source_delim_seen = False
+            out.append(f"```{lang}")
+            continue
+        if line.strip() == "----":
+            if in_source:
+                if not source_delim_seen:
+                    source_delim_seen = True
+                    continue
+                out.append("```")
+                in_source = None
+                source_delim_seen = False
+            continue
+        if in_source:
+            out.append(line)
+            continue
+        if line.startswith("== "):
+            out.append(f"## {line[3:].strip()}")
+            continue
+        if line.startswith("=== "):
+            out.append(f"### {line[4:].strip()}")
+            continue
+        if line.startswith("image::"):
+            m = re.match(r"image::([^[]+)\[([^,\]]+)", line)
+            if m:
+                fname, alt = m.group(1), m.group(2)
+                out.append(
+                    f"![{alt}]({{{{ site.baseurl }}}}/assets/images/workshop/{fname})"
+                )
+            continue
+        line = re.sub(
+            r"link:([^[]+)\[([^\]]+)\]",
+            r"[\2](\1)",
+            line,
+        )
+        if line.startswith("NOTE:"):
+            out.append(f"> {line[5:].strip()}")
+            continue
+        if line.startswith("IMPORTANT:"):
+            out.append(f"> **Important:** {line[12:].strip()}")
+            continue
+        if line.startswith("|==="):
+            continue
+        if line.startswith("|") and line.count("|") >= 2:
+            cells = [c.strip() for c in line.strip("|").split("|")]
+            if cells and not all(set(c) <= {"-", "="} for c in cells):
+                out.append("| " + " | ".join(cells) + " |")
+            continue
+        out.append(line)
+    return "\n".join(out).strip()
+
+
+def md_front_matter(
+    title: str, nav_order: int, parent: str | None = None, has_children: bool = False
+) -> str:
+    fm = [
+        "---",
+        "layout: default",
+        f"title: {title}",
+    ]
+    if has_children:
+        fm.append("has_children: true")
+    if parent:
+        fm.append(f"parent: {parent}")
+    fm.extend([f"nav_order: {nav_order}", "---", ""])
+    return "\n".join(fm)
+
+
+def write_github_pages() -> None:
+    """Mirror English workshop content to docs/workshop/ for Jekyll GitHub Pages."""
+    parent = "Hybrid Mesh AI Workshop"
+    index_body = "\n\n".join(
+        [
+            SHOWROOM_BANNER,
+            "",
+            "# Hybrid Mesh AI Workshop",
+            "",
+            asciidoc_to_md(INDEX_INTRO_EN),
+            "",
+            asciidoc_to_md(INDEX_HUB_SPOKE_EN),
+            "",
+            asciidoc_to_md(INDEX_MESH_FLOW_EN),
+            "",
+            asciidoc_to_md(INDEX_AI_MAAS_EN),
+            "",
+            asciidoc_to_md(INDEX_KUADRANT_EN),
+            "",
+            asciidoc_to_md(HYBRID_INTEGRATION_EN),
+            "",
+            "## Dual agenda",
+            "",
+            "**Part A (01–05)** — Executive strategy modules.",
+            "",
+            "**Part B (10–28)** — Hands-on labs on the live RHDP fleet (~4 h).",
+            "",
+            "Facilitator-only modules 29–30 stay in-cluster Showroom only.",
+            "",
+            "## Live vs this mirror",
+            "",
+            "| Surface | URL | Notes |",
+            "|---------|-----|-------|",
+            "| **Showroom (hands-on)** | `https://showroom-showroom.YOUR_HUB_DOMAIN/` | Antora + embedded `oc` terminal |",
+            "| **Registration** | `https://workshop-registration.YOUR_HUB_DOMAIN/` | Assigns `userN` |",
+            "| **GitHub Pages (read-only)** | [Workshop mirror]({{ site.baseurl }}/workshop/) | This section |",
+            "| **Antora source** | [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) | Regenerate with `python scripts/generate-workshop-content.py` |",
+            "",
+            "*Screen recordings are not published in this repository.*",
+        ]
+    )
+    (DOCS / "index.md").write_text(
+        md_front_matter("Hybrid Mesh AI Workshop", 11, has_children=True) + index_body + "\n",
+        encoding="utf-8",
+    )
+
+    (DOCS / "registration.md").write_text(
+        md_front_matter("Workshop Registration", 1, parent)
+        + f"""{SHOWROOM_BANNER}
+
+# Workshop Registration
+
+Register via OpenShift Console **Hybrid Mesh AI Workshop** or directly at `https://workshop-registration.YOUR_HUB_DOMAIN/?USER_NAME=userN`.
+
+After email registration you receive `userN` and are redirected to the Showroom with an embedded `oc` terminal.
+
+**Demo password:** `Welcome123!` (Developer Hub Keycloak + OpenShift htpasswd on hub/east/west).
+""",
+        encoding="utf-8",
+    )
+
+    (DOCS / "showroom-live.md").write_text(
+        md_front_matter("Showroom Live Lab", 3, parent)
+        + f"""{SHOWROOM_BANNER}
+
+# Showroom Live
+
+| Item | URL |
+|------|-----|
+| Registration | `https://workshop-registration.YOUR_HUB_DOMAIN/` |
+| Showroom home | `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` |
+| Developer Hub Plan B | `https://developer-hub.YOUR_HUB_DOMAIN/catalog/default/system/hybrid-mesh-shared-demos` |
+| NeuroFace | `https://neuroface.YOUR_HUB_DOMAIN/` |
+
+Replace `YOUR_HUB_DOMAIN` with your hub ingress domain (e.g. `apps.cluster-xxxx.dynamic2.redhatworkshops.io`).
+
+**Antora source:** [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) — cloned at Showroom build time by the git-cloner init container.
+""",
+        encoding="utf-8",
+    )
+
+    shared = """| Demo | Catalog entity | Notes |
+|------|----------------|-------|
+| Industrial Edge | demo-industrial-edge-east | Line dashboard on east |
+| Camel Kaoto | demo-camel-kaoto-east | DevSpaces + Topology |
+| Camel CDC | demo-camel-cdc-east | Mailpit Templates inbox |
+| API Product | demo-ie-api-product | Kuadrant workshop-apis |
+| AI Gateway | demo-ai-gateway | MaaS via Kuadrant |
+| MCP Gateway | demo-mcp-gateway | Lightspeed + ODS MCP |
+| OpenShift AI | demo-ods-workspace | ODS dashboard |
+| CNV VM | demo-cnv-vm | workshop-cnv-demo |
+| NeuroFace | demo-neuroface | Webcam + MaaS chat |
+| Mailpit Templates | demo-mailpit-templates | Scaffolder SMTP (separate from IE alerts) |
+"""
+    (DOCS / "shared-demos.md").write_text(
+        md_front_matter("Shared Demos (Plan B)", 2, parent)
+        + f"""{SHOWROOM_BANNER}
+
+# Shared Demos — Plan B
+
+Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** — no scaffolder required.
+
+{shared}
+""",
+        encoding="utf-8",
+    )
+
+    parte_a_dir = DOCS / "parte-a"
+    parte_b_dir = DOCS / "parte-b"
+    parte_a_dir.mkdir(parents=True, exist_ok=True)
+    parte_b_dir.mkdir(parents=True, exist_ok=True)
+    for stale in list(parte_a_dir.glob("*.md")) + list(parte_b_dir.glob("*.md")):
+        stale.unlink()
+
+    nav_a = 1
+    nav_b = 1
+    for item in MODULES:
+        num, slug, en_title, _es_title, parte, is_idx = item[:6]
+        facilitator_only = item[6] if len(item) > 6 else False
+        if is_idx or facilitator_only:
+            continue
+        fname = f"{num}-{slug}.md"
+        target_dir = parte_a_dir if parte == "A" else parte_b_dir
+        nav_order = nav_a if parte == "A" else nav_b
+        if parte == "A":
+            nav_a += 1
+        else:
+            nav_b += 1
+
+        img_md = ""
+        if slug in IMAGE_BY_SLUG:
+            fname_img, alt = IMAGE_BY_SLUG[slug]
+            img_md = (
+                f"\n![{alt}]({{{{ site.baseurl }}}}/assets/images/workshop/{fname_img})\n"
+                "{: .mb-4 }\n"
+            )
+
+        narrative = NARRATIVES[slug]["en"].strip()
+        show_tell = SHOW_TELL_EN[slug].strip()
+        todos = TODO_EN[slug]
+        todo_lines = (
+            "\n".join(todos) if isinstance(todos, list) else todos
+        )
+        todo_lines = re.sub(
+            r"link:([^[]+)\[([^\]]+)\]",
+            r"[\2](\1)",
+            todo_lines,
+        )
+
+        gitops_md = asciidoc_to_md(gitops_section(slug, "en")) if slug in GITOPS_REF else ""
+        verify_cmd = GITOPS_REF[slug][1] if slug in GITOPS_REF else "Save progress in Showroom"
+
+        body = f"""{SHOWROOM_BANNER}
+
+# {en_title}
+
+{img_md}
+## Overview
+
+{narrative}
+
+## Show and Tell
+
+{show_tell}
+
+{gitops_md}
+
+## Your TODO
+
+{todo_lines}
+
+## Verify
+
+Run in the Showroom terminal:
+
+```bash
+{verify_cmd.strip()}
+```
+"""
+        (target_dir / fname).write_text(
+            md_front_matter(en_title, nav_order, parent) + body + "\n",
+            encoding="utf-8",
+        )
+
+    print(f"Generated GitHub Pages workshop mirror -> {DOCS}")
+
+
 def write_antora_component(lang: str, title: str) -> None:
     text = f"""name: {lang}
 title: {title}
@@ -608,6 +883,7 @@ def main() -> None:
         for png in en_img.glob("*.png"):
             shutil.copy2(png, es_img / png.name)
 
+    write_github_pages()
     print(f"Generated {len(MODULES)} modules x 2 langs -> {SHOWROOM}")
 
 

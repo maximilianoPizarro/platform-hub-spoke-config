@@ -1,55 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Security & Scale in Hybrid
+parent: Hybrid Mesh AI Workshop
+nav_order: 3
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Security & Scale in Hybrid
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Hybrid cloud security and scale]({{ site.baseurl }}/assets/images/workshop/03-security-scale-hybrid.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-ACM governance; mesh zero-trust; observabilidad multicluster; FinOps.
+Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices.
+
+In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes — note that the `stackrox` namespace deliberately avoids ambient mesh labels so ACS sensors are not disrupted. NetworkPolicy demos in module 19 use OVN on spokes, analogous to security groups plus Kubernetes NP on ROSA. Kuadrant AuthPolicy at the hub gateway shows how API traffic is authenticated and rate-limited before it reaches Industrial Edge backends.
+
+Scaling hybrid fleets means automating placement and capacity: ACM policies, Kairos SmartScalingPolicy, Kafka buffering, and HPA together handle sensor spikes without manual ticket queues. As `%USER_NAME%`, you will observe these controls in modules 14 and 18 on workloads that simulate factory telemetry bursts.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **03** (A).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Highlight ACS + mesh coexistence (`stackrox` without ambient labels).
+. Preview NetworkPolicy (19) and Kuadrant (20) as defense layers.
+. Discuss factory edge scale events and Kairos approval workflow.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| ACS Central | components/acs-operator/ | Central |
-| Mesh ambient | components/operators/templates/servicemeshoperator3.yaml | Subscription |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# stackrox namespace must NOT use istio ambient
-metadata:
-  name: stackrox
-  labels:
-    # no istio.io/dataplane-mode: ambient
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| ACS operator | `components/acs-operator/` |
+| ACS Central route | namespace `stackrox` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get central -n stackrox
+oc get central -n stackrox; oc get ns stackrox --show-labels | head -3
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] List three security layers you will verify in Part B (ACS, NP, Kuadrant)
+* [ ] Note why `stackrox` avoids ambient mesh in this lab
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get central -n stackrox; oc get ns stackrox --show-labels | head -3
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

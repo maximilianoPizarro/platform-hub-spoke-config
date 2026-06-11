@@ -88,6 +88,103 @@ West spoke:   3 workers x 4 vCPU x 8Gi   (OK for demo)
 
 To run with **8Gi workers** on the hub, use `values-lite.yaml` which disables the heaviest components (OpenShift AI, ACS, Grafana dashboards, hub gateway).
 
+## Installing hub and spokes (future deployments)
+
+Use this checklist when provisioning a **new** Hybrid Mesh fleet (demo.redhat.com RHDP or your own OpenShift clusters).
+
+### What you need
+
+| Cluster | Role | Git path | Sizing (recommended) |
+|---------|------|----------|----------------------|
+| **Hub** | ACM, GitOps, Developer Hub, observability, MaaS, Showroom | `.` (repo root) | 3 workers × 8 vCPU × 32 GiB |
+| **East spoke** | Industrial Edge, DevSpaces, factory Kafka, Tekton | `east/` | 3 workers × 4 vCPU × 16 GiB |
+| **West spoke** | IE replica + cross-cluster traffic demo | `west/` | 3 workers × 4 vCPU × 16 GiB |
+
+Full sizing tables and workload breakdown are above in [Cluster Sizing](#cluster-sizing). For 8 GiB hub workers use `values-lite.yaml`.
+
+### Installation paths
+
+| Path | When to use | Guide |
+|------|-------------|-------|
+| **RHDP Field Content** (recommended for workshops) | Three catalog orders on demo.redhat.com | [docs/rhdp-field-content.md](docs/rhdp-field-content.md) |
+| **Helm on hub + ACM import** | Your own clusters, full control | [docs/getting-started.md](docs/getting-started.md) |
+| **Argo CD Application** | Hub already has OpenShift GitOps | [Quick Start §2 Option B](#2-deploy-on-hub-option-b-argocd-application) below |
+
+### RHDP — three catalog orders (summary)
+
+1. **Hub** — `ocp4_workload_field_content_gitops_repo_path: .` with `existing_gitops: true`
+2. **East spoke** — same repo URL, path `east/`
+3. **West spoke** — same repo URL, path `west/`
+
+After all three clusters are up, **patch the hub** `field-content` Application with spoke domains, API URLs, and admin tokens (never commit tokens):
+
+```bash
+oc patch application field-content -n openshift-gitops --type merge -p '
+spec:
+  source:
+    helm:
+      values: |
+        deployer:
+          domain: apps.cluster-<hub-id>.dynamic2.redhatworkshops.io
+          apiUrl: https://api.cluster-<hub-id>.dynamic2.redhatworkshops.io:6443
+        clusters:
+          hub:
+            domain: apps.cluster-<hub-id>.dynamic2.redhatworkshops.io
+          east:
+            domain: apps.cluster-<east-id>.dynamic2.redhatworkshops.io
+            apiUrl: https://api.cluster-<east-id>.dynamic2.redhatworkshops.io:6443
+            token: sha256~<east-admin-token>
+          west:
+            domain: apps.cluster-<west-id>.dynamic2.redhatworkshops.io
+            apiUrl: https://api.cluster-<west-id>.dynamic2.redhatworkshops.io:6443
+            token: sha256~<west-admin-token>
+        gitops:
+          repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config
+          revision: main
+          path: .
+        litemaas:
+          enabled: true
+          apiUrl: https://maas-rhdp.apps.maas.redhatworkshops.io/v1
+          apiKey: <from-provision_data>
+          model: llama-scout-17b
+'
+```
+
+Then patch **each spoke** `field-content` with `clusters.hub.domain` set to the hub apps domain (Mailpit alerts, ACS Central, Kairos reporting). Import ACM auto-import secrets for east/west — see [docs/rhdp-field-content.md](docs/rhdp-field-content.md).
+
+### Post-install validation
+
+```bash
+# Hub — fleet and GitOps
+oc get managedclusters
+oc get applications -n openshift-gitops | grep -E 'field-content|spoke-components'
+
+# Skupper VAN (expect sitesInNetwork: 3 on hub)
+oc get site hub -n service-interconnect -o jsonpath='sitesInNetwork={.status.sitesInNetwork}{"\n"}'
+
+# Workshop (optional — enabled in hub values.yaml)
+bash scripts/verify-workshop-e2e.sh
+curl -sk -o /dev/null -w '%{http_code}\n' https://showroom-showroom.apps.<hub-domain>/
+```
+
+### Workshop content repos
+
+| Repo | Purpose |
+|------|---------|
+| [platform-hub-spoke-config](https://github.com/maximilianoPizarro/platform-hub-spoke-config) | GitOps hub/spoke charts, `components/showroom`, registration |
+| [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) | Antora lab guide (cloned into Showroom pod at build) |
+
+Regenerate mirrored docs and Showroom modules after editing workshop content:
+
+```bash
+python scripts/generate-workshop-content.py
+bash scripts/generate-showroom-images.sh
+```
+
+GitHub Pages workshop mirror: [docs/workshop/](docs/workshop/index.md) · live Showroom: `https://showroom-showroom.<hub-domain>/`
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -324,8 +421,9 @@ Full documentation available at: https://maximilianoPizarro.github.io/platform-h
 
 | Topic | Link |
 |-------|------|
+| **Install hub + spokes** | [Getting Started](docs/getting-started.md) · [RHDP Field Content](docs/rhdp-field-content.md) |
 | GitOps deployment chain | [docs/gitops-deployment-chain.md](docs/gitops-deployment-chain.md) |
-| **Hybrid Mesh AI Workshop** | [docs/workshop/](docs/workshop/index.md) — Showroom Antora: [showroom-hybrid-mesh-ai](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) |
+| **Hybrid Mesh AI Workshop** | [docs/workshop/](docs/workshop/index.md) (Pages mirror) · [Showroom Antora](https://github.com/maximilianoPizarro/showroom-hybrid-mesh-ai) (live lab) |
 
 ## Releases (OpenShift 4.20)
 

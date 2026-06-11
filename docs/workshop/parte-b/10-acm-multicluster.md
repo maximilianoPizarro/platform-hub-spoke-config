@@ -1,56 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Multicluster Fleet & ACM
+parent: Hybrid Mesh AI Workshop
+nav_order: 1
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Multicluster Fleet & ACM
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![ACM multicluster fleet management]({{ site.baseurl }}/assets/images/workshop/10-acm-multicluster.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-ACM Clusters; ManagedCluster; GitOpsCluster.
+Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly.
+
+In this lab, open ACM Clusters on the hub and locate east and west — each spoke was bootstrapped from `components/acm-hub-spoke/` GitOps manifests. As `%USER_NAME%`, your workloads land on east by default; Topology in Developer Hub uses OCM APIs to show the same graph ACM displays.
+
+This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **10** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Open ACM Clusters UI — identify east and west spokes.
+. Run `oc get managedclusters` in Showroom terminal live.
+. Show Developer Hub Topology mirroring OCM graph.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| ACM Clusters UI | components/acm-hub-spoke/templates/managed-clusters.yaml | ManagedCluster |
-| GitOpsCluster | components/acm-hub-spoke/templates/gitops-cluster.yaml | GitOpsCluster |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-apiVersion: cluster.open-cluster-management.io/v1
-kind: ManagedCluster
-metadata:
-  name: east
-spec:
-  hubAcceptsClient: true
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| ManagedCluster | `components/acm-hub-spoke/templates/managed-clusters.yaml` |
+| GitOpsCluster | `components/acm-hub-spoke/templates/gitops-cluster.yaml` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get managedclusters
+oc get managedclusters; oc get gitopscluster -A 2>/dev/null | head -5
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Run `oc get managedclusters` and identify east/west
+* [ ] Open ACM Clusters UI and Developer Hub Topology for the same fleet
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get managedclusters; oc get gitopscluster -A 2>/dev/null | head -5
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

@@ -1,54 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Deploy Industrial Edge Apps
+parent: Hybrid Mesh AI Workshop
+nav_order: 4
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Deploy Industrial Edge Apps
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Industrial Edge deployment on spoke]({{ site.baseurl }}/assets/images/workshop/13-deploy-industrial-edge.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Scaffold IE east/west; Gitea `ws-{user_name}`; Argo CD Application on spoke.
+Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. Apache Kafka buffers high-volume sensor topics; Camel K integrations transform and route events; line-dashboard provides operators a live view — all deployed via GitOps to spoke clusters after Developer Hub scaffolding.
+
+Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all` (or your user-scoped equivalent). Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
+
+This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **13** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Confirm Gitea org `ws-%USER_NAME%` and Argo CD sync on east.
+. Open line-dashboard route and Kafka Console topics.
+. Offer Plan B `demo-industrial-edge-east` if scaffold fails.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Scaffold IE | software-templates/industrial-edge/template.yaml | SoftwareTemplate |
-| Spoke deploy | east/templates/component-applications.yaml | Application |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# Argo CD Application on spoke after scaffold
-spec:
-  destination:
-    namespace: industrial-edge-tst-all
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| IE on spoke | `components/industrial-edge-tst/` (east Application) |
+| Line dashboard | namespace `industrial-edge-tst-all` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get applications -n openshift-gitops | grep industrial
+oc get deploy -n industrial-edge-tst-all 2>/dev/null | head -8
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Scaffold IE or open Plan B `demo-industrial-edge-east`
+* [ ] Verify Gitea org `ws-%USER_NAME%` and Argo CD sync Healthy
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get deploy -n industrial-edge-tst-all 2>/dev/null | head -8
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

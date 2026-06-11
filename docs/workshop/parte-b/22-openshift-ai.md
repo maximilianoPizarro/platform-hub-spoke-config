@@ -1,54 +1,64 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: OpenShift AI Workshop
+parent: Hybrid Mesh AI Workshop
+nav_order: 13
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # OpenShift AI Workshop
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![OpenShift AI DataScienceCluster]({{ site.baseurl }}/assets/images/workshop/22-openshift-ai.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-DSC hub; maas-workshop; demo-ods-workspace.
+OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity.
+
+**Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
+
+**Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
+
+GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **22** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. `oc get dsc` — confirm Ready; open **workshop-notebook** in ai-%USER_NAME%.
+. Developer Hub → **OpenShift AI — %USER_NAME%** + **Playground** in maas-workshop.
+. Show MCP server deployment `ods-maas-mcp-server` in maas-workshop.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| DSC | components/openshift-ai-hub/templates/all.yaml | DataScienceCluster |
-| MaaS workshop | maas-workshop namespace | Secret |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-apiVersion: datasciencecluster.opendatahub.io/v1
-kind: DataScienceCluster
-metadata:
-  name: default-dsc
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| DSC + ModelMesh | `components/openshift-ai-hub/` |
+| Notebooks | `user-projects.yaml` → `workshop-notebook` |
+| ModelMesh ISVC | `workshop-sklearn` per `ai-userN` |
+| MCP + Playground | `ods-mcp-server.yaml`, `dashboard-config.yaml` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get dsc
+oc get dsc; oc get notebook,inferenceservice -n ai-%USER_NAME% 2>/dev/null
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Run `oc get dsc` and confirm DataScienceCluster Ready
+* [ ] Launch **workshop-notebook** in project `ai-%USER_NAME%` and run MaaS smoke test
+* [ ] Open Developer Hub catalog Component **ai-%USER_NAME%**
+* [ ] Enable OpenShift AI **Playground** / **MCP Server** extension (maas-workshop)
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get dsc; oc get notebook,inferenceservice -n ai-%USER_NAME% 2>/dev/null
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

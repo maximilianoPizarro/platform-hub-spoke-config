@@ -1,51 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: FinOps with Kubecost
+parent: Hybrid Mesh AI Workshop
+nav_order: 12
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # FinOps with Kubecost
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![FinOps Kubecost cost allocation]({{ site.baseurl }}/assets/images/workshop/21-finops-kubecost.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Kubecost hub primary + spoke agents; allocations by namespace.
+Kubecost on OpenShift allocates Kubernetes spend by namespace, label, and cluster — federating data from hub primary and spoke agents into MinIO-backed ETL storage. Platform teams charge back factory edge tenants and compare ROSA node costs versus on-prem depreciation using consistent Kubernetes unit economics.
+
+In this lab, Kubecost deploys from `components/kubecost/` with agents on east/west reporting to the hub primary. Filter allocations to namespaces owned by `%USER_NAME%` and correlate idle capacity with Kairos recommendations from module 14.
+
+FinOps closes the executive loop from module 01: hybrid strategy without cost visibility fails in CFO review. Kubecost complements AWS Cost Explorer tags on ROSA by exposing pod-level waste inside the cluster boundary.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **21** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Kubecost UI: allocation by namespace for `%USER_NAME%`.
+. Show federated cluster dropdown (hub + spokes).
+. Compare idle cost with Kairos over-provision narrative.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Kubecost hub | components/kubecost/templates/all.yaml | Kubecost |
-| Federated ETL | MinIO bucket kubecost | Object storage |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# Kubecost primary on hub, agents on spokes
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Kubecost | `components/kubecost/` |
+| MinIO data lake | `components/industrial-edge-minio/` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get deploy -n kubecost
+oc get deploy -n kubecost 2>/dev/null | head -3
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Open Kubecost and filter allocations to your namespace
+* [ ] Compare hub vs spoke cluster costs in federated view
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get deploy -n kubecost 2>/dev/null | head -3
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

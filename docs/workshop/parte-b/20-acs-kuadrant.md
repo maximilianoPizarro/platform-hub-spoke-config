@@ -1,52 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: ACS & Connectivity Link
+parent: Hybrid Mesh AI Workshop
+nav_order: 11
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # ACS & Connectivity Link
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![ACS and Kuadrant API security]({{ site.baseurl }}/assets/images/workshop/20-acs-kuadrant.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-ACS Central; AuthPolicy; APIProduct demo.
+Red Hat Advanced Cluster Security provides vulnerability scanning, compliance benchmarks, and runtime threat detection across ACM-managed clusters. SecuredCluster agents on spokes report to ACS Central on the hub; init bundles sync via GitOps jobs in `components/acs-init-bundle-sync/`.
+
+Connectivity Link and Kuadrant extend API management to the hub gateway: AuthPolicy validates tokens, RateLimitPolicy protects backends, and APIProduct publishes Industrial Edge APIs for external consumers. Demo `demo-ie-api-product` in Plan B catalog exposes the same Kuadrant resources without scaffolding.
+
+As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct routes through the hub gateway. Remember ACS runs outside ambient mesh — this coexistence pattern is deliberate and matches production ROSA + ACS deployments.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **20** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. ACS Central overview — violations and deployments on spokes.
+. Demo APIProduct route via hub gateway with AuthPolicy.
+. Remind ACS namespace stays outside ambient mesh.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| ACS init bundles | components/acs-init-bundle-sync/ | Job |
-| Kuadrant | components/hub-gateway/ | AuthPolicy |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# Secret acs-init-credentials required in stackrox
-# roxctl central init-bundles generate hub --output-secrets -
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Workshop APIs | `components/workshop-kuadrant-apis/` |
+| Hub gateway | `components/hub-gateway/` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get securedcluster -n stackrox
+oc get httproute,serviceentry -n hub-gateway-system 2>/dev/null | grep -i workshop | head -5
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Verify ACS shows your spoke workloads in Central UI
+* [ ] Test APIProduct route through hub gateway (or Plan B demo)
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get httproute,serviceentry -n hub-gateway-system 2>/dev/null | grep -i workshop | head -5
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

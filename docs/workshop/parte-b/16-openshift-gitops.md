@@ -1,54 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: OpenShift GitOps
+parent: Hybrid Mesh AI Workshop
+nav_order: 7
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # OpenShift GitOps
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![OpenShift GitOps and Argo CD]({{ site.baseurl }}/assets/images/workshop/16-openshift-gitops.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Argo CD Applications hub + spoke; ApplicationSet.
+OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories.
+
+In this lab, hub Applications under `templates/component-applications.yaml` deploy shared services while spoke Applications (for example Industrial Edge) sync from user Gitea repos created in module 13. ApplicationSet `industrial-edge-spoke` demonstrates matrix generators targeting east/west labels.
+
+Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **16** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Argo CD UI: hub Application vs user spoke Application sources.
+. Highlight ApplicationSet generator for east/west matrix.
+. Show sync wave or health status for IE app.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| ApplicationSet | components/acm-hub-spoke/templates/applicationset.yaml | ApplicationSet |
-| Hub apps | templates/component-applications.yaml | Application |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: industrial-edge-spoke
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Hub Applications | `templates/component-applications.yaml` |
+| ApplicationSet IE | `components/acm-hub-spoke/templates/applicationset.yaml` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get applicationset -n openshift-gitops
+oc get applications -n openshift-gitops 2>/dev/null | head -10
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Find your IE Application in Argo CD and note sync status
+* [ ] Identify Git repo source (user Gitea vs hub platform repo)
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get applications -n openshift-gitops 2>/dev/null | head -10
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

@@ -1,53 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Software Templates
+parent: Hybrid Mesh AI Workshop
+nav_order: 3
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Software Templates
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Developer Hub software templates]({{ site.baseurl }}/assets/images/workshop/12-software-templates.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Developer Hub Create; golden paths. Plan B: demos compartidos en catálogo.
+Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets.
+
+This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails due to quota or Gitea timing, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
+
+Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **12** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Live Developer Hub Create flow for Industrial Edge template.
+. Show catalog YAML source and generated Gitea repo URL pattern.
+. Demonstrate Plan B fallback entity in `hybrid-mesh-shared-demos`.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Developer Hub Create | docs/assets/backstage/software-templates/ | SoftwareTemplate |
-| Plan B catalog | components/workshop-demos/files/catalog/ | System |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-metadata:
-  name: hybrid-mesh-shared-demos
-  title: Hybrid Mesh AI — Shared Demos (Plan B)
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Template catalog | `docs/assets/backstage/software-templates/` |
+| Plan B demos | `components/workshop-demos/files/catalog/hybrid-mesh-shared-demos.yaml` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get configmap developer-hub-catalog-demos -n developer-hub
+oc get configmap developer-hub-catalog-demos -n developer-hub 2>/dev/null
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Browse Developer Hub Create templates list
+* [ ] Locate Plan B System `hybrid-mesh-shared-demos` as fallback
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get configmap developer-hub-catalog-demos -n developer-hub 2>/dev/null
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

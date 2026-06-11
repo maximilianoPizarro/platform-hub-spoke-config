@@ -1,55 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Hybrid Mesh Architecture
+parent: Hybrid Mesh AI Workshop
+nav_order: 2
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Hybrid Mesh Architecture
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Hybrid mesh traffic flow hub to spokes]({{ site.baseurl }}/assets/images/workshop/11-hybrid-mesh.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Hub gateway, Skupper, spoke gateways.
+Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with Gateway API HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
+
+In this workshop, the hub gateway terminates external traffic and forwards to Industrial Edge frontends on east/west via Skupper Sites and Connectors defined under `components/service-interconnect/` and `components/hub-gateway/`. This is the lab analogue to ROSA ALB plus private connectivity into factory networks — same OpenShift routes and policies, different underlay.
+
+Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **11** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Trace external URL → hub HTTPRoute → Skupper → spoke IE frontend.
+. Display Skupper site/connector status in console.
+. Relate to ROSA ALB + private link narrative from Part A.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Hub gateway | components/hub-gateway/templates/httproute.yaml | HTTPRoute |
-| Skupper | components/service-interconnect/ | Site/Connector |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: industrial-edge-front
-# routes hub ingress to spoke gateways via Skupper
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| Hub gateway | `components/hub-gateway/` |
+| Skupper | `components/service-interconnect/` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get httproute -A | head
+oc get httproute -n hub-gateway-system 2>/dev/null | head -5
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Inspect hub HTTPRoute and Skupper resources in console
+* [ ] Trace how external traffic reaches IE frontends on spokes
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get httproute -n hub-gateway-system 2>/dev/null | head -5
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

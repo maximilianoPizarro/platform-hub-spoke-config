@@ -1,38 +1,42 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: Hybrid Cloud Strategy
+parent: Hybrid Mesh AI Workshop
+nav_order: 1
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # Hybrid Cloud Strategy
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![Hybrid cloud strategy overview]({{ site.baseurl }}/assets/images/workshop/01-hybrid-strategy.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-Modernizar apps, escalar híbrido, automatización/seguridad, time-to-market.
+Hybrid cloud strategy starts with workload placement: keep latency-sensitive factory systems at the edge, burst analytics and AI training to cloud regions, and govern everything from a central OpenShift hub. Red Hat OpenShift Container Platform delivers a single Kubernetes API and operator model whether clusters run on-prem, at edge sites, or as ROSA in AWS.
+
+In this lab, ACM on the hub represents that governance layer — policies, observability federation, and GitOps placement target east and west spokes the same way a customer would target ROSA and on-prem clusters. You are not learning abstract slides; every Part B module reinforces a strategic pillar: automation, security, developer velocity, or AI readiness.
+
+Executives should note that OpenShift avoids replatforming twice: microservices, VMs (CNV), and AI pipelines share the same RBAC, networking, and CI/CD patterns. When you register as `%USER_NAME%`, your hands-on path mirrors how platform teams onboard application squads in production.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **01** (A).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Frame the four strategic pillars: modernize, secure, automate, monetize AI on OpenShift.
+. Map each pillar to a Part B module number on the agenda table.
+. Ask attendees their current hybrid split (ROSA vs on-prem vs edge).
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Estrategia ejecutiva | docs/workshop/parte-a/ | Narrative |
-| Fleet ACM | components/acm-hub-spoke/ | ManagedCluster |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-# Executive track — no CR required on cluster for Parte A
-# Reference: https://docs.redhat.com/en/documentation/rosa/
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| ACM fleet UI | `components/acm-hub-spoke/` |
+| Hub app-of-apps | `templates/component-applications.yaml` |
+
+Verify in the Showroom terminal:
 
 ```bash
 oc get managedclusters 2>/dev/null | head -5
@@ -40,13 +44,15 @@ oc get managedclusters 2>/dev/null | head -5
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Map your organization's workloads to hub vs spoke vs ROSA placement
+* [ ] Identify which Part B module addresses your top priority pillar
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get managedclusters 2>/dev/null | head -5
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

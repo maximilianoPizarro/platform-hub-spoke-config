@@ -1,55 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: OpenShift Service Mesh
+parent: Hybrid Mesh AI Workshop
+nav_order: 8
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # OpenShift Service Mesh
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![OpenShift Service Mesh ambient]({{ site.baseurl }}/assets/images/workshop/17-service-mesh.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-OSSM3 ambient; Kiali; ztunnel metrics.
+OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces.
+
+In this workshop, OSSM3 is subscribed via `components/operators/templates/servicemeshoperator3.yaml` and configured for ambient dataplane mode on IE namespaces — excluding `stackrox` where ACS requires direct network visibility. Compare this to ROSA deployments using App Mesh or third-party meshes: OpenShift keeps mesh CRDs and policies native to the platform lifecycle.
+
+Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **17** (B).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Open Kiali graph for IE namespace — point out ambient ztunnel edges.
+. Note `stackrox` exclusion from ambient mesh.
+. Optional: show mTLS lock icon on service edges.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| OSSM3 | components/operators/templates/servicemeshoperator3.yaml | Subscription |
-| Kiali | components/kiali/ | Kiali CR |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-spec:
-  values:
-    meshConfig:
-      defaultConfig:
-        tracing: {}
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| OSSM3 subscription | `components/servicemeshoperator3/` |
+| Kiali | `components/kiali/` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get servicemeshcontrolplane -n istio-system
+oc get istio -n istio-system 2>/dev/null; oc get kiali -A 2>/dev/null | head -3
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Open Kiali and view traffic for your IE deployments
+* [ ] Confirm ambient mesh enabled on IE namespace (not stackrox)
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get istio -n istio-system 2>/dev/null; oc get kiali -A 2>/dev/null | head -3
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*

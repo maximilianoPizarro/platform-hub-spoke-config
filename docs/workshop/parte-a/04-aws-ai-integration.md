@@ -1,53 +1,58 @@
-> **Showroom live:** `https://showroom.YOUR_HUB_DOMAIN/` (requiere registro)
+---
+layout: default
+title: AWS Services & AI Integration
+parent: Hybrid Mesh AI Workshop
+nav_order: 4
+---
+> **Showroom live:** `https://showroom-showroom.YOUR_HUB_DOMAIN/?USER_NAME=userN` — register: `https://workshop-registration.YOUR_HUB_DOMAIN/`
 
 # AWS Services & AI Integration
 
-## Nube híbrida — ROSA/AWS vs este lab
 
-| En producción (ROSA + AWS) | En este lab (RHDP hub-spoke) |
-|----------------------------|------------------------------|
-| Clúster ROSA en AWS (Multi-AZ) | Hub + spokes east/west importados vía ACM |
-| ROSA MachineSets / autoscaling | Kairos + HPA + Kafka |
-| Security Groups + IAM + NP | OVN NetworkPolicy + ACS + Kuadrant |
-| Bedrock / SageMaker | OpenShift AI + MaaS + NeuroFace |
-| AWS Cost Explorer | Kubecost federated ETL |
-| Route 53 + ALB | Hub Gateway + Skupper |
+![AWS and AI integration on OpenShift]({{ site.baseurl }}/assets/images/workshop/04-aws-ai-integration.png)
+{: .mb-4 }
 
-## Contexto
+## Overview
 
-IAM/OIDC; Bedrock/SageMaker narrativa; patrón OpenShift AI + MaaS en lab.
+AWS customers often pair ROSA with native AI services — Amazon Bedrock for foundation models, SageMaker for training pipelines, and IAM OIDC for secure workload identity. Red Hat's hybrid approach keeps inference and data pipelines on OpenShift AI while still allowing optional AWS service integration via credentials and external endpoints where policy permits.
+
+This workshop intentionally substitutes OpenShift AI plus Model-as-a-Service (MaaS) for Bedrock/SageMaker so you experience a portable pattern: a `DataScienceCluster` on the hub, shared LLM endpoint, and consumer apps (NeuroFace, Developer Hub Lightspeed) on spokes. The secret `openshift-ai-maas-credentials` and MaaS base URL mirror how production teams centralize model access instead of embedding API keys in every deployment.
+
+Module 22 onward activates this stack hands-on. Executives should recognize that OpenShift AI on ROSA or on-prem avoids rewriting applications when cloud AI pricing or residency rules change — the Kubernetes-native serving layer moves with the cluster.
 
 ## Show and Tell
 
-1. Facilitador cubre módulo **04** (A).
-2. Comparar ROSA/AWS vs lab RHDP.
+. Contrast Bedrock/SageMaker with OpenShift AI + MaaS in this lab.
+. Show MaaS credential secret location conceptually (no secret values).
+. Explain portable inference when AWS residency or pricing changes.
 
-## YAML behind the scenes
+## Where this lab is defined
 
-| UI action | Git source | Kind |
-|-----------|------------|------|
-| Bedrock/SageMaker (narrativa) | AWS docs | External |
-| MaaS lab | components/openshift-ai-hub/ | DataScienceCluster |
+> Paths refer to the GitOps repo `platform-hub-spoke-config` deployed on **this** cluster. Do not copy-paste fragments as standalone manifests — use the console links above and verify with `oc`.
 
-```yaml
-stringData:
-  OPENAI_API_BASE: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
-# Secret openshift-ai-maas-credentials in maas-workshop
-```
+[cols="2,3"]
+| UI / capability | Source in GitOps repo |
+
+| OpenShift AI hub | `components/openshift-ai-hub/` |
+| MaaS credentials | namespace `maas-workshop` |
+
+Verify in the Showroom terminal:
 
 ```bash
-oc get dsc -A
+oc get dsc -A 2>/dev/null; oc get ns maas-workshop 2>/dev/null
 ```
 
 ## Your TODO
 
-- [ ] Completar lectura o lab
-- [ ] Marcar progreso en Showroom in-cluster
+* [ ] Compare your AWS AI services with OpenShift AI + MaaS lab pattern
+* [ ] Locate module 22 for hands-on DSC and MaaS setup
+* [ ] Save progress at the end of this module
 
 ## Verify
 
-- Progress API responde OK
+Run in the Showroom terminal:
 
----
+```bash
+oc get dsc -A 2>/dev/null; oc get ns maas-workshop 2>/dev/null
+```
 
-*Las grabaciones de pantalla del evento no se publican en este repositorio.*
