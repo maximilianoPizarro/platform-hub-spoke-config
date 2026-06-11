@@ -31,3 +31,4 @@ captures/
 
 # Antora Showroom content — separate repo (maximilianoPizarro/showroom-hybrid-mesh-ai)
 showroom-hybrid-mesh-ai/
+scripts/__pycache__/
