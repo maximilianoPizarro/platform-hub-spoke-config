@@ -20,6 +20,15 @@ This workshop ships templates for Industrial Edge, Camel Kaoto, API products, Op
 
 Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.
 
+### Learn more
+
+### Learn more
+
+* [Developer Hub documentation](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
+* [Backstage Software Templates](https://backstage.io/docs/features/software-templates/)
+* [Developer Hub getting started](https://developers.redhat.com/products/red-hat-developer-hub/getting-started)
+* [Developer Hub plugins](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index)
+
 ## Show and Tell
 
 . Live Developer Hub Create flow for Industrial Edge template.

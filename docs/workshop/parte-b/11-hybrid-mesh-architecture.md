@@ -20,6 +20,15 @@ In this workshop, the hub gateway terminates external traffic and forwards to In
 
 Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift Service Mesh documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index)
+* [Skupper — service interconnect](https://skupper.io/)
+* [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
+* [Gateway API for OpenShift Service Mesh](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh)
+
 ## Show and Tell
 
 . Trace external URL → hub HTTPRoute → Skupper → spoke IE frontend.

@@ -89,8 +89,22 @@ MODULE_CONTEXT: dict[str, dict[str, str]] = {
         "es": """Usarás **ACS Central** en este cluster (ruta `central-stackrox`) y **Developer Hub → Kuadrant** para solicitar API key de `workshop-apis`. Prueba con `curl` y tu key — no URLs genéricas de marketing.""",
     },
     "ai-gateway": {
-        "en": """Open **Developer Hub → Catalog → workshop-ai-gateway** and trace GitOps in `components/workshop-kuadrant-apis/`. Create a Kuadrant API key and call the MaaS LLM route at `workshop-apis.%HUB_DOMAIN%/llm`.""",
-        "es": """Abre **Developer Hub → Catálogo → workshop-ai-gateway** y sigue GitOps en `components/workshop-kuadrant-apis/`. Crea API key Kuadrant y llama la ruta MaaS LLM.""",
+        "en": """In this module you expose **Model-as-a-Service (MaaS)** LLM inference through a governed **AI Gateway** — not by sharing raw OpenShift AI routes. You will:
+
+. Open **Developer Hub → Catalog → workshop-ai-gateway** and follow links to Topology, TechDocs, and the Kuadrant API portal.
+. Trace GitOps in `components/workshop-kuadrant-apis/` — `HTTPRoute` on the hub Gateway API, Istio `Gateway`, and Kuadrant `AuthPolicy` + `TokenRateLimitPolicy`.
+. Mint an API key for `%USER_NAME%` in the Kuadrant UI and call `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` with a Bearer token.
+. Compare latency, headers, and error responses against direct MaaS from the OpenShift AI notebook (module 22) — the gateway adds auth, rate limits, and a stable external hostname for factory apps.
+
+*Prerequisite:* module **22 OpenShift AI** — you need a running `maas-workshop` playground and familiarity with chat-completions JSON.""",
+        "es": """En este módulo expones inferencia LLM **Model-as-a-Service (MaaS)** a través de un **AI Gateway** gobernado — no compartiendo rutas crudas de OpenShift AI. Harás:
+
+. Abrir **Developer Hub → Catálogo → workshop-ai-gateway** y seguir enlaces a Topology, TechDocs y portal API Kuadrant.
+. Rastrear GitOps en `components/workshop-kuadrant-apis/` — `HTTPRoute` Gateway API, `Gateway` Istio, y políticas Kuadrant.
+. Crear API key para `%USER_NAME%` en UI Kuadrant y llamar `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` con Bearer token.
+. Comparar latencia y errores contra MaaS directo desde notebook OpenShift AI (módulo 22).
+
+*Prerrequisito:* módulo **22 OpenShift AI** — playground `maas-workshop` activo.""",
     },
     "mcp-gateway": {
         "en": """Verify MCP Gateway in `mcp-system`, then use **Developer Hub → Lightspeed** with prompts that invoke ArgoCD/k8s MCP tools. Register OpenShift AI MCP server in dashboard (maas-workshop).""",
@@ -778,16 +792,35 @@ GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.
 GitOps: `components/openshift-ai-hub/`. Verificar: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.""",
     },
     "ai-gateway": {
-        "en": """The **AI Gateway** (`workshop-apis.%HUB_DOMAIN%`) fronts external MaaS with **Gateway API HTTPRoute**, Istio hub gateway, and **Kuadrant** (`AuthPolicy`, `TokenRateLimitPolicy`, API keys). GitOps: `components/workshop-kuadrant-apis/templates/routes.yaml` + `policies.yaml`.
+        "en": """The **AI Gateway** pattern centralizes how factory, edge, and partner applications consume large language models on OpenShift. Instead of every team embedding cluster-internal URLs and shared credentials, traffic enters through **`workshop-apis.%HUB_DOMAIN%`**, backed by **Gateway API** `HTTPRoute` resources on the hub, the Istio ingress gateway, and **Kuadrant** policies for authentication (`AuthPolicy`) and token-based rate limiting (`TokenRateLimitPolicy`).
 
-**Overview-only (~5 min):** Catalog → **workshop-ai-gateway**; Kuadrant UI → show API key shape.
+**Why Kuadrant on OpenShift AI workloads:** Kuadrant extends Gateway API with first-class API management — API keys, usage limits, and policy attachment to routes that front inference services. This matches how platform teams govern REST and gRPC APIs while still allowing data science teams to iterate in OpenShift AI projects. See the Kuadrant documentation for policy CRDs and the Developer Hub Kuadrant plugin for self-service key minting.
 
-**Hands-on (~25 min):** Mint key for `%USER_NAME%`, `curl -H "Authorization: Bearer $KEY" https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` with JSON body; compare to direct MaaS from notebook.""",
-        "es": """El **AI Gateway** (`workshop-apis.%HUB_DOMAIN%`) expone MaaS externo con **Gateway API**, Istio y **Kuadrant**. GitOps: `components/workshop-kuadrant-apis/`.
+**Architecture in this lab:** GitOps repo path `components/workshop-kuadrant-apis/` defines the public hostname, routes `/llm` to the MaaS backend in `maas-workshop`, and attaches Kuadrant policies scoped per workshop user. Developer Hub catalog entity **workshop-ai-gateway** documents the flow for `%USER_NAME%` and links Topology to the live `HTTPRoute`.
 
-**Solo visualización (~5 min):** Catálogo → **workshop-ai-gateway**; UI Kuadrant.
+**Overview-only (~5 min):** Catalog → **workshop-ai-gateway** → Topology; Kuadrant UI → show API key shape and rate-limit policy names (do not run full curl).
 
-**Hands-on (~25 min):** Crear API key, `curl` a `/llm/v1/chat/completions`, comparar con MaaS directo.""",
+**Hands-on (~25 min):** Mint key for `%USER_NAME%`, then:
+
+[source,bash]
+----
+export KEY="<your-kuadrant-api-key>"
+curl -sk "https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions" \\
+  -H "Authorization: Bearer $KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"granite-3-8b-instruct","messages":[{"role":"user","content":"Summarize hybrid mesh in one sentence."}]}'
+----
+
+Compare response time and HTTP 429 behavior (if you exceed limits) to a direct call from the **workshop-notebook** in project `ai-%USER_NAME%`. Record which headers prove the request passed through the gateway (auth, rate-limit counters).
+
+**Operations angle:** The same gateway hostname can front additional model routes (embeddings, vision) without changing client apps — add `HTTPRoute` rules and Kuadrant policies in GitOps, sync with Argo CD, validate in module **29 Full verification**.""",
+        "es": """El patrón **AI Gateway** centraliza cómo aplicaciones de fábrica, edge y partners consumen LLM en OpenShift. El tráfico entra por **`workshop-apis.%HUB_DOMAIN%`**, con **Gateway API** `HTTPRoute`, gateway Istio y políticas **Kuadrant** (`AuthPolicy`, `TokenRateLimitPolicy`).
+
+**Por qué Kuadrant:** extiende Gateway API con gestión de APIs — keys, límites de uso y políticas en rutas que frontean inferencia. GitOps: `components/workshop-kuadrant-apis/`. Entidad catálogo **workshop-ai-gateway** documenta el flujo para `%USER_NAME%`.
+
+**Solo visualización (~5 min):** Catálogo → **workshop-ai-gateway**; UI Kuadrant → forma de API key.
+
+**Hands-on (~25 min):** Crear key, `curl` a `/llm/v1/chat/completions` con JSON chat-completions; comparar con MaaS directo desde notebook en `ai-%USER_NAME%`.""",
     },
     "mcp-gateway": {
         "en": """**MCP Gateway** deploys Kuadrant community CRDs (`MCPGatewayExtension`, `MCPServerRegistration`), `mcp-controller`, Gateway API `Gateway`, **ArgoCD MCP**, and **k8s MCP** — pattern from test-drive-pe-oscg. Public URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
@@ -1984,5 +2017,169 @@ LAB_ACCESS_ES: dict[str, str] = {
 | Developer Hub (objetivos catálogo) | `https://developer-hub.%HUB_DOMAIN%` | {_WU_ES}
 | Consola OpenShift | `https://console-openshift-console.%HUB_DOMAIN%` | {_WU_ES}
 |===
+""",
+}
+
+# External Red Hat / product documentation — appended after Overview in Showroom modules
+LEARN_MORE_EN: dict[str, str] = {
+    "index": """
+* link:https://developers.redhat.com/products[Red Hat Developer — product portfolio]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform[OpenShift Container Platform documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[Advanced Cluster Management (ACM) documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Red Hat Developer Hub documentation]
+""",
+    "hybrid-cloud-strategy": """
+* link:https://www.redhat.com/en/technologies/cloud-computing/openshift/cloud-services[Red Hat OpenShift cloud services overview]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[OpenShift Service on AWS (ROSA) documentation]
+* link:https://developers.redhat.com/learn[Red Hat Developer — learning paths]
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM — multicluster management]
+""",
+    "rosa-architecture": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[ROSA product documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/html-single/planning_your_environment/index[ROSA — planning your environment]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/architecture/architecture-overview[OpenShift architecture overview]
+* link:https://developers.redhat.com/blog/tag/openshift[Red Hat Developer blog — OpenShift]
+""",
+    "security-scale-hybrid": """
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[Advanced Cluster Security (ACS) documentation]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/security_and_compliance/index[OpenShift security and compliance]
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/governance/governance-overview[ACM governance overview]
+* link:https://www.redhat.com/en/blog/tag/security[Red Hat security blog]
+""",
+    "aws-ai-integration": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[ROSA on AWS]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI — self-managed]
+* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[Developer article — AI workloads on OpenShift AI]
+* link:https://aws.amazon.com/rosa/[AWS — Red Hat OpenShift Service on AWS]
+""",
+    "cases-roadmap": """
+* link:https://www.redhat.com/en/success-stories[Red Hat customer success stories]
+* link:https://developers.redhat.com/products/red-hat-developer-hub[Developer Hub product page]
+* link:https://www.redhat.com/en/technologies/management/advanced-cluster-management[ACM product page]
+""",
+    "acm-multicluster": """
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/clusters/index[ACM — cluster lifecycle]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps — fleet patterns]
+* link:https://access.redhat.com/labs/[Red Hat Interactive Labs]
+""",
+    "hybrid-mesh-architecture": """
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[OpenShift Service Mesh documentation]
+* link:https://skupper.io/[Skupper — service interconnect]
+* link:https://gateway-api.sigs.k8s.io/[Kubernetes Gateway API]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh[Gateway API for OpenShift Service Mesh]
+""",
+    "software-templates": """
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation]
+* link:https://backstage.io/docs/features/software-templates/[Backstage Software Templates]
+* link:https://developers.redhat.com/products/red-hat-developer-hub/getting-started[Developer Hub getting started]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index[Developer Hub plugins]
+""",
+    "deploy-industrial-edge": """
+* link:https://www.redhat.com/en/technologies/cloud-computing/openshift/industrial-edge[Industrial Edge on OpenShift]
+* link:https://docs.redhat.com/en/documentation/red_hat_amq_streams[AMQ Streams documentation]
+* link:https://developers.redhat.com/topics/microservices[Microservices learning hub]
+""",
+    "kairos-scaling": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/nodes/index[OpenShift nodes and scaling]
+* link:https://www.redhat.com/en/technologies/management/advanced-cluster-management[ACM — capacity planning]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-cluster[Cluster autoscaler documentation]
+""",
+    "observability": """
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/monitoring/index[OpenShift monitoring]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/distributed_tracing/distributed-tracing-overview[Distributed tracing]
+* link:https://grafana.com/docs/[Grafana documentation]
+""",
+    "openshift-gitops": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation]
+* link:https://argo-cd.readthedocs.io/[Argo CD documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/gitops/gitops-overview[ACM GitOps overview]
+""",
+    "service-mesh": """
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[OpenShift Service Mesh]
+* link:https://istio.io/latest/docs/[Istio documentation]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/ambient-overview[Ambient mesh overview]
+* link:https://kiali.io/docs/[Kiali service mesh observability]
+""",
+    "scalability": """
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-deployment[Horizontal Pod Autoscaler]
+* link:https://docs.redhat.com/en/documentation/red_hat_amq_streams[AMQ Streams — Kafka on OpenShift]
+""",
+    "network-policies": """
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/network-policies[OpenShift network policies]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/understanding-network-policies[Understanding network policies]
+""",
+    "acs-kuadrant": """
+* link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation]
+* link:https://www.kuadrant.io/docs/[Kuadrant documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-kuadrant-plugin[Developer Hub Kuadrant plugin]
+* link:https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant[Developer article — API management with Kuadrant]
+""",
+    "finops-kubecost": """
+* link:https://docs.kubecost.com/[Kubecost documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/nodes/index[OpenShift capacity and nodes]
+* link:https://www.redhat.com/en/blog/tag/finops[Red Hat FinOps blog tag]
+""",
+    "openshift-ai": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index[Serving models — ModelMesh and KServe]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/working_with_connected_applications/index[Connected applications and notebooks]
+* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[Run AI workloads on OpenShift AI]
+* link:https://www.redhat.com/en/blog/tag/artificial-intelligence[Red Hat AI blog]
+""",
+    "ai-gateway": """
+* link:https://www.kuadrant.io/docs/[Kuadrant — API management for Kubernetes]
+* link:https://www.kuadrant.io/docs/3.2/authorino/overview/[Authorino — authentication and authorization]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index[OpenShift AI — model serving]
+* link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh[Gateway API on OpenShift Service Mesh]
+* link:https://gateway-api.sigs.k8s.io/[Kubernetes Gateway API specification]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-kuadrant-plugin[Developer Hub Kuadrant plugin — API keys]
+* link:https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant[API management on Kubernetes with Kuadrant]
+* link:https://www.redhat.com/en/blog/building-trusted-ai-platform-openshift[Building a trusted AI platform on OpenShift]
+""",
+    "mcp-gateway": """
+* link:https://modelcontextprotocol.io/[Model Context Protocol (MCP) specification]
+* link:https://www.kuadrant.io/docs/[Kuadrant MCP Gateway extensions]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub — Lightspeed and plugins]
+* link:https://developers.redhat.com/products/red-hat-developer-hub[Developer Hub product overview]
+""",
+    "llm-rag": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI documentation]
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-lightspeed-plugin[Developer Hub Lightspeed plugin]
+* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[AI workloads on OpenShift AI]
+* link:https://www.redhat.com/en/topics/ai/what-is-retrieval-augmented-generation[What is RAG — Red Hat]
+""",
+    "text-ai-predictive": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index[Model serving on OpenShift AI]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/working_with_connected_applications/index[Notebooks and connected apps]
+* link:https://www.redhat.com/en/blog/tag/artificial-intelligence[Red Hat AI blog]
+""",
+    "neuroface": """
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index[OpenShift AI model serving]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI overview]
+* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[Run AI workloads on OpenShift AI]
+""",
+    "ai-end-user-apps": """
+* link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub — golden paths for apps]
+* link:https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed[OpenShift AI — production patterns]
+* link:https://www.redhat.com/en/technologies/cloud-computing/openshift/industrial-edge[Industrial Edge on OpenShift]
+""",
+}
+
+LEARN_MORE_ES: dict[str, str] = {
+    "ai-gateway": """
+* link:https://www.kuadrant.io/docs/[Kuadrant — gestión de APIs en Kubernetes]
+* link:https://docs.redhat.com/es/documentation/red_hat_openshift_ai_self-managed[Serving de modelos — OpenShift AI]
+* link:https://docs.redhat.com/es/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh[Gateway API en OpenShift Service Mesh]
+* link:https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant[Gestión de APIs con Kuadrant]
+""",
+    "openshift-ai": """
+* link:https://docs.redhat.com/es/documentation/red_hat_openshift_ai_self-managed[Documentación OpenShift AI]
+* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[Cargas de IA en OpenShift AI]
+""",
+    "mcp-gateway": """
+* link:https://modelcontextprotocol.io/[Especificación Model Context Protocol]
+* link:https://www.kuadrant.io/docs/[Kuadrant MCP Gateway]
 """,
 }

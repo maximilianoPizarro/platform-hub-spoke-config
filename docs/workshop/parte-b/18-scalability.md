@@ -20,6 +20,13 @@ In this lab, line-dashboard and related IE deployments include HPAs defined in w
 
 This module completes the capacity story started in module 14: Kairos proposes nodes, HPA adds pods, Kafka buffers events — together they mirror how a ROSA customer scales factory edge during production peaks without manual cluster admin intervention.
 
+### Learn more
+
+### Learn more
+
+* [Horizontal Pod Autoscaler](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-deployment)
+* [AMQ Streams — Kafka on OpenShift](https://docs.redhat.com/en/documentation/red_hat_amq_streams)
+
 ## Show and Tell
 
 . Watch HPA scale line-dashboard pods under simulated load.

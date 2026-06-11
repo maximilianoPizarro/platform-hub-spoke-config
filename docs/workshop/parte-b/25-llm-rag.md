@@ -20,6 +20,15 @@ RAG architecture in hybrid manufacturing typically indexes PDFs and SOPs into a 
 
 As `%USER_NAME%`, open Developer Hub, trigger Lightspeed on a catalog Component, and compare responses with Continue AI in a DevSpaces workspace. Module 25 extends the same MaaS path to multimodal NeuroFace chat — proving one governance model serves dev, ops, and end-user AI surfaces.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift AI documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+* [Developer Hub Lightspeed plugin](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-lightspeed-plugin)
+* [AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
+* [What is RAG — Red Hat](https://www.redhat.com/en/topics/ai/what-is-retrieval-augmented-generation)
+
 ## Show and Tell
 
 . Trigger Developer Hub Lightspeed on a catalog Component live.

@@ -20,6 +20,15 @@ In this lab, open ACM Clusters on the hub and locate east and west — each spok
 
 This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
 
+### Learn more
+
+### Learn more
+
+* [ACM documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes)
+* [ACM — cluster lifecycle](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/clusters/index)
+* [OpenShift GitOps — fleet patterns](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops)
+* [Red Hat Interactive Labs](https://access.redhat.com/labs/)
+
 ## Show and Tell
 
 . Open ACM Clusters UI — identify east and west spokes.

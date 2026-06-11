@@ -20,6 +20,15 @@ In this lab, ACM on the hub represents that governance layer — policies, obser
 
 Executives should note that OpenShift avoids replatforming twice: microservices, VMs (CNV), and AI pipelines share the same RBAC, networking, and CI/CD patterns. When you register as `%USER_NAME%`, your hands-on path mirrors how platform teams onboard application squads in production.
 
+### Learn more
+
+### Learn more
+
+* [Red Hat OpenShift cloud services overview](https://www.redhat.com/en/technologies/cloud-computing/openshift/cloud-services)
+* [OpenShift Service on AWS (ROSA) documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws)
+* [Red Hat Developer — learning paths](https://developers.redhat.com/learn)
+* [ACM — multicluster management](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes)
+
 ## Show and Tell
 
 . Frame the four strategic pillars: modernize, secure, automate, monetize AI on OpenShift.

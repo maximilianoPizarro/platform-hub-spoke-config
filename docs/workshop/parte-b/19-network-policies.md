@@ -20,6 +20,13 @@ This workshop applies a demo NetworkPolicy in `industrial-edge-tst-all` from `co
 
 Compare to ROSA security groups plus Kubernetes NP: defense in depth at cloud VPC and pod layers. Pair this module with ACS (module 20) for runtime anomaly detection when policies are misconfigured or bypassed.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift network policies](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/network-policies)
+* [Understanding network policies](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/networking/understanding-network-policies)
+
 ## Show and Tell
 
 . Apply or review demo NetworkPolicy in `industrial-edge-tst-all`.

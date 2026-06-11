@@ -22,6 +22,16 @@ OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-d
 
 GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift AI documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+* [Serving models — ModelMesh and KServe](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index)
+* [Connected applications and notebooks](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/working_with_connected_applications/index)
+* [Run AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
+* [Red Hat AI blog](https://www.redhat.com/en/blog/tag/artificial-intelligence)
+
 ## Show and Tell
 
 . `oc get dsc` — confirm Ready; open **workshop-notebook** in ai-%USER_NAME%.

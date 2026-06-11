@@ -20,6 +20,15 @@ In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes â€
 
 Scaling hybrid fleets means automating placement and capacity: ACM policies, Kairos SmartScalingPolicy, Kafka buffering, and HPA together handle sensor spikes without manual ticket queues. As `%USER_NAME%`, you will observe these controls in modules 14 and 18 on workloads that simulate factory telemetry bursts.
 
+### Learn more
+
+### Learn more
+
+* [Advanced Cluster Security (ACS) documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes)
+* [OpenShift security and compliance](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/security_and_compliance/index)
+* [ACM governance overview](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/governance/governance-overview)
+* [Red Hat security blog](https://www.redhat.com/en/blog/tag/security)
+
 ## Show and Tell
 
 . Highlight ACS + mesh coexistence (`stackrox` without ambient labels).

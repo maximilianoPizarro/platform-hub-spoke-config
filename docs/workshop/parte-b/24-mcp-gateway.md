@@ -20,6 +20,15 @@ nav_order: 15
 
 **Hands-on (~30 min):** Developer Hub **/lightspeed** — activity: "List Argo CD apps in OutOfSync state and suggest sync." Llama-stack uses `remote::mcp` to gateway (`components/developer-hub/files/lightspeed/llama-stack-run.yaml`).
 
+### Learn more
+
+### Learn more
+
+* [Model Context Protocol (MCP) specification](https://modelcontextprotocol.io/)
+* [Kuadrant MCP Gateway extensions](https://www.kuadrant.io/docs/)
+* [Developer Hub — Lightspeed and plugins](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
+* [Developer Hub product overview](https://developers.redhat.com/products/red-hat-developer-hub)
+
 ## Show and Tell
 
 . `oc get mcpgatewayextension,mcpserverregistration -n mcp-system`.

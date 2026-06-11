@@ -20,6 +20,15 @@ In this workshop, OSSM3 is subscribed via `components/operators/templates/servic
 
 Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift Service Mesh](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index)
+* [Istio documentation](https://istio.io/latest/docs/)
+* [Ambient mesh overview](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/ambient-overview)
+* [Kiali service mesh observability](https://kiali.io/docs/)
+
 ## Show and Tell
 
 . Open Kiali graph for IE namespace — point out ambient ztunnel edges.

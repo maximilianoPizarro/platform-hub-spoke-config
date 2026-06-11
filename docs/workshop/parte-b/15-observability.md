@@ -20,6 +20,14 @@ This workshop deploys multicluster Grafana dashboards on the hub, OpenTelemetry 
 
 Executives should connect this module to module 21 (Kubecost): metrics prove SLO compliance while cost metrics prove efficiency — both required for hybrid FinOps. Use Showroom `oc` to list `GrafanaDashboard` CRs and confirm IE workloads emit scrape targets.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift monitoring](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/monitoring/index)
+* [Distributed tracing](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/distributed_tracing/distributed-tracing-overview)
+* [Grafana documentation](https://grafana.com/docs/)
+
 ## Show and Tell
 
 . Open multicluster Grafana dashboard filtered to IE namespace.

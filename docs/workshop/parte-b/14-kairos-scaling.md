@@ -20,6 +20,14 @@ In this lab, the sensor-scan policy watches Industrial Edge metrics and proposes
 
 Open Kairos Console from the OpenShift menu, locate pending recommendations tied to `%USER_NAME%` namespaces, and approve or discuss trade-offs with the facilitator. Run `oc get smartscalingpolicy -A` to correlate CRDs with UI actions.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift nodes and scaling](https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/nodes/index)
+* [ACM — capacity planning](https://www.redhat.com/en/technologies/management/advanced-cluster-management)
+* [Cluster autoscaler documentation](https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/nodes/automatically-scaling-a-cluster)
+
 ## Show and Tell
 
 . Open Kairos Console and walk through a pending SmartScalingPolicy recommendation.

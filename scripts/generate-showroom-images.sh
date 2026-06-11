@@ -64,7 +64,17 @@ from pathlib import Path
 
 out = Path(sys.argv[1])
 name = sys.argv[2]
-label = name.replace("-", " ").title()
+ACRONYMS = {"ai", "acs", "acm", "aws", "mcp", "maas", "rag", "llm", "ie", "rosa", "api", "hpa", "e2e", "ui", "ovms"}
+words = name.replace("-", " ").split()
+label_parts = []
+for w in words:
+    if w.isdigit():
+        label_parts.append(w)
+    elif w.lower() in ACRONYMS:
+        label_parts.append(w.upper())
+    else:
+        label_parts.append(w.capitalize())
+label = " ".join(label_parts)
 w, h = 1200, 630
 
 try:

@@ -20,6 +20,14 @@ That customer roadmap led to OpenShift AI for predictive maintenance models and 
 
 Your next step is Part B registration verification — ensure `%USER_NAME%` works in Showroom, then proceed to module 10 for ACM fleet visibility. Plan B shared demos remain available if your scaffold slot is unavailable.
 
+### Learn more
+
+### Learn more
+
+* [Red Hat customer success stories](https://www.redhat.com/en/success-stories)
+* [Developer Hub product page](https://developers.redhat.com/products/red-hat-developer-hub)
+* [ACM product page](https://www.redhat.com/en/technologies/management/advanced-cluster-management)
+
 ## Show and Tell
 
 . Present the automotive IoT case metrics (12k events/min, $47k/hr downtime, 34% node savings).

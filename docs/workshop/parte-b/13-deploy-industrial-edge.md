@@ -20,6 +20,14 @@ Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organiz
 
 This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling.
 
+### Learn more
+
+### Learn more
+
+* [Industrial Edge on OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/industrial-edge)
+* [AMQ Streams documentation](https://docs.redhat.com/en/documentation/red_hat_amq_streams)
+* [Microservices learning hub](https://developers.redhat.com/topics/microservices)
+
 ## Show and Tell
 
 . Confirm Gitea org `ws-%USER_NAME%` and Argo CD sync on east.

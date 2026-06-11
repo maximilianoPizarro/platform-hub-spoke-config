@@ -343,17 +343,17 @@ data:
     <body>
     <div class="header">
       <div class="header-brand">
-        <img src="https://raw.githubusercontent.com/maximilianoPizarro/test-drive-pe-oscg/main/docs/assets/images/Logo-OSC_with_padding.png" alt="Red Hat OpenShift Commons">
+        <img src="https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/images/rh-logo.svg" alt="Red Hat">
         <div class="header-text">
           <h1>Hybrid Mesh AI Workshop</h1>
-          <p>OpenShift Commons Gathering — Buenos Aires 2026</p>
+          <p>Hub-spoke lab environment</p>
         </div>
       </div>
       <div class="header-user" id="header-user-wrap">Lab user: <strong id="header-user">—</strong></div>
     </div>
     <div class="main">
       <div class="card" id="register-card">
-        <div style="text-align:center;margin-bottom:24px"><img src="https://raw.githubusercontent.com/maximilianoPizarro/test-drive-pe-oscg/main/docs/assets/images/Logo-OSC_with_padding.png" alt="OpenShift Commons Gathering" style="height:60px"></div>
+        <div style="text-align:center;margin-bottom:24px"><img src="https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/images/rh-logo.svg" alt="Red Hat" style="height:48px"></div>
         <h2>Workshop Registration</h2>
         <p>Enter your email to get started. You will be automatically assigned a workshop user and redirected to the lab environment.</p>
         <div class="form-group">
@@ -373,7 +373,7 @@ data:
       </div>
     </div>
     <div class="footer">
-      OpenShift Commons Gathering &mdash; Buenos Aires 2026<br>
+      Hybrid Mesh AI Workshop<br>
       Lab user: <strong id="footer-user">—</strong> &middot;
       <a id="footer-showroom-link" href="#">Open Showroom</a>
     </div>
@@ -494,7 +494,7 @@ data:
     <body>
     <div class="header">
       <div class="header-brand">
-        <img src="https://raw.githubusercontent.com/maximilianoPizarro/test-drive-pe-oscg/main/docs/assets/images/Logo-OSC_with_padding.png" alt="Red Hat OpenShift Commons">
+        <img src="https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/images/rh-logo.svg" alt="Red Hat">
         <div class="header-text"><h1>Workshop Admin</h1></div>
       </div>
     </div>
@@ -530,7 +530,7 @@ data:
       </div>
     </div>
 
-    <div class="footer">OpenShift Commons Gathering &mdash; Buenos Aires 2026</div>
+    <div class="footer">Hybrid Mesh AI Workshop</div>
     <script>
     var adminToken = '__ADMIN_TOKEN__';
     var users = [];

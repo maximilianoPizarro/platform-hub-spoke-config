@@ -22,6 +22,14 @@ NeuroFace combines **OVMS local vision** (face/object detection via `components/
 
 Catalog: System `hybrid-mesh-ai-platform` → Component **neuroface-workshop** (links UI + OpenShift AI dashboard).
 
+### Learn more
+
+### Learn more
+
+* [OpenShift AI model serving](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index)
+* [OpenShift AI overview](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+* [Run AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
+
 ## Show and Tell
 
 . Open `https://neuroface.%HUB_DOMAIN%` — webcam object detection live.

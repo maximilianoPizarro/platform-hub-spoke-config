@@ -17,6 +17,14 @@ Optional KServe InferenceService resources on the hub demonstrate full model ser
 
 Connect predictive alerts to module 26 end-user apps: Camel routes can fan out anomaly events to line-dashboard overlays and NeuroFace notifications. This closes the loop from telemetry → ML/statistical detection → human + generative AI response on the same OpenShift footprint.
 
+### Learn more
+
+### Learn more
+
+* [Model serving on OpenShift AI](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/serving_models/index)
+* [Notebooks and connected apps](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed/2.16/html-single/working_with_connected_applications/index)
+* [Red Hat AI blog](https://www.redhat.com/en/blog/tag/artificial-intelligence)
+
 ## Show and Tell
 
 . Show ie-anomaly-alerter firing on threshold breach in metrics.

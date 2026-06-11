@@ -20,6 +20,14 @@ In this lab, Kubecost deploys from `components/kubecost/` with agents on east/we
 
 FinOps closes the executive loop from module 01: hybrid strategy without cost visibility fails in CFO review. Kubecost complements AWS Cost Explorer tags on ROSA by exposing pod-level waste inside the cluster boundary.
 
+### Learn more
+
+### Learn more
+
+* [Kubecost documentation](https://docs.kubecost.com/)
+* [OpenShift capacity and nodes](https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/nodes/index)
+* [Red Hat FinOps blog tag](https://www.redhat.com/en/blog/tag/finops)
+
 ## Show and Tell
 
 . Kubecost UI: allocation by namespace for `%USER_NAME%`.

@@ -20,6 +20,15 @@ This workshop's hub-spoke layout maps cleanly to ROSA concepts: the hub is your 
 
 Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later.
 
+### Learn more
+
+### Learn more
+
+* [ROSA product documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws)
+* [ROSA — planning your environment](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/html-single/planning_your_environment/index)
+* [OpenShift architecture overview](https://docs.redhat.com/en/documentation/red_hat_openshift_container_platform/4.16/html/architecture/architecture-overview)
+* [Red Hat Developer blog — OpenShift](https://developers.redhat.com/blog/tag/openshift)
+
 ## Show and Tell
 
 . Whiteboard ROSA control plane vs worker responsibility split.

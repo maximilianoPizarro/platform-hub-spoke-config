@@ -25,6 +25,8 @@ from workshop_content_data import (  # noqa: E402
     INDEX_VERIFY_EN,
     LAB_ACCESS_EN,
     LAB_ACCESS_ES,
+    LEARN_MORE_EN,
+    LEARN_MORE_ES,
     MODULE_CONTEXT,
     NARRATIVES,
     NEXT_PAGE,
@@ -329,6 +331,24 @@ def time_badge(minutes: int, lang: str) -> str:
 """
 
 
+def learn_more_section(slug: str, lang: str) -> str:
+    """Red Hat external docs — deep links after Overview."""
+    if slug in FACILITATOR_ONLY_SLUGS:
+        return ""
+    learn_map = LEARN_MORE_EN if lang == "en" else LEARN_MORE_ES
+    body = learn_map.get(slug, "")
+    if not body and lang != "en":
+        body = LEARN_MORE_EN.get(slug, "")
+    if not body:
+        return ""
+    label = "Learn more" if lang == "en" else "Profundizar"
+    return f"""
+=== {label}
+
+{body.strip()}
+"""
+
+
 def track_pacing_section(lang: str) -> str:
     if lang == "en":
         return """
@@ -357,7 +377,7 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
     img = ""
     if slug in IMAGE_BY_SLUG:
         fname, alt = IMAGE_BY_SLUG[slug]
-        img = f"\nimage::{fname}[{alt},600]\n"
+        img = f"\nimage::{fname}[{alt},960]\n"
 
     index_block = ""
     if is_index:
@@ -480,6 +500,7 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
 == {overview}
 
 {track_pacing_section(lang) if (not is_index and num.isdigit() and int(num) >= 10) else ""}{narrative.strip()}
+{learn_more_section(slug, lang)}
 """
     elif slug in FACILITATOR_ONLY_SLUGS:
         overview_section = module_context_section(slug, lang)
@@ -578,6 +599,9 @@ def asciidoc_to_md(text: str) -> str:
             continue
         if in_source:
             out.append(line)
+            continue
+        if line.startswith("=== "):
+            out.append(f"### {line[4:].strip()}")
             continue
         if line.startswith("== "):
             out.append(f"## {line[3:].strip()}")
@@ -783,6 +807,12 @@ Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** —
         gitops_md = asciidoc_to_md(gitops_section(slug, "en")) if slug in GITOPS_REF else ""
         verify_cmd = GITOPS_REF[slug][1] if slug in GITOPS_REF else "Save progress in Showroom"
 
+        learn_md = ""
+        if slug in LEARN_MORE_EN:
+            learn_md = "\n### Learn more\n\n" + asciidoc_to_md(
+                learn_more_section(slug, "en").strip()
+            )
+
         body = f"""{SHOWROOM_BANNER}
 
 # {en_title}
@@ -791,6 +821,7 @@ Pre-deployed examples in Developer Hub System **`hybrid-mesh-shared-demos`** —
 ## Overview
 
 {narrative}
+{learn_md}
 
 ## Show and Tell
 

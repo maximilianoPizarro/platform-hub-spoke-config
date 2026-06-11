@@ -20,6 +20,15 @@ This workshop intentionally substitutes OpenShift AI plus Model-as-a-Service (Ma
 
 Module 22 onward activates this stack hands-on. Executives should recognize that OpenShift AI on ROSA or on-prem avoids rewriting applications when cloud AI pricing or residency rules change — the Kubernetes-native serving layer moves with the cluster.
 
+### Learn more
+
+### Learn more
+
+* [ROSA on AWS](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws)
+* [OpenShift AI — self-managed](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+* [Developer article — AI workloads on OpenShift AI](https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai)
+* [AWS — Red Hat OpenShift Service on AWS](https://aws.amazon.com/rosa/)
+
 ## Show and Tell
 
 . Contrast Bedrock/SageMaker with OpenShift AI + MaaS in this lab.

@@ -20,6 +20,15 @@ Connectivity Link and Kuadrant extend API management to the hub gateway: AuthPol
 
 As `%USER_NAME%`, verify ACS sees your spoke workloads and test APIProduct routes through the hub gateway. Remember ACS runs outside ambient mesh — this coexistence pattern is deliberate and matches production ROSA + ACS deployments.
 
+### Learn more
+
+### Learn more
+
+* [ACS documentation](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes)
+* [Kuadrant documentation](https://www.kuadrant.io/docs/)
+* [Developer Hub Kuadrant plugin](https://docs.redhat.com/en/documentation/red_hat_developer_hub/html-single/plug-ins_for_red_hat_developer_hub/index#con-kuadrant-plugin)
+* [Developer article — API management with Kuadrant](https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant)
+
 ## Show and Tell
 
 . ACS Central overview — violations and deployments on spokes.

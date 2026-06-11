@@ -20,6 +20,14 @@ In this lab, hub Applications under `templates/component-applications.yaml` depl
 
 Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
 
+### Learn more
+
+### Learn more
+
+* [OpenShift GitOps documentation](https://docs.redhat.com/en/documentation/red_hat_openshift_gitops)
+* [Argo CD documentation](https://argo-cd.readthedocs.io/)
+* [ACM GitOps overview](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/gitops/gitops-overview)
+
 ## Show and Tell
 
 . Argo CD UI: hub Application vs user spoke Application sources.

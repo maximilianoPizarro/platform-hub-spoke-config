@@ -20,6 +20,14 @@ This module integrates modules 13–25: verify line-dashboard displays live IE d
 
 Platform teams win when AI is invisible infrastructure: OpenShift AI, MaaS, and NeuroFace become services catalog entries — app squads bind them through Developer Hub dependencies without rebuilding ML pipelines per plant.
 
+### Learn more
+
+### Learn more
+
+* [Developer Hub — golden paths for apps](https://docs.redhat.com/en/documentation/red_hat_developer_hub)
+* [OpenShift AI — production patterns](https://docs.redhat.com/en/documentation/red_hat_openshift_ai_self-managed)
+* [Industrial Edge on OpenShift](https://www.redhat.com/en/technologies/cloud-computing/openshift/industrial-edge)
+
 ## Show and Tell
 
 . line-dashboard live data + anomaly overlay or alert badge.
