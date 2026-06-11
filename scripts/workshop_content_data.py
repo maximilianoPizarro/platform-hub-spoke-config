@@ -177,34 +177,7 @@ az aks create --resource-group rg-workshop --name aks-edge --node-count 3
 Hands-on equivalents: ACM fleet (module 10), Kuadrant API gateway (module 20), OpenShift AI + MaaS (modules 22–25).
 """
 
-HYBRID_INTEGRATION_ES = """
-[[#hybrid-integration]]
-== Notas de integración nube híbrida
-
-Los patrones del taller aplican a OpenShift on-prem, edge o cloud público. Este lab usa flota RHDP hub-spoke pre-provisionada — usa los snippets siguientes para provisionar o adjuntar servicios similares en AWS o Azure.
-
-=== AWS — adjuntar clusters e integrar servicios
-
-[source,bash]
-----
-rosa create cluster --cluster-name=factory-edge --region=us-east-1
-aws iam create-open-id-connect-provider ...
-aws s3 mb s3://my-data-lake
-----
-
-=== Azure — adjuntar AKS e IA opcional
-
-[source,bash]
-----
-az aks create --resource-group rg-workshop --name aks-edge --node-count 3
-----
-
-Equivalentes hands-on: flota ACM (módulo 10), Kuadrant (20), OpenShift AI + MaaS (22–25).
-"""
-
 HYBRID_CALLOUT_EN = HYBRID_INTEGRATION_EN
-HYBRID_CALLOUT_ES = HYBRID_INTEGRATION_ES
-
 REGISTRATION_CTA_EN = """
 ++++
 <p class="workshop-register-cta">
@@ -216,22 +189,7 @@ REGISTRATION_CTA_EN = """
 ++++
 """
 
-REGISTRATION_CTA_ES = """
-++++
-<p class="workshop-register-cta">
-  <a id="workshop-register-cta-main" class="workshop-register-btn"
-     href="https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%"
-     target="_blank" rel="noopener noreferrer">Registrarse para acceso al lab →</a>
-  <span class="workshop-register-hint">¿Ya registrado? Abre esta página con <code>USER_NAME=userN</code> en la URL.</span>
-</p>
-++++
-"""
-
 INDEX_LAB_ACCESS_NOTE_EN = """NOTE: *Workshop login* — %USER_NAME% / `Welcome123!` (Keycloak Developer Hub; htpasswd OpenShift hub/east/west; DevSpaces east). OAuth products use the same OpenShift identity.
-
-"""
-
-INDEX_LAB_ACCESS_NOTE_ES = """NOTE: *Login del taller* — %USER_NAME% / `Welcome123!` (Keycloak Developer Hub; htpasswd consola hub/east/west; DevSpaces east). Productos OAuth usan la misma identidad OpenShift.
 
 """
 
@@ -454,30 +412,12 @@ curl -s http://maas-api.maas-workshop.svc.cluster.local:8080/v1/models | jq '.da
 |===
 """
 
-INDEX_INTRO_ES = """
-Bienvenido al **Taller Hybrid Mesh AI** — experiencia dual en flota hub-spoke RHDP. Parte A (01–05) es narrativa ejecutiva; Parte B (10–28) es hands-on en este Showroom y la consola OpenShift.
-
-Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro del taller] para obtener **%USER_NAME%**. Abre link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom] para la terminal `oc` integrada. Si falla el scaffolder, usa demos **Plan B** en link:https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos[Developer Hub — hybrid-mesh-shared-demos].
-
-NOTE: La verificación E2E y runbooks de grabación en `showroom-hybrid-mesh-ai/verification/` son solo para **facilitadores y agentes de automatización** — no forman parte del recorrido del participante.
-"""
-
 PROGRESS_UI_EN = """
 ++++
 <div class="workshop-progress" data-module="{module_id}">
   <label><input type="checkbox" data-completed> I completed this module</label>
   <label><input type="checkbox" data-interest> I want to learn more</label>
   <button type="button" onclick="saveWorkshopProgress('{module_id}')">Save progress</button>
-</div>
-++++
-"""
-
-PROGRESS_UI_ES = """
-++++
-<div class="workshop-progress" data-module="{module_id}">
-  <label><input type="checkbox" data-completed> Completé este módulo</label>
-  <label><input type="checkbox" data-interest> Me interesa profundizar</label>
-  <button type="button" onclick="saveWorkshopProgress('{module_id}')">Guardar progreso</button>
 </div>
 ++++
 """
@@ -519,43 +459,6 @@ PRODUCT_CATALOG_EN = """
 * **Kubecost** — FinOps allocations on the hub cluster.
 """
 
-PRODUCT_CATALOG_ES = """
-== Catálogo de productos Red Hat en este taller
-
-=== OpenShift Container Platform
-* **Advanced Cluster Management (ACM)** — gobernanza de flota, políticas y placement GitOps entre hub y spokes.
-* **Red Hat Advanced Cluster Security (ACS)** — detección runtime y cumplimiento (`stackrox`; fuera del mesh ambient).
-* **Quay** — registro de contenedores referenciado por GitOps y plantillas.
-* **OpenShift GitOps** — Applications y ApplicationSets de Argo CD sincronizan componentes desde Git.
-* **Red Hat OpenShift Dev Spaces** — IDE en la nube en spoke east (Kaoto, Continue AI, plantillas).
-* **OpenShift Pipelines** — pipelines Tekton en Industrial Edge y flujos de plantillas.
-* **Trazas distribuidas / observabilidad del cluster** — métricas, logging y trazas (Grafana, Kiali, OTEL).
-* **OpenShift Service Mesh 3** — mesh ambient con ztunnel y políticas L7 para apps Industrial Edge.
-
-=== Red Hat Application Foundation
-* **Apache Camel on Kubernetes** — integraciones y pipelines CDC en el demo Industrial Edge.
-* **Connectivity Link** — patrones Gateway API ingress/egress en hub gateway (Skupper, HTTPRoute, APIs externas).
-* **Kuadrant** — catálogo APIProduct, AuthPolicy, PlanPolicy y TokenRateLimitPolicy (separado de Connectivity Link).
-
-=== Red Hat Advanced Developer Suite
-* **Developer Hub (Backstage)** — catálogo, plantillas scaffolder y Topology multicluster.
-* **Software Templates** — golden paths para Industrial Edge, Camel, CNV y workspaces OpenShift AI.
-
-=== OpenShift AI
-* **DataScienceCluster (DSC)** — operador unificado para notebooks, serving y model mesh en el hub.
-* **Model-as-a-Service (MaaS)** — endpoint LLM compartido por NeuroFace, Lightspeed y DevSpaces.
-* **NeuroFace** — detección objeto/rostro por webcam más chat vía MaaS.
-
-=== OpenShift Virtualization
-* **Virtualización nativa de contenedores (CNV)** — cargas VM junto a contenedores vía plantilla demo CNV.
-
-=== Comunidad y terceros
-* **Kairos Community** — SmartScalingPolicy para cargas de sensores IE (operador community).
-* **Gitea** — org por usuario `ws-%USER_NAME%` para repos Git generados por Argo CD.
-* **MinIO** — almacenamiento objeto para artefactos y data lake.
-* **Kubecost** — asignaciones FinOps en el hub.
-"""
-
 PREREQUISITES_EN = """
 == Prerequisites
 
@@ -565,196 +468,145 @@ PREREQUISITES_EN = """
 * Optional: use the embedded Showroom terminal for `oc` commands; no local kubeconfig required for Part B.
 """
 
-PREREQUISITES_ES = """
-== Prerrequisitos
-
-* Navegador moderno (Chrome o Firefox recomendado) con acceso a webcam para módulos NeuroFace.
-* Acceso a la consola OpenShift del hub — iniciar **Hybrid Mesh AI Workshop** desde el menú Application.
-* Registro en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro del taller] para obtener `%USER_NAME%` y redirect al Showroom.
-* Opcional: terminal Showroom integrada para comandos `oc`; no se requiere kubeconfig local para la Parte B.
-"""
-
-NARRATIVES: dict[str, dict[str, str]] = {
-    "index": {
-        "en": """This workshop demonstrates how Red Hat customers unify strategy and operations across hybrid cloud using OpenShift as the common platform. You will apply the same patterns on a live RHDP hub-spoke lab with east and west spokes managed by ACM.
+NARRATIVES: dict[str, str] = {
+    "index": """This workshop demonstrates how Red Hat customers unify strategy and operations across hybrid cloud using OpenShift as the common platform. You will apply the same patterns on a live RHDP hub-spoke lab with east and west spokes managed by ACM.
 
 Part A frames the business case: modernization, security, FinOps, and AI. Part B (modules 10–28) lets you use Industrial Edge, multicluster observability, Kuadrant API security, and OpenShift AI — as `%USER_NAME%` in this lab environment.
 
 Register at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] before hands-on modules.""",
-        "es": """Este taller demuestra cómo unificar estrategia y operaciones en nube híbrida con OpenShift. Aplicarás los mismos patrones en un lab hub-spoke RHDP con spokes east y west gestionados por ACM.
-
-La Parte A enmarca el caso de negocio; la Parte B (módulos 10–28) usa Industrial Edge, observabilidad multicluster, Kuadrant y OpenShift AI — como `%USER_NAME%` en este entorno.
-
-Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro] antes de los módulos hands-on.""",
-    },
-    "hybrid-cloud-strategy": {
-        "en": """Hybrid cloud strategy starts with workload placement: keep latency-sensitive factory systems at the edge, burst analytics and AI training to cloud regions, and govern everything from a central OpenShift hub. Red Hat OpenShift Container Platform delivers a single Kubernetes API and operator model whether clusters run on-prem, at edge sites, or as ROSA in AWS.
+    "hybrid-cloud-strategy": """Hybrid cloud strategy starts with workload placement: keep latency-sensitive factory systems at the edge, burst analytics and AI training to cloud regions, and govern everything from a central OpenShift hub. Red Hat OpenShift Container Platform delivers a single Kubernetes API and operator model whether clusters run on-prem, at edge sites, or as ROSA in AWS.
 
 In this lab, ACM on the hub represents that governance layer — policies, observability federation, and GitOps placement target east and west spokes the same way a customer would target ROSA and on-prem clusters. You are not learning abstract slides; every Part B module reinforces a strategic pillar: automation, security, developer velocity, or AI readiness.
 
 Executives should note that OpenShift avoids replatforming twice: microservices, VMs (CNV), and AI pipelines share the same RBAC, networking, and CI/CD patterns. When you register as `%USER_NAME%`, your hands-on path mirrors how platform teams onboard application squads in production.""",
-        "es": """La estrategia de nube híbrida comienza con la ubicación de cargas: sistemas de fábrica sensibles a latencia en el edge, analytics e IA en regiones cloud, y gobernanza central desde un hub OpenShift. Red Hat OpenShift Container Platform ofrece una API Kubernetes y modelo de operadores únicos on-prem, edge o ROSA en AWS.
-
-En este lab, ACM en el hub representa esa capa de gobernanza — políticas, federación de observabilidad y placement GitOps hacia spokes east y west como un cliente hacia clusters ROSA y on-prem. No aprendes diapositivas abstractas; cada módulo de la Parte B refuerza un pilar estratégico: automatización, seguridad, velocidad de desarrollo o preparación para IA.
-
-Los ejecutivos deben notar que OpenShift evita replatformear dos veces: microservicios, VMs (CNV) e pipelines de IA comparten RBAC, red y CI/CD. Al registrarte como `%USER_NAME%`, tu ruta hands-on refleja cómo los equipos de plataforma incorporan squads en producción.""",
-    },
-    "rosa-architecture": {
-        "en": """Red Hat OpenShift Service on AWS (ROSA) provides a fully managed control plane in your AWS account while Red Hat handles upgrades, security patches, and SRE operations. Worker nodes scale via MachineSets; ingress integrates with Route 53 and ALB; IAM and STS enable secure cloud service access — the reference architecture for hybrid customers who standardize on OpenShift everywhere.
+    "rosa-architecture": """Red Hat OpenShift Service on AWS (ROSA) provides a fully managed control plane in your AWS account while Red Hat handles upgrades, security patches, and SRE operations. Worker nodes scale via MachineSets; ingress integrates with Route 53 and ALB; IAM and STS enable secure cloud service access — the reference architecture for hybrid customers who standardize on OpenShift everywhere.
 
 This workshop's hub-spoke layout maps cleanly to ROSA concepts: the hub is your fleet management cluster (like an ACM hub on ROSA), spokes are regional or edge clusters importing via ManagedCluster resources. You will inspect `ManagedCluster` objects and GitOpsCluster links in module 10 — the same CRDs a ROSA customer uses when joining factory edge clusters to a central governance hub.
 
-Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later.""",
-        "es": """Red Hat OpenShift Service on AWS (ROSA) ofrece un plano de control totalmente gestionado en tu cuenta AWS mientras Red Hat maneja upgrades, parches de seguridad y operaciones SRE. Los workers escalan vía MachineSets; el ingress integra Route 53 y ALB; IAM y STS habilitan acceso seguro a servicios cloud — la arquitectura de referencia para clientes híbridos que estandarizan OpenShift.
-
-El layout hub-spoke de este taller mapea a conceptos ROSA: el hub es tu cluster de gestión de flota (como un hub ACM en ROSA), los spokes son clusters regionales o edge que importan vía ManagedCluster. Inspeccionarás objetos `ManagedCluster` y enlaces GitOpsCluster en el módulo 10 — los mismos CRDs que un cliente ROSA usa al unir clusters edge de fábrica a un hub de gobernanza.
-
-Entender la arquitectura ROSA ayuda a explicar límites de SLA: Red Hat gestiona el plano de control; tú el sizing de workers, red y datos. En el lab, Kairos y HPA en spokes simulan decisiones de autoscaling ROSA sin facturación AWS, preparándote para módulos FinOps posteriores.""",
-    },
-    "security-scale-hybrid": {
-        "en": """Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices.
+Understanding ROSA architecture helps you explain SLA boundaries: Red Hat manages the control plane; you own worker sizing, networking, and data. In the lab, Kairos and HPA on spokes simulate ROSA autoscaling decisions without AWS billing, preparing you for FinOps modules later. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws[ROSA documentation] for architecture and planning guides.""",
+    "security-scale-hybrid": """Security and scale in hybrid OpenShift environments require defense in depth: identity federation, network segmentation, runtime threat detection, and policy-driven compliance across every cluster in the fleet. Red Hat Advanced Cluster Security (ACS) centralizes vulnerability management and runtime policies while OpenShift Service Mesh adds zero-trust connectivity between microservices. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_security_for_kubernetes[ACS documentation] for runtime policy details.
 
 In this lab, ACS Central runs on the hub with SecuredCluster agents on spokes — note that the `stackrox` namespace deliberately avoids ambient mesh labels so ACS sensors are not disrupted. NetworkPolicy demos in module 19 use OVN on spokes, analogous to security groups plus Kubernetes NP on ROSA. Kuadrant AuthPolicy at the hub gateway shows how API traffic is authenticated and rate-limited before it reaches Industrial Edge backends.
 
 Scaling hybrid fleets means automating placement and capacity: ACM policies, Kairos SmartScalingPolicy, Kafka buffering, and HPA together handle sensor spikes without manual ticket queues. As `%USER_NAME%`, you will observe these controls in modules 14 and 18 on workloads that simulate factory telemetry bursts.""",
-        "es": """Seguridad y escala en entornos OpenShift híbridos requieren defensa en profundidad: federación de identidad, segmentación de red, detección de amenazas en runtime y cumplimiento basado en políticas en toda la flota. Red Hat Advanced Cluster Security (ACS) centraliza gestión de vulnerabilidades y políticas runtime mientras OpenShift Service Mesh añade conectividad zero-trust entre microservicios.
-
-En este lab, ACS Central corre en el hub con agentes SecuredCluster en spokes — el namespace `stackrox` evita deliberadamente labels de mesh ambient para no interferir con sensores ACS. Los demos NetworkPolicy del módulo 19 usan OVN en spokes, análogos a security groups más NP Kubernetes en ROSA. AuthPolicy Kuadrant en el gateway del hub muestra autenticación y rate limiting antes de backends Industrial Edge.
-
-Escalar flotas híbridas implica automatizar placement y capacidad: políticas ACM, Kairos SmartScalingPolicy, buffering Kafka y HPA manejan picos de sensores sin colas manuales. Como `%USER_NAME%`, observarás estos controles en los módulos 14 y 18 en cargas que simulan ráfagas de telemetría de fábrica.""",
-    },
-    "aws-ai-integration": {
-        "en": """AWS customers often pair ROSA with native AI services — Amazon Bedrock for foundation models, SageMaker for training pipelines, and IAM OIDC for secure workload identity. Red Hat's hybrid approach keeps inference and data pipelines on OpenShift AI while still allowing optional AWS service integration via credentials and external endpoints where policy permits.
+    "aws-ai-integration": """AWS customers often pair ROSA with native AI services — Amazon Bedrock for foundation models, SageMaker for training pipelines, and IAM OIDC for secure workload identity. Red Hat's hybrid approach keeps inference and data pipelines on OpenShift AI while still allowing optional AWS service integration via credentials and external endpoints where policy permits.
 
 This workshop intentionally substitutes OpenShift AI plus Model-as-a-Service (MaaS) for Bedrock/SageMaker so you experience a portable pattern: a `DataScienceCluster` on the hub, shared LLM endpoint, and consumer apps (NeuroFace, Developer Hub Lightspeed) on spokes. The secret `openshift-ai-maas-credentials` and MaaS base URL mirror how production teams centralize model access instead of embedding API keys in every deployment.
 
 Module 22 onward activates this stack hands-on. Executives should recognize that OpenShift AI on ROSA or on-prem avoids rewriting applications when cloud AI pricing or residency rules change — the Kubernetes-native serving layer moves with the cluster.""",
-        "es": """Los clientes AWS suelen combinar ROSA con servicios nativos de IA — Amazon Bedrock para modelos foundation, SageMaker para pipelines de entrenamiento e IAM OIDC para identidad segura de cargas. El enfoque híbrido de Red Hat mantiene inferencia y pipelines de datos en OpenShift AI permitiendo integración opcional con servicios AWS vía credenciales y endpoints externos donde la política lo permita.
-
-Este taller sustituye intencionalmente OpenShift AI más Model-as-a-Service (MaaS) por Bedrock/SageMaker para que experimentes un patrón portable: `DataScienceCluster` en el hub, endpoint LLM compartido y apps consumidoras (NeuroFace, Developer Hub Lightspeed) en spokes. El secret `openshift-ai-maas-credentials` y la URL base MaaS reflejan cómo los equipos centralizan acceso a modelos en lugar de incrustar API keys en cada despliegue.
-
-Desde el módulo 22 se activa este stack hands-on. Los ejecutivos deben reconocer que OpenShift AI en ROSA u on-prem evita reescribir aplicaciones cuando cambian precios o reglas de residencia — la capa de serving nativa Kubernetes se mueve con el cluster.""",
-    },
-    "cases-roadmap": {
-        "en": """**Industry case — precision manufacturing IoT:** A global automotive supplier deployed OpenShift at three factory edge sites plus a ROSA hub for analytics. Machine vibration sensors emit 12,000 events/minute per line; unplanned downtime cost $47,000/hour. After migrating to Industrial Edge on OpenShift with Kafka, Camel integrations, and ACS runtime policies, mean time to detect anomalies dropped from 18 minutes to 90 seconds, and Kairos-approved scaling reduced over-provisioned edge nodes by 34%.
+    "cases-roadmap": """**Industry case — precision manufacturing IoT:** A global automotive supplier deployed OpenShift at three factory edge sites plus a ROSA hub for analytics. Machine vibration sensors emit 12,000 events/minute per line; unplanned downtime cost $47,000/hour. After migrating to Industrial Edge on OpenShift with Kafka, Camel integrations, and ACS runtime policies, mean time to detect anomalies dropped from 18 minutes to 90 seconds, and Kairos-approved scaling reduced over-provisioned edge nodes by 34%.
 
 That customer roadmap led to OpenShift AI for predictive maintenance models and Developer Hub templates so each plant could scaffold compliant pipelines without shadow IT. This workshop reproduces that journey at lab scale: modules 13–18 deploy IE on spoke east/west, modules 22–26 add MaaS and NeuroFace, module 21 adds Kubecost chargeback by namespace.
 
 Your next step is Part B registration verification — ensure `%USER_NAME%` works in Showroom, then proceed to module 10 for ACM fleet visibility. Plan B shared demos remain available if your scaffold slot is unavailable.""",
-        "es": """**Caso industrial — IoT de manufactura de precisión:** Un proveedor automotriz global desplegó OpenShift en tres sitios edge de fábrica más un hub ROSA para analytics. Sensores de vibración emiten 12.000 eventos/minuto por línea; el downtime no planificado costaba 47.000 USD/hora. Tras migrar a Industrial Edge en OpenShift con Kafka, integraciones Camel y políticas runtime ACS, el tiempo medio de detección de anomalías bajó de 18 minutos a 90 segundos, y el escalado aprobado por Kairos redujo nodos edge sobreaprovisionados un 34%.
-
-El roadmap de ese cliente llevó a OpenShift AI para modelos de mantenimiento predictivo y plantillas Developer Hub para que cada planta scaffoldeara pipelines conformes sin shadow IT. Este taller reproduce ese recorrido a escala lab: módulos 13–18 despliegan IE en spokes east/west, módulos 22–26 añaden MaaS y NeuroFace, módulo 21 añade chargeback Kubecost por namespace.
-
-Tu siguiente paso es verificar registro Parte B — confirma que `%USER_NAME%` funciona en Showroom, luego continúa al módulo 10 para visibilidad de flota ACM. Los demos compartidos Plan B siguen disponibles si tu slot de scaffold no está libre.""",
-    },
-    "acm-multicluster": {
-        "en": """Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly.
+    "acm-multicluster": """Red Hat Advanced Cluster Management for Kubernetes turns OpenShift into a fleet control plane: import spokes, enforce policies, visualize health, and delegate GitOps to cluster admins with consistent RBAC. ManagedCluster and Klusterlet agents mirror how ROSA and on-prem clusters join a customer's governance hub without sharing kube-admin credentials broadly. See link:https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes[ACM documentation] for fleet lifecycle.
 
 In this lab, open ACM Clusters on the hub and locate east and west — each spoke was bootstrapped from `components/acm-hub-spoke/` GitOps manifests. As `%USER_NAME%`, your workloads land on east by default; Topology in Developer Hub uses OCM APIs to show the same graph ACM displays.
 
-This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.""",
-        "es": """Red Hat Advanced Cluster Management for Kubernetes convierte OpenShift en plano de control de flota: importar spokes, aplicar políticas, visualizar salud y delegar GitOps con RBAC consistente. ManagedCluster y agentes Klusterlet reflejan cómo clusters ROSA y on-prem se unen al hub de gobernanza sin compartir kube-admin ampliamente.
+This module establishes the mental model for every subsequent Part B exercise: the hub owns ingress, policy, FinOps aggregation, and AI control planes; spokes run Industrial Edge and user-scoped namespaces. Verify with `oc get managedclusters` from the Showroom terminal.
 
-En este lab, abre ACM Clusters en el hub y localiza east y west — cada spoke se bootstrapeó desde manifiestos GitOps de `components/acm-hub-spoke/`. Como `%USER_NAME%`, tus cargas aterrizan en east por defecto; Topology en Developer Hub usa APIs OCM para mostrar el mismo grafo que ACM.
+The configuration is declarative and minimal:
 
-Este módulo establece el modelo mental para cada ejercicio Parte B: el hub posee ingress, política, agregación FinOps y planos de control IA; los spokes ejecutan Industrial Edge y namespaces con alcance de usuario. Verifica con `oc get managedclusters` desde la terminal Showroom.""",
-    },
-    "hybrid-mesh-architecture": {
-        "en": """Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with Gateway API HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
+[source,yaml]
+----
+# components/acm-hub-spoke/templates/managed-clusters.yaml
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: east
+  labels:
+    cloud: Amazon
+    vendor: OpenShift
+    cluster.open-cluster-management.io/clusterset: workshop
+spec:
+  hubAcceptsClient: true
+  leaseDurationSeconds: 60
+----""",
+    "hybrid-mesh-architecture": """Hybrid mesh architecture connects application networks across clusters without flattening VPCs or exposing kube-apiserver endpoints publicly. Red Hat Service Interconnect (Skupper) paired with link:https://gateway-api.sigs.k8s.io/[Gateway API] HTTPRoutes on the hub creates a logical application network: frontends on the hub route to spoke services through encrypted links.
 
 In this workshop, the hub gateway terminates external traffic and forwards to Industrial Edge frontends on east/west via Skupper Sites and Connectors defined under `components/service-interconnect/` and `components/hub-gateway/`. This is the lab analogue to ROSA ALB plus private connectivity into factory networks — same OpenShift routes and policies, different underlay.
 
-Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20.""",
-        "es": """La arquitectura hybrid mesh conecta redes de aplicación entre clusters sin aplanar VPCs ni exponer endpoints kube-apiserver públicamente. Red Hat Service Interconnect (Skupper) con HTTPRoutes Gateway API en el hub crea una red lógica de aplicación: frontends en el hub enrutan a servicios spoke por enlaces cifrados.
-
-En este taller, el gateway del hub termina tráfico externo y reenvía a frontends Industrial Edge en east/west vía Sites y Connectors Skupper en `components/service-interconnect/` y `components/hub-gateway/`. Es el análogo lab a ALB ROSA más conectividad privada a redes de fábrica — mismas rutas y políticas OpenShift, distinto underlay.
-
-Observa recursos `HTTPRoute` y estado Skupper en la consola; el módulo 13 despliega apps IE alcanzables por esta malla. Entender esta capa explica por qué las políticas Kuadrant se adjuntan en el gateway del hub en el módulo 20.""",
-    },
-    "software-templates": {
-        "en": """Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets.
+Observe `HTTPRoute` resources and Skupper status in the console; module 13 deploys IE apps that become reachable through this mesh. Understanding this layer explains why Kuadrant policies attach at the hub gateway in module 20. Verify with: `oc get httproutes -n hub-gateway-system`.""",
+    "software-templates": """Red Hat Developer Hub software templates encode golden paths: parameterized scaffolder actions create Git repos, register catalog entities, and trigger Argo CD Applications with guardrails (namespaces, quotas, network policies) already wired. Platform teams publish templates once; developers self-serve through the Create flow without opening infrastructure tickets. See link:https://docs.redhat.com/en/documentation/red_hat_developer_hub[Developer Hub documentation] for template authoring.
 
 This workshop ships templates for Industrial Edge, Camel Kaoto, API products, OpenShift AI workspaces, CNV VMs, and NeuroFace. If your `%USER_NAME%` scaffold fails due to quota or Gitea timing, switch to Plan B — Developer Hub System `hybrid-mesh-shared-demos` exposes pre-deployed Components with the same URLs and Topology entries.
 
 Templates are the bridge between executive strategy (module 01) and spoke deployments (module 13). Inspect `docs/assets/backstage/software-templates/` and catalog ConfigMaps to see how OpenShift GitOps picks up generated repos automatically.""",
-        "es": """Las plantillas software de Red Hat Developer Hub codifican golden paths: acciones scaffolder parametrizadas crean repos Git, registran entidades de catálogo y disparan Applications Argo CD con guardrails (namespaces, quotas, network policies) ya cableados. Los equipos de plataforma publican plantillas una vez; los desarrolladores se autoatienden vía Create sin tickets de infraestructura.
-
-Este taller incluye plantillas para Industrial Edge, Camel Kaoto, API products, workspaces OpenShift AI, VMs CNV y NeuroFace. Si el scaffold de `%USER_NAME%` falla por quota o timing de Gitea, cambia a Plan B — Developer Hub System `hybrid-mesh-shared-demos` expone Components pre-desplegados con las mismas URLs y entradas Topology.
-
-Las plantillas son el puente entre estrategia ejecutiva (módulo 01) y despliegues spoke (módulo 13). Inspecciona `docs/assets/backstage/software-templates/` y ConfigMaps de catálogo para ver cómo OpenShift GitOps recoge repos generados automáticamente.""",
-    },
-    "deploy-industrial-edge": {
-        "en": """Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. Apache Kafka buffers high-volume sensor topics; Camel K integrations transform and route events; line-dashboard provides operators a live view — all deployed via GitOps to spoke clusters after Developer Hub scaffolding.
+    "deploy-industrial-edge": """Industrial Edge on OpenShift combines event streaming, integration, and visualization for factory and IoT scenarios. Apache Kafka buffers high-volume sensor topics; Camel K integrations transform and route events; line-dashboard provides operators a live view — all deployed via GitOps to spoke clusters after Developer Hub scaffolding.
 
 Run the Industrial Edge template as `%USER_NAME%` and confirm your Gitea organization `ws-%USER_NAME%` contains the generated repository. Argo CD on east syncs the Application into namespace `industrial-edge-tst-all` (or your user-scoped equivalent). Plan B demo `demo-industrial-edge-east` offers the same topology if scaffolding is skipped.
 
-This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling.""",
-        "es": """Industrial Edge en OpenShift combina streaming de eventos, integración y visualización para escenarios de fábrica e IoT. Apache Kafka bufferiza topics de sensores de alto volumen; integraciones Camel K transforman y enrutan eventos; line-dashboard ofrece vista en vivo a operadores — todo desplegado vía GitOps a spokes tras scaffolding Developer Hub.
-
-Ejecuta la plantilla Industrial Edge como `%USER_NAME%` y confirma que tu organización Gitea `ws-%USER_NAME%` contiene el repositorio generado. Argo CD en east sincroniza la Application al namespace `industrial-edge-tst-all` (o equivalente con alcance de usuario). El demo Plan B `demo-industrial-edge-east` ofrece la misma topología si se omite scaffolding.
-
-Este módulo es el corazón operativo de la Parte B: observabilidad, escalado, network policy, detección de anomalías e IA posteriores asumen cargas IE en tu spoke. Verifica la ruta line-dashboard y topics Kafka antes de continuar a escalado Kairos.""",
-    },
-    "kairos-scaling": {
-        "en": """Kairos Community on OpenShift analyzes workload metrics and recommends node or machine set adjustments through SmartScalingPolicy resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). Operators approve recommendations in Kairos Console, preserving human oversight for factory edge sites where sudden scale-down is risky.
+This module is the operational heart of Part B: later observability, scaling, network policy, anomaly detection, and AI modules all assume IE workloads are running on your spoke. Verify the line-dashboard route and Kafka topics before proceeding to Kairos scaling. GitOps path: `oc get applications -n openshift-gitops | grep industrial-edge`.""",
+    "kairos-scaling": """Kairos Community on OpenShift analyzes workload metrics and recommends node or machine set adjustments through SmartScalingPolicy resources — bridging the gap between Kubernetes HPA (pod-level) and infrastructure provisioning (cluster-level). Operators approve recommendations in Kairos Console, preserving human oversight for factory edge sites where sudden scale-down is risky.
 
 In this lab, the sensor-scan policy watches Industrial Edge metrics and proposes scaling when scan rates spike — analogous to ROSA MachineSet autoscaling triggered by custom CloudWatch metrics. Pair this module with module 18 (HPA + Kafka) to show two layers: pods scale horizontally while Kairos evaluates node capacity.
 
 Open Kairos Console from the OpenShift menu, locate pending recommendations tied to `%USER_NAME%` namespaces, and approve or discuss trade-offs with the facilitator. Run `oc get smartscalingpolicy -A` to correlate CRDs with UI actions.""",
-        "es": """Kairos Community en OpenShift analiza métricas de cargas y recomienda ajustes de nodos o machine sets vía SmartScalingPolicy — cerrando la brecha entre HPA Kubernetes (nivel pod) y aprovisionamiento de infraestructura (nivel cluster). Los operadores aprueban recomendaciones en Kairos Console, preservando supervisión humana en edge de fábrica donde un scale-down brusco es riesgoso.
-
-En este lab, la política sensor-scan observa métricas Industrial Edge y propone escalado cuando las tasas de scan disparan — análogo a autoscaling MachineSet ROSA por métricas CloudWatch custom. Combina este módulo con el 18 (HPA + Kafka) para mostrar dos capas: pods escalan horizontalmente mientras Kairos evalúa capacidad de nodos.
-
-Abre Kairos Console desde el menú OpenShift, localiza recomendaciones pendientes en namespaces de `%USER_NAME%` y aprueba o debate trade-offs con el facilitador. Ejecuta `oc get smartscalingpolicy -A` para correlacionar CRDs con acciones UI.""",
-    },
-    "observability": {
-        "en": """OpenShift observability spans cluster metrics, logs, traces, and custom dashboards federated across ACM-managed clusters. Red Hat builds on Prometheus, Loki or Elasticsearch patterns, Grafana, and OpenTelemetry Instrumentation CRs so application teams inherit platform-wide collectors without sidecar sprawl on every pod.
+    "observability": """OpenShift observability spans cluster metrics, logs, traces, and custom dashboards federated across ACM-managed clusters. Red Hat builds on Prometheus, Loki or Elasticsearch patterns, Grafana, and OpenTelemetry Instrumentation CRs so application teams inherit platform-wide collectors without sidecar sprawl on every pod.
 
 This workshop deploys multicluster Grafana dashboards on the hub, OpenTelemetry collectors via `components/opentelemetry/`, and Kafka Console for IE topic inspection. As `%USER_NAME%`, filter dashboards to your namespace and correlate latency spikes with mesh traces in module 17.
 
-Executives should connect this module to module 21 (Kubecost): metrics prove SLO compliance while cost metrics prove efficiency — both required for hybrid FinOps. Use Showroom `oc` to list `GrafanaDashboard` CRs and confirm IE workloads emit scrape targets.""",
-        "es": """La observabilidad OpenShift abarca métricas de cluster, logs, trazas y dashboards custom federados en clusters gestionados por ACM. Red Hat se apoya en Prometheus, patrones Loki o Elasticsearch, Grafana e Instrumentation CRs OpenTelemetry para que equipos de aplicación hereden collectors de plataforma sin sidecar sprawl en cada pod.
-
-Este taller despliega dashboards Grafana multicluster en el hub, collectors OpenTelemetry vía `components/opentelemetry/` y Kafka Console para inspección de topics IE. Como `%USER_NAME%`, filtra dashboards a tu namespace y correlaciona picos de latencia con trazas mesh en el módulo 17.
-
-Los ejecutivos deben conectar este módulo con el 21 (Kubecost): métricas demuestran cumplimiento SLO mientras métricas de costo demuestran eficiencia — ambos requeridos para FinOps híbrido. Usa `oc` en Showroom para listar CRs `GrafanaDashboard` y confirmar que cargas IE emiten targets de scrape.""",
-    },
-    "openshift-gitops": {
-        "en": """OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories.
+Executives should connect this module to module 21 (Kubecost): metrics prove SLO compliance while cost metrics prove efficiency — both required for hybrid FinOps. Use Showroom `oc` to list `GrafanaDashboard` CRs and confirm IE workloads emit scrape targets. Verify with: `oc get grafanadashboard -A`.""",
+    "openshift-gitops": """OpenShift GitOps installs Argo CD as a managed operator and integrates with ACM ApplicationSets to propagate manifests hub-to-spoke with policy-safe destinations. Platform teams commit desired state to Git; controllers reconcile drift — the same GitOps discipline ROSA customers use when pairing ROSA clusters with ACM hub repositories. See link:https://docs.redhat.com/en/documentation/red_hat_openshift_gitops[OpenShift GitOps documentation] for ApplicationSet patterns.
 
 In this lab, hub Applications under `templates/component-applications.yaml` deploy shared services while spoke Applications (for example Industrial Edge) sync from user Gitea repos created in module 13. ApplicationSet `industrial-edge-spoke` demonstrates matrix generators targeting east/west labels.
 
-Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.""",
-        "es": """OpenShift GitOps instala Argo CD como operador gestionado e integra con ApplicationSets ACM para propagar manifiestos hub-to-spoke con destinos seguros por política. Los equipos de plataforma commitean estado deseado a Git; controladores reconcilian drift — la misma disciplina GitOps que clientes ROSA usan al combinar clusters ROSA con repos hub ACM.
+Inspect sync status in Argo CD UI as `%USER_NAME%` and identify which repo revision triggered your deployment. GitOps is the operational backbone: every product module (mesh, ACS, AI) ultimately resolves to tracked YAML in `platform-hub-spoke-config`.
 
-En este lab, Applications hub bajo `templates/component-applications.yaml` despliegan servicios compartidos mientras Applications spoke (por ejemplo Industrial Edge) sincronizan desde repos Gitea de usuario creados en el módulo 13. ApplicationSet `industrial-edge-spoke` demuestra generadores matrix apuntando a labels east/west.
+The configuration is declarative and minimal:
 
-Inspecciona estado de sync en UI Argo CD como `%USER_NAME%` e identifica qué revisión de repo disparó tu despliegue. GitOps es la columna operativa: cada módulo de producto (mesh, ACS, IA) resuelve en YAML rastreado en `platform-hub-spoke-config`.""",
-    },
-    "service-mesh": {
-        "en": """OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces.
+[source,yaml]
+----
+# templates/component-applications.yaml (App-of-Apps pattern)
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: field-content-{{ .name }}
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "{{ .syncWave }}"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/maximilianoPizarro/platform-hub-spoke-config.git
+    path: components/{{ .name }}
+    targetRevision: main
+    helm:
+      valueFiles: [values.yaml]
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }
+----""",
+    "service-mesh": """OpenShift Service Mesh 3 introduces ambient mode: a shared ztunnel layer handles mTLS and L4 telemetry without injecting sidecars into every workload pod by default. Kiali visualizes traffic graphs; mesh config enables distributed tracing for Industrial Edge microservices traversing east spoke namespaces. See link:https://docs.redhat.com/en/documentation/openshift_container_platform/4.16/html/service_mesh/index[Service Mesh documentation] for ambient mode details.
 
 In this workshop, OSSM3 is subscribed via `components/operators/templates/servicemeshoperator3.yaml` and configured for ambient dataplane mode on IE namespaces — excluding `stackrox` where ACS requires direct network visibility. Compare this to ROSA deployments using App Mesh or third-party meshes: OpenShift keeps mesh CRDs and policies native to the platform lifecycle.
 
-Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.""",
-        "es": """OpenShift Service Mesh 3 introduce modo ambient: una capa ztunnel compartida maneja mTLS y telemetría L4 sin inyectar sidecars en cada pod por defecto. Kiali visualiza grafos de tráfico; la config mesh habilita trazas distribuidas para microservicios Industrial Edge en namespaces spoke east.
+Use Kiali from the OpenShift console to view live traffic for `%USER_NAME%` deployments and validate mTLS between line-dashboard and Kafka-facing services. Module 17 pairs with observability dashboards from module 15 for end-to-end latency analysis.
 
-En este taller, OSSM3 se suscribe vía `components/operators/templates/servicemeshoperator3.yaml` y se configura en modo dataplane ambient en namespaces IE — excluyendo `stackrox` donde ACS requiere visibilidad de red directa. Compara con despliegues ROSA usando App Mesh o meshes de terceros: OpenShift mantiene CRDs y políticas mesh nativas al ciclo de vida de plataforma.
+The configuration is declarative and minimal:
 
-Usa Kiali desde la consola OpenShift para ver tráfico en vivo de despliegues de `%USER_NAME%` y validar mTLS entre line-dashboard y servicios orientados a Kafka. El módulo 17 combina con dashboards de observabilidad del módulo 15 para análisis de latencia end-to-end.""",
-    },
-    "scalability": {
-        "en": """Scalability on OpenShift spans horizontal pod autoscaling, Kafka partition scaling, and node-level recommendations from Kairos. HPA v2 watches CPU, memory, or custom metrics from Prometheus adapters; KafkaNodePool resources expand broker capacity when IE topics saturate consumer lag.
+[source,yaml]
+----
+# components/servicemeshoperator3/templates/istio.yaml
+apiVersion: sailoperator.io/v1alpha1
+kind: Istio
+metadata:
+  name: default
+  namespace: istio-system
+spec:
+  version: v1.24.3
+  namespace: istio-system
+  values:
+    pilot:
+      env:
+        ENABLE_AMBIENT: "true"
+----""",
+    "scalability": """Scalability on OpenShift spans horizontal pod autoscaling, Kafka partition scaling, and node-level recommendations from Kairos. HPA v2 watches CPU, memory, or custom metrics from Prometheus adapters; KafkaNodePool resources expand broker capacity when IE topics saturate consumer lag.
 
 In this lab, line-dashboard and related IE deployments include HPAs defined in workload manifests under `components/industrial-edge-tst/`. Trigger load via workshop scripts or simulated sensor rates, then watch pods scale in the Topology view as `%USER_NAME%`. Kafka scaling complements HPA by absorbing event bursts before pods reject traffic.
 
-This module completes the capacity story started in module 14: Kairos proposes nodes, HPA adds pods, Kafka buffers events — together they mirror how a ROSA customer scales factory edge during production peaks without manual cluster admin intervention.""",
-        "es": """La escalabilidad en OpenShift abarca autoscaling horizontal de pods, escalado de particiones Kafka y recomendaciones a nivel nodo de Kairos. HPA v2 observa CPU, memoria o métricas custom de adaptadores Prometheus; KafkaNodePool expande capacidad de brokers cuando topics IE saturan lag de consumidores.
-
-En este lab, line-dashboard y despliegues IE relacionados incluyen HPAs en manifiestos bajo `components/industrial-edge-tst/`. Dispara carga vía scripts del taller o tasas simuladas de sensores, luego observa pods escalar en Topology como `%USER_NAME%`. El escalado Kafka complementa HPA absorbiendo ráfagas de eventos antes de que pods rechacen tráfico.
-
-Este módulo completa la historia de capacidad iniciada en el módulo 14: Kairos propone nodos, HPA añade pods, Kafka bufferiza eventos — juntos reflejan cómo un cliente ROSA escala edge de fábrica en picos de producción sin intervención manual del admin de cluster.""",
-    },
+This module completes the capacity story started in module 14: Kairos proposes nodes, HPA adds pods, Kafka buffers events — together they mirror how a ROSA customer scales factory edge during production peaks without manual cluster admin intervention. Verify with: `oc get hpa -n industrial-edge-tst-all`.""",
     "network-policies": {
         "en": """Kubernetes NetworkPolicy on OpenShift OVN enforces micro-segmentation: only labeled pods and namespaces you explicitly allow can communicate — essential for zero-trust factory networks where compromised sensors must not lateral-move to MES backends. Red Hat OpenShift ships OVN-Kubernetes as the default CNI with policy-aware routing.
 
@@ -1010,89 +862,6 @@ SHOW_TELL_EN: dict[str, str] = {
 . Optional: run one smoke script headlessly if environment allows.""",
 }
 
-SHOW_TELL_ES: dict[str, str] = {
-    "index": """. Recorrer agenda dual: Parte A estrategia (01–05) luego Parte B hands-on (10–28).
-. Demo flujo de registro en `https://workshop-registration.%HUB_DOMAIN%` y redirect Showroom.
-. Señalar demos compartidos Plan B en Developer Hub System `hybrid-mesh-shared-demos`.""",
-    "hybrid-cloud-strategy": """. Enmarcar cuatro pilares estratégicos: modernizar, asegurar, automatizar, monetizar IA en OpenShift.
-. Mapear cada pilar a un número de módulo Parte B en la tabla agenda.
-. Preguntar split híbrido actual de asistentes (ROSA vs on-prem vs edge).""",
-    "rosa-architecture": """. Pizarra split plano de control ROSA vs responsabilidad workers.
-. Mostrar lista ManagedCluster ACM como equivalente lab de unir ROSA a hub de flota.
-. Mencionar límites SLA y soporte Red Hat vs ops cliente.""",
-    "security-scale-hybrid": """. Destacar coexistencia ACS + mesh (`stackrox` sin labels ambient).
-. Preview NetworkPolicy (19) y Kuadrant (20) como capas de defensa.
-. Discutir eventos de escala edge fábrica y workflow aprobación Kairos.""",
-    "aws-ai-integration": """. Contrastar Bedrock/SageMaker con OpenShift AI + MaaS en este lab.
-. Mostrar ubicación conceptual del secret MaaS (sin valores de secret).
-. Explicar inferencia portable cuando cambian residencia o precios AWS.""",
-    "cases-roadmap": """. Presentar métricas caso IoT automotriz (12k eventos/min, 47k USD/hr downtime, 34% ahorro nodos).
-. Dibujar timeline roadmap cliente sobre números de módulo del taller.
-. Transicionar sala a Parte B: verificar login `%USER_NAME%` antes del módulo 10.""",
-    "acm-multicluster": """. Abrir UI ACM Clusters — identificar spokes east y west.
-. Ejecutar `oc get managedclusters` en terminal Showroom en vivo.
-. Mostrar Topology Developer Hub reflejando grafo OCM.""",
-    "hybrid-mesh-architecture": """. Trazar URL externa → HTTPRoute hub → Skupper → frontend IE spoke.
-. Mostrar estado site/connector Skupper en consola.
-. Relacionar con narrativa ALB ROSA + private link de Parte A.""",
-    "software-templates": """. Flujo Create Developer Hub en vivo para plantilla Industrial Edge.
-. Mostrar fuente YAML catálogo y patrón URL repo Gitea generado.
-. Demostrar entidad fallback Plan B en `hybrid-mesh-shared-demos`.""",
-    "deploy-industrial-edge": """. Confirmar org Gitea `ws-%USER_NAME%` y sync Argo CD en east.
-. Abrir ruta line-dashboard y topics Kafka Console.
-. Ofrecer Plan B `demo-industrial-edge-east` si falla scaffold.""",
-    "kairos-scaling": """. Abrir Kairos Console y recorrer recomendación SmartScalingPolicy pendiente.
-. Correlacionar acción UI con `oc get smartscalingpolicy -A`.
-. Discutir aprobación human-in-the-loop para edge de fábrica.""",
-    "observability": """. Abrir dashboard Grafana multicluster filtrado a namespace IE.
-. Mostrar Kafka Console y traza OTEL de ejemplo (o gap métricas si trace pendiente).
-. Enlazar historia SLO métricas al próximo módulo Kubecost.""",
-    "openshift-gitops": """. UI Argo CD: Application hub vs fuentes Application spoke usuario.
-. Destacar generador ApplicationSet matrix east/west.
-. Mostrar sync wave o estado health para app IE.""",
-    "service-mesh": """. Abrir grafo Kiali para namespace IE — señalar aristas ztunnel ambient.
-. Notar exclusión `stackrox` del mesh ambient.
-. Opcional: mostrar icono candado mTLS en aristas de servicio.""",
-    "scalability": """. Observar HPA escalar pods line-dashboard bajo carga simulada.
-. Mostrar consumer lag Kafka recuperándose tras capacidad buffer.
-. Conectar capas pod-scale (HPA) vs node-scale (Kairos).""",
-    "network-policies": """. Aplicar o revisar NetworkPolicy demo en `industrial-edge-tst-all`.
-. Ejecutar curl permitido vs denegado desde pods terminal Showroom.
-. Relacionar con security groups ROSA + NP defensa en profundidad.""",
-    "acs-kuadrant": """. Overview ACS Central — violaciones y despliegues en spokes.
-. Demo ruta APIProduct vía gateway hub con AuthPolicy.
-. Recordar namespace ACS fuera del mesh ambient.""",
-    "finops-kubecost": """. UI Kubecost: asignación por namespace para `%USER_NAME%`.
-. Mostrar dropdown cluster federado (hub + spokes).
-. Comparar costo ocioso con narrativa sobreaprovisión Kairos.""",
-    "ai-gateway": """. Catálogo → **workshop-ai-gateway** → HTTPRoute en Topology.
-. UI Kuadrant: crear API key; curl `/llm/v1/chat/completions`.
-. Mostrar rutas GitOps AuthPolicy + TokenRateLimitPolicy.""",
-    "mcp-gateway": """. `oc get mcpgatewayextension,mcpserverregistration -n mcp-system`.
-. Developer Hub `/lightspeed` — prompt: listar apps Argo CD.
-. Dashboard OpenShift AI → registrar MCP server maas-workshop.""",
-    "openshift-ai": """. `oc get dsc` — confirmar Ready; abrir **workshop-notebook** en ai-%USER_NAME%.
-. Developer Hub → **OpenShift AI — %USER_NAME%** + **Playground** maas-workshop.
-. Mostrar deployment MCP `ods-maas-mcp-server`.""",
-    "llm-rag": """. Disparar Developer Hub Lightspeed en Component catálogo en vivo.
-. Opcional sugerencia inline Continue AI DevSpaces usando MaaS.
-. Discutir ubicación índice RAG (elección cliente) vs LLM en OpenShift AI.""",
-    "text-ai-predictive": """. Mostrar ie-anomaly-alerter disparando en violación umbral en métricas.
-. Prompt MaaS: resumen generativo de alertas IE recientes.
-. Mencionar ruta KServe opcional para modelos custom.""",
-    "neuroface": """. Abrir `https://neuroface.%HUB_DOMAIN%` — detección objetos webcam en vivo.
-. Enviar pregunta chat sobre objeto detectado; mostrar backend MaaS (no LibreChat).
-. Destacar visión local OVMS + gobernanza chat centralizada.""",
-    "ai-end-user-apps": """. Datos en vivo line-dashboard + overlay anomalía o badge alerta.
-. Opcional estado integración Camel en Topology.
-. Historia: operador ve telemetría, predicción y ayuda IA en una UX.""",
-    "full-verification": """. Recorrer ítems checklist y ejecutar extracto script verify en vivo.
-. Confirmar guardado API progreso desde UI checkbox Showroom.
-. Celebrar completado; compartir rutas Plan B para checks fallidos.""",
-    "agent-browser-recording": """. Mostrar YAML Agent Browser en `verification/agent-browser/` (read-only).
-. Revisar recording-runbook.md — política sin MP4 en Git.
-. Opcional: ejecutar un script smoke headless si el entorno lo permite.""",
-}
 
 TODO_EN: dict[str, list[str]] = {
     "index": [
@@ -1235,173 +1004,21 @@ TODO_EN: dict[str, list[str]] = {
     ],
 }
 
-TODO_ES: dict[str, list[str]] = {
-    "index": [
-        "* [ ] Revisar notas de integración nube híbrida (snippets AWS/Azure)",
-        "* [ ] Registrarse en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro] y abrir Showroom",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "hybrid-cloud-strategy": [
-        "* [ ] Mapear cargas de tu organización a placement hub vs spoke vs ROSA",
-        "* [ ] Identificar qué módulo Parte B aborda tu pilar prioritario",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "rosa-architecture": [
-        "* [ ] Esbozar responsabilidades plano control ROSA vs workers para tu cuenta",
-        "* [ ] Preview ManagedCluster ACM en lectura previa módulo 10",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "security-scale-hybrid": [
-        "* [ ] Listar tres capas de seguridad que verificarás en Parte B (ACS, NP, Kuadrant)",
-        "* [ ] Anotar por qué `stackrox` evita mesh ambient en este lab",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "aws-ai-integration": [
-        "* [ ] Comparar tus servicios IA AWS con patrón lab OpenShift AI + MaaS",
-        "* [ ] Localizar módulo 22 para setup hands-on DSC y MaaS",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "cases-roadmap": [
-        "* [ ] Escribir una métrica del caso manufactura relevante para tu industria",
-        "* [ ] Confirmar login Showroom como `%USER_NAME%` antes del módulo 10",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "acm-multicluster": [
-        "* [ ] Ejecutar `oc get managedclusters` e identificar east/west",
-        "* [ ] Abrir UI ACM Clusters y Topology Developer Hub para la misma flota",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "hybrid-mesh-architecture": [
-        "* [ ] Inspeccionar HTTPRoute hub y recursos Skupper en consola",
-        "* [ ] Trazar cómo tráfico externo alcanza frontends IE en spokes",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "software-templates": [
-        "* [ ] Explorar lista plantillas Create en Developer Hub",
-        "* [ ] Localizar System Plan B `hybrid-mesh-shared-demos` como fallback",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "deploy-industrial-edge": [
-        "* [ ] Scaffoldear IE o abrir Plan B `demo-industrial-edge-east`",
-        "* [ ] Verificar org Gitea `ws-%USER_NAME%` y sync Argo CD Healthy",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "kairos-scaling": [
-        "* [ ] Abrir Kairos Console y revisar una SmartScalingPolicy",
-        "* [ ] Ejecutar `oc get smartscalingpolicy -A` desde terminal Showroom",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "observability": [
-        "* [ ] Abrir dashboard Grafana multicluster para tu namespace IE",
-        "* [ ] Inspeccionar topics Kafka Console para datos de sensores",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "openshift-gitops": [
-        "* [ ] Encontrar tu Application IE en Argo CD y anotar estado sync",
-        "* [ ] Identificar fuente repo Git (Gitea usuario vs repo plataforma hub)",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "service-mesh": [
-        "* [ ] Abrir Kiali y ver tráfico de tus despliegues IE",
-        "* [ ] Confirmar mesh ambient habilitado en namespace IE (no stackrox)",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "scalability": [
-        "* [ ] Revisar estado HPA para line-dashboard u otro despliegue IE",
-        "* [ ] Observar consumer lag Kafka bajo carga o tráfico simulado",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "network-policies": [
-        "* [ ] Revisar NetworkPolicy en `industrial-edge-tst-all`",
-        "* [ ] Probar una conexión pod-a-pod permitida y una denegada",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "acs-kuadrant": [
-        "* [ ] Verificar que ACS muestra tus cargas spoke en UI Central",
-        "* [ ] Probar ruta APIProduct vía gateway hub (o demo Plan B)",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "finops-kubecost": [
-        "* [ ] Abrir Kubecost y filtrar asignaciones a tu namespace",
-        "* [ ] Comparar costos cluster hub vs spoke en vista federada",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "openshift-ai": [
-        "* [ ] Ejecutar `oc get dsc` y confirmar DataScienceCluster Ready",
-        "* [ ] Abrir **workshop-notebook** en `ai-%USER_NAME%` y ejecutar prueba MaaS",
-        "* [ ] Encontrar Component **ai-%USER_NAME%** en Developer Hub",
-        "* [ ] Habilitar extensión **Playground** / **MCP Server** OpenShift AI",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "ai-gateway": [
-        "* [ ] Abrir catálogo **workshop-ai-gateway** y UI Kuadrant",
-        "* [ ] Crear API key y llamar `/llm/v1/chat/completions`",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "mcp-gateway": [
-        "* [ ] Verificar CRDs MCP y `MCPServerRegistration` en `mcp-system`",
-        "* [ ] Lightspeed: listar apps Argo CD vía MCP gateway",
-        "* [ ] Registrar MCP server OpenShift AI en dashboard",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "llm-rag": [
-        "* [ ] Disparar Lightspeed en Developer Hub sobre entidad catálogo",
-        "* [ ] Enviar un prompt MaaS y anotar latencia/calidad de respuesta",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "text-ai-predictive": [
-        "* [ ] Confirmar despliegue ie-anomaly-alerter corriendo en tu spoke",
-        "* [ ] Generar un prompt resumen de alarma vía playground MaaS",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "neuroface": [
-        "* [ ] Abrir `https://neuroface.%HUB_DOMAIN%` y probar detección webcam",
-        "* [ ] Preguntar a `/api/chat` sobre un objeto detectado",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "ai-end-user-apps": [
-        "* [ ] Verificar que line-dashboard muestra telemetría IE en vivo",
-        "* [ ] Conectar un insight de anomalía o IA al flujo del operador",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "full-verification": [
-        "* [ ] Completar checklist en `verification/progress-checklist.yaml`",
-        "* [ ] Ejecutar o revisar salida de `scripts/verify-workshop-e2e.sh`",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-    "agent-browser-recording": [
-        "* [ ] Leer `verification/recording-runbook.md` (sin MP4 en Git)",
-        "* [ ] Explorar un YAML Agent Browser bajo `verification/agent-browser/`",
-        "* [ ] Guardar progreso al final de este módulo",
-    ],
-}
 
 # Shared credential snippets (AsciiDoc)
 _WORKSHOP_USER_EN = """*Username:* %USER_NAME% (e.g. `user1` after registration) +
 *Password:* `Welcome123!` +
 *Used for:* Developer Hub (Keycloak), OpenShift Console htpasswd (hub / east / west), DevSpaces (east spoke)"""
 
-_WORKSHOP_USER_ES = """*Usuario:* %USER_NAME% (p. ej. `user1` tras registro) +
-*Contraseña:* `Welcome123!` +
-*Válido en:* Developer Hub (Keycloak), consola OpenShift htpasswd (hub / east / west), DevSpaces (spoke east)"""
-
 _FACILITATOR_GITEA_EN = """*Gitea admin (facilitator):* `gitea_admin` / `openshift`"""
-
-_FACILITATOR_GITEA_ES = """*Admin Gitea (facilitador):* `gitea_admin` / `openshift`"""
 
 # Short labels for per-module tables (full detail on index + NOTE in generator)
 _WU_EN = "Workshop user"
-_WU_ES = "Usuario taller"
 _OAUTH_EN = "OpenShift OAuth"
-_OAUTH_ES = "OAuth OpenShift"
 _PUBLIC_EN = "Public (no login)"
-_PUBLIC_ES = "Pública (sin login)"
 _APIKEY_EN = "Kuadrant API key (module 20)"
-_APIKEY_ES = "API key Kuadrant (módulo 20)"
-
 CRED_NOTE_EN = """NOTE: *Workshop login* — %USER_NAME% / `Welcome123!` (Keycloak for Developer Hub; htpasswd for OpenShift Console on hub, east, and west; DevSpaces on east spoke). OAuth products use the same OpenShift identity."""
 
-CRED_NOTE_ES = """NOTE: *Login del taller* — %USER_NAME% / `Welcome123!` (Keycloak en Developer Hub; htpasswd en consola OpenShift hub/east/west; DevSpaces en spoke east). Productos OAuth usan la misma identidad OpenShift."""
 LAB_ACCESS_EN: dict[str, str] = {
     "index": f"""
 {INDEX_LAB_ACCESS_NOTE_EN}
@@ -1719,322 +1336,6 @@ LAB_ACCESS_EN: dict[str, str] = {
 """,
 }
 
-LAB_ACCESS_ES: dict[str, str] = {
-    "index": f"""
-{INDEX_LAB_ACCESS_NOTE_ES}
-.Puntos de entrada del taller
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Registro | link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Registrarse] | Email → asigna %USER_NAME%
-| Showroom (este sitio) | link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom] | Tras redirect de registro
-| Consola OpenShift (hub) | link:https://console-openshift-console.%HUB_DOMAIN%[Consola OpenShift] | {_WU_ES}
-| Developer Hub | link:https://developer-hub.%HUB_DOMAIN%[Developer Hub] | {_WU_ES}
-| Mailpit (alertas IE) | link:https://mailpit.%HUB_DOMAIN%[Mailpit IE] | {_PUBLIC_ES}
-| Mailpit (Templates) | link:https://mailpit-templates.%HUB_DOMAIN%[Mailpit Templates] | {_PUBLIC_ES}
-|===
-
-.Catálogo de productos — enlaces rápidos
-[cols="2,3,2"]
-|===
-| Producto | URL | Credenciales
-
-| Flota ACM | link:https://console-openshift-console.%HUB_DOMAIN%/multicloud/infrastructure/clusters[Flota ACM] | {_WU_ES}
-| Industrial Edge | link:https://industrial-edge.%HUB_DOMAIN%[Industrial Edge] | {_PUBLIC_ES}
-| Gitea | link:https://gitea-gitea.%HUB_DOMAIN%[Gitea] | {_WU_ES} o facilitador
-| Grafana | link:https://grafana.%HUB_DOMAIN%[Grafana] | {_OAUTH_ES}
-| Kiali | link:https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%[Kiali] | {_OAUTH_ES}
-| Kairos Console | link:https://kairos-console-kairos-system.%HUB_DOMAIN%[Kairos] | {_OAUTH_ES}
-| ACS Central | link:https://central-stackrox.%HUB_DOMAIN%[ACS Central] | {_OAUTH_ES}
-| API keys Kuadrant | link:https://developer-hub.%HUB_DOMAIN%/kuadrant[Kuadrant UI] | {_WU_ES}
-| Workshop APIs | link:https://workshop-apis.%HUB_DOMAIN%[Workshop APIs] | {_APIKEY_ES}
-| Kafka Console | link:https://kafka-console.%HUB_DOMAIN%[Kafka Console] | {_OAUTH_ES}
-| Kubecost | link:https://kubecost.%HUB_DOMAIN%[Kubecost] | {_OAUTH_ES}
-| Quay | link:https://quay-registry.%HUB_DOMAIN%[Quay] | {_OAUTH_ES}
-| DevSpaces (east) | link:https://devspaces.%EAST_DOMAIN%[DevSpaces east] | {_WU_ES}
-| Dashboard OpenShift AI | link:https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%[ODS Dashboard] | {_OAUTH_ES}
-| Skupper observer | link:https://field-content-skupper-network-observer-service-interconnect.%HUB_DOMAIN%[Skupper] | {_OAUTH_ES}
-| NeuroFace | link:https://neuroface.%HUB_DOMAIN%[NeuroFace] | {_PUBLIC_ES}
-|===
-""",
-    "hybrid-cloud-strategy": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Showroom | `https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%` | Tras registro
-| Consola OpenShift (hub) | `https://console-openshift-console.%HUB_DOMAIN%` | {_WU_ES}
-| Vista flota ACM | `https://console-openshift-console.%HUB_DOMAIN%/multicloud/infrastructure/clusters` | {_WU_ES}
-|===
-""",
-    "rosa-architecture": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| ACM — ManagedClusters | `https://console-openshift-console.%HUB_DOMAIN%/multicloud/infrastructure/clusters` | {_WU_ES}
-| Consola hub | `https://console-openshift-console.%HUB_DOMAIN%` | {_WU_ES}
-| Spoke east (cambiar cluster en ACM) | Misma UI ACM → cluster `east` | {_WU_ES}
-| Spoke west | UI ACM → cluster `west` | {_WU_ES}
-|===
-""",
-    "security-scale-hybrid": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| ACS Central | `https://central-stackrox.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Consola OpenShift — Security | `https://console-openshift-console.%HUB_DOMAIN%/security` | {_WU_ES}
-| Kiali (políticas mesh) | `https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "aws-ai-integration": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Dashboard OpenShift AI | `https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Developer Hub (Lightspeed / catálogo) | `https://developer-hub.%HUB_DOMAIN%` | {_WU_ES}
-| Endpoint MaaS (lab) | `https://maas-rhdp.apps.maas.redhatworkshops.io/v1` | Token facilitador
-|===
-""",
-    "cases-roadmap": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Registro (inicio Parte B) | `https://workshop-registration.%HUB_DOMAIN%/` | Email → %USER_NAME%
-| Showroom | `https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%` | Tras redirect
-| Developer Hub — demos Plan B | `https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos` | {_WU_ES}
-| Demo Industrial Edge | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Vista previa NeuroFace | `https://neuroface.%HUB_DOMAIN%` | {_PUBLIC_ES}
-|===
-""",
-    "acm-multicluster": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| ACM Clusters | `https://console-openshift-console.%HUB_DOMAIN%/multicloud/infrastructure/clusters` | {_WU_ES}
-| ACM GitOps (Policies) | `https://console-openshift-console.%HUB_DOMAIN%/multicloud/policies` | {_WU_ES}
-| Consola hub | `https://console-openshift-console.%HUB_DOMAIN%` | {_WU_ES}
-|===
-""",
-    "hybrid-mesh-architecture": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Industrial Edge (vía hub gateway) | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Skupper network observer | `https://field-content-skupper-network-observer-service-interconnect.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Rutas Hub Gateway | `https://console-openshift-console.%HUB_DOMAIN%/k8s/ns/hub-gateway-system/gateway.networking.k8s.io~v1~HTTPRoute` | {_WU_ES}
-| Kiali | `https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "software-templates": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Developer Hub — Create | `https://developer-hub.%HUB_DOMAIN%/create` | {_WU_ES}
-| Developer Hub — Catálogo | `https://developer-hub.%HUB_DOMAIN%/catalog` | {_WU_ES}
-| Demos compartidas Plan B | `https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos` | {_WU_ES}
-| Gitea (repos del scaffold) | `https://gitea-gitea.%HUB_DOMAIN%` | {_WU_ES}
-|===
-""",
-    "deploy-industrial-edge": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Developer Hub — scaffold IE | `https://developer-hub.%HUB_DOMAIN%/create` | {_WU_ES}
-| Gitea — repos IE | `https://gitea-gitea.%HUB_DOMAIN%` | {_WU_ES}
-| UI Industrial Edge | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| OpenShift GitOps (east) | ACM → cluster `east` → aplicaciones GitOps | {_WU_ES}
-| Kafka Console | `https://kafka-console.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "kairos-scaling": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Kairos Console | `https://kairos-console-kairos-system.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Grafana (métricas sensores) | `https://grafana.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Consola OpenShift — HPA | ACM → `east` → Workloads → HPA | {_WU_ES}
-|===
-""",
-    "observability": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Grafana | `https://grafana.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Kiali | `https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Consola OpenShift — Observe | `https://console-openshift-console.%HUB_DOMAIN%/observe/metrics` | {_WU_ES}
-|===
-""",
-    "openshift-gitops": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Gitea | `https://gitea-gitea.%HUB_DOMAIN%` | {_WU_ES} ({_FACILITATOR_GITEA_ES})
-| Argo CD (hub) | `https://console-openshift-console.%HUB_DOMAIN%/k8s/ns/openshift-gitops/applications.argoproj.io~v1alpha1~Application` | {_WU_ES}
-| ACM GitOps cluster | ACM → Infrastructure → Clusters → GitOps | {_WU_ES}
-|===
-""",
-    "service-mesh": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Kiali | `https://kiali-openshift-cluster-observability-operator.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Industrial Edge (apps en mesh) | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Consola OpenShift — mesh | ACM → `east` → Operators → Service Mesh | {_WU_ES}
-|===
-""",
-    "scalability": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Kairos Console | `https://kairos-console-kairos-system.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Kafka Console | `https://kafka-console.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Grafana (lag Kafka) | `https://grafana.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "network-policies": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Industrial Edge | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Consola OpenShift — east | ACM → cluster `east` → Networking → NetworkPolicies | {_WU_ES}
-| NeuroFace (objetivo demo NP) | `https://neuroface.%HUB_DOMAIN%` | {_PUBLIC_ES}
-|===
-""",
-    "acs-kuadrant": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| ACS Central | `https://central-stackrox.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Kuadrant — API keys | `https://developer-hub.%HUB_DOMAIN%/kuadrant` | {_WU_ES} → key para %USER_NAME%
-| Workshop APIs (httpbin, REST, LLM) | `https://workshop-apis.%HUB_DOMAIN%` | `Authorization: Bearer <API_KEY>`
-| Developer Hub — catálogo API | `https://developer-hub.%HUB_DOMAIN%/catalog` | {_WU_ES}
-|===
-""",
-    "finops-kubecost": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Kubecost | `https://kubecost.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Consola OpenShift — quotas | ACM → tu namespace en `east` | {_WU_ES}
-|===
-""",
-    "ai-gateway": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| AI Gateway (MaaS LLM) | `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` | API key Kuadrant
-| UI Kuadrant | `https://developer-hub.%HUB_DOMAIN%/kuadrant` | {_WU_ES}
-| Entidad catálogo | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-ai-gateway` | {_WU_ES}
-|===
-""",
-    "mcp-gateway": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| MCP Gateway | `https://mcp-gateway.%HUB_DOMAIN%/mcp` | {_WU_ES}
-| Lightspeed | `https://developer-hub.%HUB_DOMAIN%/lightspeed` | {_WU_ES}
-| MCP OpenShift AI (in-cluster) | `ods-maas-mcp-server.maas-workshop.svc:8080/mcp` | {_OAUTH_ES}
-| Entidad catálogo | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-mcp-gateway` | {_WU_ES}
-|===
-""",
-    "openshift-ai": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Dashboard OpenShift AI | `https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Tu proyecto DS | OpenShift AI → Projects → **ai-%USER_NAME%** | {_WU_ES} (admin proyecto)
-| Developer Hub — entidad IA | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/ai-%USER_NAME%` | {_WU_ES}
-| Playground MaaS compartido | OpenShift AI → **maas-workshop** (Plan B) | {_OAUTH_ES}
-|===
-""",
-    "llm-rag": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Developer Hub — Lightspeed | `https://developer-hub.%HUB_DOMAIN%` (catálogo → Ask) | {_WU_ES}
-| Workshop APIs — ruta LLM | `https://workshop-apis.%HUB_DOMAIN%/llm` | {_APIKEY_ES}
-| MaaS (opcional) | `https://maas-rhdp.apps.maas.redhatworkshops.io/v1` | Token facilitador
-|===
-""",
-    "text-ai-predictive": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Playground MaaS | `https://maas-rhdp.apps.maas.redhatworkshops.io/v1` | Token facilitador
-| Dashboard OpenShift AI | `https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%` | {_OAUTH_ES}
-| Anomaly alerter (spoke east) | ACM → `east` → `industrial-edge-tst-%USER_NAME%` | {_WU_ES}
-|===
-""",
-    "neuroface": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| App NeuroFace | `https://neuroface.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| API chat | `https://neuroface.%HUB_DOMAIN%/api/chat` | {_PUBLIC_ES}
-| Consola OpenShift — deploy | ACM → `hub` → namespace `neuroface` | {_WU_ES}
-|===
-""",
-    "ai-end-user-apps": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Dashboard línea IE | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Developer Hub — componentes IE | `https://developer-hub.%HUB_DOMAIN%/catalog` | {_WU_ES}
-| Grafana (telemetría) | `https://grafana.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "full-verification": f"""
-.Re-registro si hace falta
-* `https://workshop-registration.%HUB_DOMAIN%/` → %USER_NAME%
-
-.Checklist URLs (todos los productos)
-[cols="2,3,2"]
-|===
-| Producto | URL | Credenciales
-
-| Showroom | `https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%` | Usuario registrado
-| Developer Hub | `https://developer-hub.%HUB_DOMAIN%` | {_WU_ES}
-| Industrial Edge | `https://industrial-edge.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Kuadrant + APIs | `https://developer-hub.%HUB_DOMAIN%/kuadrant` + `https://workshop-apis.%HUB_DOMAIN%` | API key
-| NeuroFace | `https://neuroface.%HUB_DOMAIN%` | {_PUBLIC_ES}
-| Kubecost | `https://kubecost.%HUB_DOMAIN%` | {_OAUTH_ES}
-|===
-""",
-    "agent-browser-recording": f"""
-[cols="2,3,2"]
-|===
-| Servicio | URL | Credenciales
-
-| Showroom (grabar aquí) | `https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%` | {_WU_ES}
-| Developer Hub (objetivos catálogo) | `https://developer-hub.%HUB_DOMAIN%` | {_WU_ES}
-| Consola OpenShift | `https://console-openshift-console.%HUB_DOMAIN%` | {_WU_ES}
-|===
-""",
-}
 
 # External Red Hat / product documentation — appended after Overview in Showroom modules
 LEARN_MORE_EN: dict[str, str] = {
