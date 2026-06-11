@@ -131,6 +131,24 @@ spec:
           responses:
             "200":
               description: Service reachable
+      /models/{bucket}/{object}:
+        get:
+          summary: Fetch object from models bucket (stub)
+          operationId: getModelObject
+          parameters:
+            - name: bucket
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: object
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Object metadata
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component

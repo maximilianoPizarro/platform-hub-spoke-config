@@ -38,6 +38,19 @@ Mailpit provides a lightweight **SMTP testing server** with a web UI for inspect
 
 Configure the RHDH notifications backend to send via SMTP to `mailpit.mailpit.svc.cluster.local:1025`. Emails appear instantly in the Mailpit web UI without requiring external mail infrastructure.
 
+## Mailpit Templates instance (Software Templates)
+
+A **second** Mailpit deployment serves **non–Industrial Edge** email flows so scaffolder notifications and CDC template tests do not mix with IE sensor alerts.
+
+| Instance | Route | Consumers |
+| -------- | ----- | --------- |
+| **mailpit** (existing) | `https://mailpit.<clusterDomain>` | `ie-anomaly-alerter`, Industrial Edge Camel Kaoto routes |
+| **mailpit-templates** (new) | `https://mailpit-templates.<clusterDomain>` | Developer Hub notifications SMTP, `camel-kaoto-cdc` template, scaffolder completion emails |
+
+**Git path:** `components/mailpit-templates/`
+
+Developer Hub SMTP target: `mailpit-templates.mailpit-templates.svc.cluster.local:1025`.
+
 ## Documentation
 
 - [Mailpit GitHub](https://github.com/axllent/mailpit)

@@ -206,15 +206,226 @@ INDEX_LAB_ACCESS_NOTE_ES = """NOTE: *Login del taller* — %USER_NAME% / `Welcom
 """
 
 INDEX_INTRO_EN = """
-Welcome to the **Hybrid Mesh AI Workshop** — a dual-track experience on a live RHDP hub-spoke fleet. Part A (modules 01–05) is executive narrative; Part B (modules 10–26) is hands-on in this Showroom and the OpenShift console.
+Welcome to the *Hybrid Mesh AI Workshop* — a dual-track experience that mirrors how Red Hat customers run hybrid cloud on OpenShift.
 
-Register at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] to receive lab identity **%USER_NAME%**. Open link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom home] for the embedded `oc` terminal. If scaffolding fails, use **Plan B** shared demos in link:https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos[Developer Hub — hybrid-mesh-shared-demos].
+*Part A (modules 01–05)* is executive-oriented: it covers hybrid cloud strategy, ROSA architecture, security at scale, AWS AI integration, and real customer cases. No hands-on required — facilitators can demo while the audience follows along.
 
-NOTE: End-to-end verification and recording runbooks under `showroom-hybrid-mesh-ai/verification/` are for **facilitators and automation agents only** — not part of the learner path.
+*Part B (modules 10–28)* is fully hands-on on a live RHDP hub-spoke fleet provisioned for this workshop. Each module targets a specific product area and includes a `verify` step to confirm your work.
+
+The lab simulates a production hybrid mesh: a hub cluster (OpenShift on AWS) managing two spoke clusters (east and west) via ACM, with ambient service mesh, GitOps, and an AI inference layer backed by OpenShift AI + MaaS.
+
+Register at `https://workshop-registration.%HUB_DOMAIN%` to receive your lab identity (`userN`). The Showroom at `https://showroom-showroom.%HUB_DOMAIN%` embeds an authenticated `oc` terminal — no local kubeconfig required. If scaffolding fails, use *Plan B* shared demos in Developer Hub → System `hybrid-mesh-shared-demos`.
+"""
+
+INDEX_HUB_SPOKE_EN = """
+== Hub-spoke architecture
+
+The workshop fleet is a three-cluster hub-spoke topology managed by ACM:
+
+[source,yaml]
+----
+# ACM ManagedCluster — hub registers spoke clusters automatically
+apiVersion: cluster.open-cluster-management.io/v1
+kind: ManagedCluster
+metadata:
+  name: east
+  labels:
+    cloud: Amazon
+    region: us-east-1
+    env: workshop
+spec:
+  hubAcceptsClient: true
+----
+
+[source,yaml]
+----
+# GitOpsCluster — lets Argo CD on the hub deploy to spokes
+apiVersion: apps.open-cluster-management.io/v1beta1
+kind: GitOpsCluster
+metadata:
+  name: workshop-gitops
+  namespace: openshift-gitops
+spec:
+  argoServer:
+    cluster: local-cluster
+    argoNamespace: openshift-gitops
+  placementRef:
+    kind: Placement
+    apiGroup: cluster.open-cluster-management.io
+    name: all-workshop-clusters
+----
+
+The hub runs: ACM, OpenShift GitOps (Argo CD), Developer Hub, OpenShift AI, Service Mesh control plane, Skupper, Kuadrant, ACS Central, Grafana, and Kubecost. +
+The east spoke runs: Industrial Edge workloads, DevSpaces, Kairos, and spoke-local Argo CD agents. +
+The west spoke runs: additional workload replicas and demonstrates cross-cluster traffic via Skupper.
+"""
+
+INDEX_MESH_FLOW_EN = """
+== Service mesh & traffic flow
+
+The workshop uses OpenShift Service Mesh 3 in *ambient mode* (no sidecars). Traffic between hub and spokes crosses a Skupper tunnel exposed via Gateway API:
+
+[source,yaml]
+----
+# HTTPRoute — routes /api/inference from hub gateway to MaaS on east spoke via Skupper
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: maas-inference-route
+  namespace: hybrid-mesh-gateway
+spec:
+  parentRefs:
+    - name: hub-gateway
+      namespace: hybrid-mesh-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/inference
+      backendRefs:
+        - name: skupper-maas-backend   # Skupper connector bridging to east spoke
+          port: 8080
+----
+
+[source,yaml]
+----
+# AuthorizationPolicy — zero-trust: only gateway SA can reach MaaS
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: maas-allow-gateway
+  namespace: maas-workshop
+spec:
+  selector:
+    matchLabels:
+      app: maas-api
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/hybrid-mesh-gateway/sa/hub-gateway
+----
+"""
+
+INDEX_AI_MAAS_EN = """
+== OpenShift AI — Model as a Service
+
+The AI layer is a shared LLM endpoint (MaaS) deployed on the hub via the OpenShift AI operator. All AI modules (22–26) consume this endpoint.
+
+[source,yaml]
+----
+# DataScienceCluster — installs all RHOAI components on the hub
+apiVersion: datasciencecluster.opendatahub.io/v1
+kind: DataScienceCluster
+metadata:
+  name: default-dsc
+spec:
+  components:
+    dashboard: {managementState: Managed}
+    workbenches: {managementState: Managed}
+    modelmeshserving: {managementState: Managed}
+    datasciencepipelines: {managementState: Managed}
+    kserve: {managementState: Managed}
+----
+
+[source,yaml]
+----
+# Secret — OpenAI-compatible base URL pointing to the in-cluster MaaS
+apiVersion: v1
+kind: Secret
+metadata:
+  name: maas-api-key
+  namespace: maas-workshop
+stringData:
+  OPENAI_API_BASE: "http://maas-api.maas-workshop.svc.cluster.local:8080/v1"
+  OPENAI_API_KEY: "workshop-key-%USER_NAME%"
+----
+
+Any application that speaks the OpenAI REST API can consume MaaS without code changes — just point `OPENAI_API_BASE` to the in-cluster service.
+"""
+
+INDEX_KUADRANT_EN = """
+== Kuadrant API gateway
+
+Kuadrant manages API rate limiting and auth policies across the hub gateway. Each workshop user gets their own API key scoped to a plan:
+
+[source,yaml]
+----
+# APIProduct — exposes the workshop AI endpoints under a single managed product
+apiVersion: kuadrant.io/v1alpha1
+kind: APIProduct
+metadata:
+  name: workshop-ai-api
+  namespace: kuadrant-system
+spec:
+  hosts:
+    - workshop-apis.%HUB_DOMAIN%
+  APIs:
+    - name: maas-inference-route
+      namespace: hybrid-mesh-gateway
+----
+
+[source,yaml]
+----
+# TokenRateLimitPolicy — limits per API key to 100 req/min for workshop users
+apiVersion: kuadrant.io/v1alpha1
+kind: TokenRateLimitPolicy
+metadata:
+  name: workshop-rate-limit
+  namespace: kuadrant-system
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: maas-inference-route
+  limits:
+    per-user:
+      rates:
+        - limit: 100
+          duration: 1
+          unit: minute
+      counters:
+        - auth.identity.username
+----
+"""
+
+INDEX_VERIFY_EN = """
+Run these checks from the embedded Showroom terminal to confirm the lab environment is ready:
+
+[source,bash]
+----
+# 1. Hub cluster is reachable and you are logged in
+oc whoami
+# Expected: user1 (or your assigned userN)
+
+# 2. Both spoke clusters are registered and available
+oc get managedclusters
+# Expected: NAME    HUB ACCEPTED   MANAGED CLUSTER URLS   JOINED   AVAILABLE
+#           east    true           ...                    True     True
+#           west    true           ...                    True     True
+
+# 3. OpenShift AI operator is running
+oc get dsc default-dsc -o jsonpath='{.status.phase}'
+# Expected: Ready
+
+# 4. MaaS endpoint is responding
+curl -s http://maas-api.maas-workshop.svc.cluster.local:8080/v1/models | jq '.data[].id'
+# Expected: one or more model IDs (e.g. "mistral-7b")
+----
+
+[cols="2,3,3", options="header"]
+|===
+| Check | Command | Expected result
+| Login | `oc whoami` | `user1`
+| Spoke clusters | `oc get managedclusters` | east + west, AVAILABLE=True
+| OpenShift AI | `oc get dsc default-dsc` | phase: Ready
+| MaaS health | curl to maas-api | model IDs returned
+| Developer Hub | open URL in browser | catalog loads
+|===
 """
 
 INDEX_INTRO_ES = """
-Bienvenido al **Taller Hybrid Mesh AI** — experiencia dual en flota hub-spoke RHDP. Parte A (01–05) es narrativa ejecutiva; Parte B (10–26) es hands-on en este Showroom y la consola OpenShift.
+Bienvenido al **Taller Hybrid Mesh AI** — experiencia dual en flota hub-spoke RHDP. Parte A (01–05) es narrativa ejecutiva; Parte B (10–28) es hands-on en este Showroom y la consola OpenShift.
 
 Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro del taller] para obtener **%USER_NAME%**. Abre link:https://showroom-showroom.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[Showroom] para la terminal `oc` integrada. Si falla el scaffolder, usa demos **Plan B** en link:https://developer-hub.%HUB_DOMAIN%/catalog/default/system/hybrid-mesh-shared-demos[Developer Hub — hybrid-mesh-shared-demos].
 
@@ -337,12 +548,12 @@ NARRATIVES: dict[str, dict[str, str]] = {
     "index": {
         "en": """This workshop demonstrates how Red Hat customers unify strategy and operations across hybrid cloud using OpenShift as the common platform. You will apply the same patterns on a live RHDP hub-spoke lab with east and west spokes managed by ACM.
 
-Part A frames the business case: modernization, security, FinOps, and AI. Part B (modules 10–26) lets you use Industrial Edge, multicluster observability, Kuadrant API security, and OpenShift AI — as `%USER_NAME%` in this lab environment.
+Part A frames the business case: modernization, security, FinOps, and AI. Part B (modules 10–28) lets you use Industrial Edge, multicluster observability, Kuadrant API security, and OpenShift AI — as `%USER_NAME%` in this lab environment.
 
 Register at link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[workshop registration] before hands-on modules.""",
         "es": """Este taller demuestra cómo unificar estrategia y operaciones en nube híbrida con OpenShift. Aplicarás los mismos patrones en un lab hub-spoke RHDP con spokes east y west gestionados por ACM.
 
-La Parte A enmarca el caso de negocio; la Parte B (módulos 10–26) usa Industrial Edge, observabilidad multicluster, Kuadrant y OpenShift AI — como `%USER_NAME%` en este entorno.
+La Parte A enmarca el caso de negocio; la Parte B (módulos 10–28) usa Industrial Edge, observabilidad multicluster, Kuadrant y OpenShift AI — como `%USER_NAME%` en este entorno.
 
 Regístrate en link:https://workshop-registration.%HUB_DOMAIN%/?USER_NAME=%USER_NAME%[registro] antes de los módulos hands-on.""",
     },

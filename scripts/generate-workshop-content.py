@@ -18,6 +18,11 @@ from workshop_content_data import (  # noqa: E402
     HYBRID_INTEGRATION_ES,
     INDEX_INTRO_EN,
     INDEX_INTRO_ES,
+    INDEX_HUB_SPOKE_EN,
+    INDEX_MESH_FLOW_EN,
+    INDEX_AI_MAAS_EN,
+    INDEX_KUADRANT_EN,
+    INDEX_VERIFY_EN,
     LAB_ACCESS_EN,
     LAB_ACCESS_ES,
     MODULE_CONTEXT,
@@ -186,9 +191,14 @@ IMAGE_BY_SLUG = {
     "hybrid-mesh-architecture": ("11-hybrid-mesh.png", "Hybrid mesh traffic flow hub to spokes"),
     "software-templates": ("12-software-templates.png", "Developer Hub software templates"),
     "deploy-industrial-edge": ("13-deploy-industrial-edge.png", "Industrial Edge deployment on spoke"),
+    "kairos-scaling": ("14-kairos-scaling.png", "Kairos SmartScaling recommendations"),
+    "observability": ("15-observability.png", "Observability dashboards and tracing"),
     "openshift-gitops": ("16-openshift-gitops.png", "OpenShift GitOps and Argo CD"),
     "service-mesh": ("17-service-mesh.png", "OpenShift Service Mesh ambient"),
+    "scalability": ("18-scalability.png", "HPA and Kafka scalability"),
+    "network-policies": ("19-network-policies.png", "Network policies workshop demo"),
     "acs-kuadrant": ("20-acs-kuadrant.png", "ACS and Kuadrant API security"),
+    "finops-kubecost": ("21-finops-kubecost.png", "FinOps Kubecost cost allocation"),
     "openshift-ai": ("22-openshift-ai.png", "OpenShift AI DataScienceCluster"),
     "ai-gateway": ("23-ai-gateway.png", "AI Gateway Kuadrant MaaS"),
     "mcp-gateway": ("24-mcp-gateway.png", "MCP Gateway federated tools"),
@@ -425,11 +435,22 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
 * Kuadrant: link:https://developer-hub.%HUB_DOMAIN%/kuadrant[Kuadrant UI] + link:https://workshop-apis.%HUB_DOMAIN%[Workshop APIs]
 """
         agenda = agenda_en if lang == "en" else agenda_es
-        index_block = "\n\n".join(
+        index_parts = [
+            f"== {welcome}",
+            intro.strip(),
+            reg_cta.strip(),
+        ]
+        if lang == "en":
+            index_parts.extend(
+                [
+                    INDEX_HUB_SPOKE_EN.strip(),
+                    INDEX_MESH_FLOW_EN.strip(),
+                    INDEX_AI_MAAS_EN.strip(),
+                    INDEX_KUADRANT_EN.strip(),
+                ]
+            )
+        index_parts.extend(
             [
-                f"== {welcome}",
-                intro.strip(),
-                reg_cta.strip(),
                 lab_access.strip(),
                 catalog.strip(),
                 prereq.strip(),
@@ -437,6 +458,7 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
                 integration.strip(),
             ]
         )
+        index_block = "\n\n".join(index_parts)
     else:
         index_block = callout_ref(lang)
 
@@ -482,15 +504,19 @@ NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facil
 
 {todos.strip()}
 """
-        verify_block = f"""
-== {verify_label}
-
-[cols="1,2,1"]
+        if is_index and lang == "en":
+            verify_body = INDEX_VERIFY_EN.strip()
+        else:
+            verify_body = """[cols="1,2,1"]
 |===
 | Check | Action | Expected
 
 | Progress | Save checkboxes below | `POST /api/progress` returns OK
-|===
+|==="""
+        verify_block = f"""
+== {verify_label}
+
+{verify_body}
 """
 
     return f"""= {title}

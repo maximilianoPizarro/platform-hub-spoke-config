@@ -268,6 +268,7 @@ spec:
               [ -n "$HUB" ] && sed -i "s|%HUB_DOMAIN%|${HUB}|g" "$f"
               [ -n "$EAST" ] && sed -i "s|%EAST_DOMAIN%|${EAST}|g" "$f"
               [ -n "$WEST" ] && sed -i "s|%WEST_DOMAIN%|${WEST}|g" "$f"
+              [ -n "$REG" ] && sed -i "s|%REGISTRATION_URL%|${REG}|g" "$f"
               [ -n "$REG" ] && sed -i "s|https://workshop-registration.${HUB}|${REG}|g" "$f"
             done
             echo "substituted domains in $(find "$WWW" -name '*.html' | wc -l) html files"
@@ -341,9 +342,23 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: CLUSTER_DOMAIN
+          value: {{ .Values.deployer.domain | quote }}
+        - name: HUB_API_URL
+          value: {{ .Values.clusters.hub.apiUrl | default "" | quote }}
+        - name: EAST_API_URL
+          value: {{ .Values.clusters.east.apiUrl | default "" | quote }}
+        - name: WEST_API_URL
+          value: {{ .Values.clusters.west.apiUrl | default "" | quote }}
+        - name: EAST_DOMAIN
+          value: {{ .Values.clusters.east.domain | default "" | quote }}
+        - name: WEST_DOMAIN
+          value: {{ .Values.clusters.west.domain | default "" | quote }}
         volumeMounts:
         - name: terminal-lab-user-home
           mountPath: /home/lab-user
+        - name: user-data
+          mountPath: /user_data/
         ports:
         - containerPort: 7681
           protocol: TCP

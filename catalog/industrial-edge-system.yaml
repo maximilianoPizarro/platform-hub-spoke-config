@@ -1,4 +1,3 @@
----
 apiVersion: backstage.io/v1alpha1
 kind: System
 metadata:
@@ -8,7 +7,7 @@ metadata:
     IoT manufacturing platform across hub and east/west spokes — MQTT sensors,
     Kafka streaming, Camel integrations, ML anomaly detection, and centralized data lake.
   annotations:
-    backstage.io/techdocs-ref: url:https://maximilianopizarro.github.io/platform-hub-spoke-config/docs/
+    backstage.io/techdocs-ref: dir:.
     grafana/dashboard-selector: industrial-edge
   tags:
     - industrial-edge
@@ -85,7 +84,7 @@ metadata:
   tags:
     - kafka
   links:
-    - url: https://kafka-console.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+    - url: https://kafka-console.__HUB_APPS_DOMAIN__
       title: Kafka Console (hub)
       icon: dashboard
 spec:
@@ -124,6 +123,32 @@ spec:
       version: 1.0.0
     servers:
       - url: http://minio-hub.service-interconnect.svc:9000
+    paths:
+      /health:
+        get:
+          summary: MinIO health check (stub)
+          operationId: minioHealth
+          responses:
+            "200":
+              description: Service reachable
+      /models/{bucket}/{object}:
+        get:
+          summary: Fetch object from models bucket (stub)
+          operationId: getModelObject
+          parameters:
+            - name: bucket
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: object
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            "200":
+              description: Object metadata
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Component
@@ -133,10 +158,11 @@ metadata:
   description: Multi-cluster entry point for Industrial Edge dashboards
   annotations:
     backstage.io/kubernetes-namespace: hub-gateway-system
+    backstage.io/kubernetes-cluster: hub
     backstage.io/kubernetes-id: hub-gateway
     argocd/app-name: field-content-hub-gateway
   links:
-    - url: https://industrial-edge.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+    - url: https://industrial-edge.__HUB_APPS_DOMAIN__
       title: Industrial Edge UI
       icon: web
 spec:
@@ -154,9 +180,11 @@ metadata:
   description: Centralized S3-compatible storage for ML models, Kubecost ETL, and data lake archives
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ml-workspace
+    backstage.io/kubernetes-cluster: hub
+    backstage.io/kubernetes-id: minio
     argocd/app-name: field-content-industrial-edge-minio
   links:
-    - url: https://minio-console-industrial-edge-ml-workspace.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+    - url: https://minio-console-industrial-edge-ml-workspace.__HUB_APPS_DOMAIN__
       title: MinIO Console
       icon: storage
 spec:
@@ -173,10 +201,12 @@ metadata:
   description: StreamsHub UI for prod/dev Kafka clusters across hub and spokes
   annotations:
     backstage.io/kubernetes-namespace: kafka-console
+    backstage.io/kubernetes-cluster: hub
+    backstage.io/kubernetes-id: kafka-console
     argocd/app-name: field-content-kafka-console
     kafka.apache.org/consumer-groups: kafka-console
   links:
-    - url: https://kafka-console.apps.cluster-xqg4c.dynamic2.redhatworkshops.io
+    - url: https://kafka-console.__HUB_APPS_DOMAIN__
       title: Kafka Console
       icon: catalog
 spec:
@@ -196,7 +226,9 @@ metadata:
   description: IoT software sensors publishing MQTT telemetry
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: machine-sensor
+    backstage.io/kubernetes-label-selector: app=machine-sensor
     argocd/app-name: field-content-industrial-edge-tst
   tags:
     - east
@@ -219,6 +251,9 @@ metadata:
   description: ActiveMQ Artemis MQTT acceptor for factory sensors
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: messaging
+    backstage.io/kubernetes-label-selector: application=messaging-app
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -237,6 +272,9 @@ metadata:
   description: Strimzi Kafka cluster for IoT topic ingestion
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: dev-cluster
+    backstage.io/kubernetes-label-selector: strimzi.io/cluster=dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -258,6 +296,9 @@ metadata:
   description: MQTT to Kafka and related integration routes
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: mqtt-to-kafka
+    backstage.io/kubernetes-label-selector: camel.apache.org/integration=mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -277,12 +318,25 @@ metadata:
   description: Real-time IoT dashboard and WebSocket consumer
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
     backstage.io/kubernetes-id: line-dashboard
+    backstage.io/kubernetes-label-selector: app=line-dashboard
     argocd/app-name: field-content-industrial-edge-tst
+    janus-idp.io/tekton: industrial-edge-ci
+    backstage.io/techdocs-ref: url:https://maximilianopizarro.github.io/platform-hub-spoke-config/docs/industrial-edge/
   links:
-    - url: https://line-dashboard-industrial-edge-tst-all.apps.cluster-2847b.dynamic2.redhatworkshops.io
+    - url: https://line-dashboard-industrial-edge-tst-all.__EAST_APPS_DOMAIN__
       title: Dashboard (east)
       icon: web
+    - url: https://devspaces.__EAST_APPS_DOMAIN__
+      title: DevSpaces (east)
+      icon: catalog
+    - url: https://workshop-apis.__HUB_APPS_DOMAIN__
+      title: Workshop APIs (Kuadrant)
+      icon: api
+    - url: https://developer-hub.__HUB_APPS_DOMAIN__/kuadrant
+      title: Kuadrant API keys
+      icon: catalog
 spec:
   type: website
   lifecycle: production
@@ -301,13 +355,15 @@ kind: Component
 metadata:
   name: anomaly-detection-east
   title: Anomaly Detection ML (East)
-  description: KServe InferenceService for sensor anomaly scoring
+  description: Optional KServe scoring — enable anomalyDetection in spoke values; Mailpit alerter works without it
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: anomaly-detection
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
-  lifecycle: production
+  lifecycle: experimental
   owner: platform-engineering
   system: industrial-edge
   domain: spoke-east
@@ -323,7 +379,9 @@ metadata:
   description: Build and test pipelines for IoT components
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ci
-    janus-idp.io/tekton: "true"
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-label-selector: tekton.dev/pipeline=build-and-test-iot-component
+    janus-idp.io/tekton: industrial-edge-ci
     argocd/app-name: field-content-industrial-edge-pipelines
 spec:
   type: service
@@ -340,6 +398,8 @@ metadata:
   description: prod-cluster Kafka and Kafka-to-S3 Camel archiver
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-data-lake
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: prod-cluster
     argocd/app-name: field-content-industrial-edge-data-lake
 spec:
   type: service
@@ -357,13 +417,15 @@ kind: Component
 metadata:
   name: stormshift-messaging-east
   title: Stormshift Factory Kafka (East)
-  description: Factory cluster and MirrorMaker replication to data lake
+  description: Optional advanced demo — factory-cluster + MirrorMaker; skip if industrial-edge-stormshift app disabled
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-stormshift-messaging
+    backstage.io/kubernetes-cluster: east
+    backstage.io/kubernetes-id: factory-cluster
     argocd/app-name: field-content-industrial-edge-stormshift
 spec:
   type: service
-  lifecycle: production
+  lifecycle: experimental
   owner: platform-engineering
   system: industrial-edge
   domain: spoke-east
@@ -378,7 +440,9 @@ metadata:
   description: IoT software sensors publishing MQTT telemetry
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: machine-sensor
+    backstage.io/kubernetes-label-selector: app=machine-sensor
     argocd/app-name: field-content-industrial-edge-tst
   tags:
     - west
@@ -401,6 +465,9 @@ metadata:
   description: ActiveMQ Artemis MQTT acceptor for factory sensors
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: messaging
+    backstage.io/kubernetes-label-selector: application=messaging-app
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -419,6 +486,9 @@ metadata:
   description: Strimzi Kafka cluster for IoT topic ingestion
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: dev-cluster
+    backstage.io/kubernetes-label-selector: strimzi.io/cluster=dev-cluster
     argocd/app-name: field-content-industrial-edge-tst
     kafka.apache.org/consumer-groups: line-dashboard,iot-consumer
 spec:
@@ -440,6 +510,9 @@ metadata:
   description: MQTT to Kafka and related integration routes
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: mqtt-to-kafka
+    backstage.io/kubernetes-label-selector: camel.apache.org/integration=mqtt-to-kafka
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
@@ -459,10 +532,12 @@ metadata:
   description: Real-time IoT dashboard and WebSocket consumer
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
     backstage.io/kubernetes-id: line-dashboard
+    backstage.io/kubernetes-label-selector: app=line-dashboard
     argocd/app-name: field-content-industrial-edge-tst
   links:
-    - url: https://line-dashboard-industrial-edge-tst-all.apps.cluster-5zjkk.dynamic2.redhatworkshops.io
+    - url: https://line-dashboard-industrial-edge-tst-all.__WEST_APPS_DOMAIN__
       title: Dashboard (west)
       icon: web
 spec:
@@ -483,13 +558,15 @@ kind: Component
 metadata:
   name: anomaly-detection-west
   title: Anomaly Detection ML (West)
-  description: KServe InferenceService for sensor anomaly scoring
+  description: Optional KServe scoring — enable anomalyDetection in spoke values
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-tst-all
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: anomaly-detection
     argocd/app-name: field-content-industrial-edge-tst
 spec:
   type: service
-  lifecycle: production
+  lifecycle: experimental
   owner: platform-engineering
   system: industrial-edge
   domain: spoke-west
@@ -505,7 +582,9 @@ metadata:
   description: Build and test pipelines for IoT components
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-ci
-    janus-idp.io/tekton: "true"
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-label-selector: tekton.dev/pipeline=build-and-test-iot-component
+    janus-idp.io/tekton: industrial-edge-ci
     argocd/app-name: field-content-industrial-edge-pipelines
 spec:
   type: service
@@ -522,6 +601,8 @@ metadata:
   description: prod-cluster Kafka and Kafka-to-S3 Camel archiver
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-data-lake
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: prod-cluster
     argocd/app-name: field-content-industrial-edge-data-lake
 spec:
   type: service
@@ -539,13 +620,15 @@ kind: Component
 metadata:
   name: stormshift-messaging-west
   title: Stormshift Factory Kafka (West)
-  description: Factory cluster and MirrorMaker replication to data lake
+  description: Optional advanced demo — skip if industrial-edge-stormshift app disabled
   annotations:
     backstage.io/kubernetes-namespace: industrial-edge-stormshift-messaging
+    backstage.io/kubernetes-cluster: west
+    backstage.io/kubernetes-id: factory-cluster
     argocd/app-name: field-content-industrial-edge-stormshift
 spec:
   type: service
-  lifecycle: production
+  lifecycle: experimental
   owner: platform-engineering
   system: industrial-edge
   domain: spoke-west
