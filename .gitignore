@@ -31,5 +31,10 @@ captures/
 
 # Antora Showroom content — separate repo (maximilianoPizarro/showroom-hybrid-mesh-ai)
 showroom-hybrid-mesh-ai/
+
+# Antora UI bundle extracted by site build (downloaded at build time)
+.tmp-ui-bundle/
+
+# API keys and Python bytecode
 .gemini_api_key
 scripts/__pycache__/

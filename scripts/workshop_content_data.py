@@ -2183,19 +2183,3 @@ LEARN_MORE_EN: dict[str, str] = {
 """,
 }
 
-LEARN_MORE_ES: dict[str, str] = {
-    "ai-gateway": """
-* link:https://www.kuadrant.io/docs/[Kuadrant — gestión de APIs en Kubernetes]
-* link:https://docs.redhat.com/es/documentation/red_hat_openshift_ai_self-managed[Serving de modelos — OpenShift AI]
-* link:https://docs.redhat.com/es/documentation/openshift_container_platform/4.16/html/service_mesh/gateway-api-for-service-mesh[Gateway API en OpenShift Service Mesh]
-* link:https://developers.redhat.com/articles/2024/08/22/api-management-kubernetes-kuadrant[Gestión de APIs con Kuadrant]
-""",
-    "openshift-ai": """
-* link:https://docs.redhat.com/es/documentation/red_hat_openshift_ai_self-managed[Documentación OpenShift AI]
-* link:https://developers.redhat.com/articles/2024/05/07/run-ai-workloads-openshift-ai[Cargas de IA en OpenShift AI]
-""",
-    "mcp-gateway": """
-* link:https://modelcontextprotocol.io/[Especificación Model Context Protocol]
-* link:https://www.kuadrant.io/docs/[Kuadrant MCP Gateway]
-""",
-}
