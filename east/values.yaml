@@ -173,7 +173,3 @@ apps:
     path: components/console-links
     destinationNamespace: openshift-gitops
     syncWave: "9"
-  - id: kubecost
-    path: components/kubecost
-    destinationNamespace: kubecost
-    syncWave: "10"

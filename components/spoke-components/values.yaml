@@ -74,10 +74,6 @@ components:
     path: components/ie-anomaly-alerter
     namespace: industrial-edge-tst-all
     syncWave: "6"
-  - id: kubecost
-    path: components/kubecost
-    namespace: kubecost
-    syncWave: "6"
   - id: console-links
     path: components/console-links
     namespace: openshift-gitops

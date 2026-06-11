@@ -466,6 +466,20 @@ spec:
     helm:
       valuesObject:
         clusterDomain: {{ $domain }}
+        userCount: {{ $.Values.userCount | default 50 }}
+        userProjects:
+          enabled: true
+          notebook:
+            enabled: true
+        dashboardExtensions:
+          enabled: true
+        modelServing:
+          modelMeshEnabled: true
+          serverlessEnabled: true
+          defaultDeploymentMode: ModelMesh
+        mcp:
+          enabled: true
+          deployServer: true
         maas:
           endpoint: {{ $.Values.litemaas.apiUrl | default "https://maas-rhdp.apps.maas.redhatworkshops.io/v1" | trimSuffix "/v1" | quote }}
           apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
@@ -531,6 +545,13 @@ spec:
         apis:
           maas:
             apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
+    {{- else if eq .path "mcp-gateway" }}
+    helm:
+      valuesObject:
+        clusterDomain: {{ $domain }}
+        k8sMcp:
+          enabled: true
+        argocdApiToken: {{ $.Values.mcpGateway.argocdApiToken | default "" | quote }}
     {{- else if eq .path "neuroface" }}
     helm:
       valuesObject:
@@ -545,7 +566,9 @@ spec:
             modelName: {{ $.Values.litemaas.model | default "llama-scout-17b" | quote }}
             apiKey: {{ $.Values.litemaas.apiKey | default "" | quote }}
           ovms:
-            enabled: false
+            enabled: true
+            replicas: 1
+            modelName: "face-detection-retail-0005"
           litellm:
             enabled: false
     {{- else if eq .path "cnv-example" }}

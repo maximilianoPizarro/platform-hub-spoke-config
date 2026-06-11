@@ -67,6 +67,11 @@ connectivityLink:
         namespace: redhat-ods-operator
         channel: stable-2.25
         source: redhat-operators
+      # Hub-only: Knative Serving for OpenShift AI KServe Serverless + ModelMesh workshop track
+      - name: serverless-operator
+        namespace: openshift-serverless
+        channel: stable
+        source: redhat-operators
       - name: amq-streams
         namespace: openshift-operators
         channel: stable
@@ -259,6 +264,14 @@ connectivityLink:
       prune: true
       selfHeal: true
       skipDryRunOnMissingResource: true
+    - id: mcp-gateway
+      enabled: true
+      path: mcp-gateway
+      destinationNamespace: mcp-system
+      syncWave: "2"
+      prune: true
+      selfHeal: true
+      skipDryRunOnMissingResource: true
     # Gitea (centralized on hub)
     - id: gitea-chart
       enabled: true
@@ -438,6 +451,10 @@ litemaas:
   apiUrl: "https://maas-rhdp.apps.maas.redhatworkshops.io/v1"
   enabled: true
   model: "llama-scout-17b"
+
+mcpGateway:
+  # Set via RHDP / oc create — ArgoCD MCP server token (never commit)
+  argocdApiToken: ""
 
 fieldContent:
   deploymentType: "helm"

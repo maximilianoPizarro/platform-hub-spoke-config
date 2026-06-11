@@ -21,11 +21,13 @@ ESTIMATED_MIN: dict[str, int] = {
     "network-policies": 12,
     "acs-kuadrant": 18,
     "finops-kubecost": 15,
-    "openshift-ai": 20,
-    "llm-rag": 22,
+    "openshift-ai": 30,
+    "ai-gateway": 25,
+    "mcp-gateway": 30,
+    "llm-rag": 20,
     "text-ai-predictive": 18,
-    "neuroface": 25,
-    "ai-end-user-apps": 20,
+    "neuroface": 30,
+    "ai-end-user-apps": 15,
     "full-verification": 15,
     "agent-browser-recording": 12,
 }
@@ -50,10 +52,12 @@ NEXT_PAGE: dict[str, str | None] = {
     "network-policies": "20-acs-kuadrant.adoc",
     "acs-kuadrant": "21-finops-kubecost.adoc",
     "finops-kubecost": "22-openshift-ai.adoc",
-    "openshift-ai": "23-llm-rag.adoc",
-    "llm-rag": "24-text-ai-predictive.adoc",
-    "text-ai-predictive": "25-neuroface.adoc",
-    "neuroface": "26-ai-end-user-apps.adoc",
+    "openshift-ai": "23-ai-gateway.adoc",
+    "ai-gateway": "24-mcp-gateway.adoc",
+    "mcp-gateway": "25-llm-rag.adoc",
+    "llm-rag": "26-text-ai-predictive.adoc",
+    "text-ai-predictive": "27-neuroface.adoc",
+    "neuroface": "28-ai-end-user-apps.adoc",
     "ai-end-user-apps": None,
     "full-verification": None,
     "agent-browser-recording": None,
@@ -84,17 +88,25 @@ MODULE_CONTEXT: dict[str, dict[str, str]] = {
         "en": """You will use **ACS Central** on this cluster (`central-stackrox` route) for runtime security context and **Developer Hub → Kuadrant** to request an API key for `workshop-apis`. Test with `curl` and your key — not a generic Red Hat marketing URL.""",
         "es": """Usarás **ACS Central** en este cluster (ruta `central-stackrox`) y **Developer Hub → Kuadrant** para solicitar API key de `workshop-apis`. Prueba con `curl` y tu key — no URLs genéricas de marketing.""",
     },
+    "ai-gateway": {
+        "en": """Open **Developer Hub → Catalog → workshop-ai-gateway** and trace GitOps in `components/workshop-kuadrant-apis/`. Create a Kuadrant API key and call the MaaS LLM route at `workshop-apis.%HUB_DOMAIN%/llm`.""",
+        "es": """Abre **Developer Hub → Catálogo → workshop-ai-gateway** y sigue GitOps en `components/workshop-kuadrant-apis/`. Crea API key Kuadrant y llama la ruta MaaS LLM.""",
+    },
+    "mcp-gateway": {
+        "en": """Verify MCP Gateway in `mcp-system`, then use **Developer Hub → Lightspeed** with prompts that invoke ArgoCD/k8s MCP tools. Register OpenShift AI MCP server in dashboard (maas-workshop).""",
+        "es": """Verifica MCP Gateway en `mcp-system`, usa **Developer Hub → Lightspeed** con tools MCP, y registra MCP server OpenShift AI en el dashboard.""",
+    },
     "openshift-ai": {
-        "en": """Open the **OpenShift AI dashboard** on this hub and confirm `DataScienceCluster` is ready. MaaS endpoint credentials are pre-provisioned for the lab — you do not configure AWS Bedrock in this module.""",
-        "es": """Abre el **dashboard OpenShift AI** en este hub y confirma que `DataScienceCluster` está listo. Las credenciales MaaS están pre-provisionadas — no configuras AWS Bedrock en este módulo.""",
+        "en": """Open the **OpenShift AI dashboard** → project **ai-%USER_NAME%** → **Workbenches → workshop-notebook** and run the MaaS smoke-test notebook. Catalog entity **OpenShift AI — %USER_NAME%** links Topology and dashboard.""",
+        "es": """Abre **dashboard OpenShift AI** → proyecto **ai-%USER_NAME%** → **Workbenches → workshop-notebook** y ejecuta el notebook MaaS. La entidad **OpenShift AI — %USER_NAME%** enlaza Topology y dashboard.""",
     },
     "neuroface": {
-        "en": """Open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] in this browser, allow webcam access, and test detection + chat. If the route fails, check Argo app `field-content-neuroface` on the hub — do not follow external LibreChat docs.""",
-        "es": """Abre link:https://neuroface.%HUB_DOMAIN%[NeuroFace], permite webcam y prueba detección + chat. Si falla la ruta, revisa la app Argo `field-content-neuroface` en el hub.""",
+        "en": """Open link:https://neuroface.%HUB_DOMAIN%[NeuroFace] and **Developer Hub → Catalog → neuroface-workshop** for Topology. OVMS is enabled for local vision; chat uses MaaS. Allow webcam and test detection + `/api/chat`.""",
+        "es": """Abre link:https://neuroface.%HUB_DOMAIN%[NeuroFace] y **Developer Hub → Catálogo → neuroface-workshop**. OVMS habilitado para visión local; chat usa MaaS.""",
     },
     "ai-end-user-apps": {
-        "en": """Capstone: tie together IE dashboard, Developer Hub catalog entries, and Grafana for `%USER_NAME%`. This is the **last learner module (26)** — facilitators run automated verification separately.""",
-        "es": """Cierre: conecta dashboard IE, entradas Developer Hub y Grafana para `%USER_NAME%`. Este es el **último módulo del participante (26)** — los facilitadores ejecutan verificación automatizada por separado.""",
+        "en": """Capstone: tie together IE dashboard, Developer Hub catalog entries, and Grafana for `%USER_NAME%`. This is the **last learner module (28)** — facilitators run automated verification separately.""",
+        "es": """Cierre: conecta dashboard IE, entradas Developer Hub y Grafana para `%USER_NAME%`. Este es el **último módulo del participante (28)**.""",
     },
     "full-verification": {
         "en": """**Facilitator / agent only.** Run `scripts/verify-workshop-e2e.sh` and `showroom-hybrid-mesh-ai/verification/progress-checklist.yaml` — not shown to learners in the workshop nav.""",
@@ -539,16 +551,44 @@ En este lab, Kubecost se despliega desde `components/kubecost/` con agentes en e
 FinOps cierra el loop ejecutivo del módulo 01: estrategia híbrida sin visibilidad de costo falla en revisión CFO. Kubecost complementa tags AWS Cost Explorer en ROSA exponiendo desperdicio a nivel pod dentro del límite del cluster.""",
     },
     "openshift-ai": {
-        "en": """OpenShift AI unifies data science workflows on OpenShift through the DataScienceCluster operator: notebooks, pipeline runtime, model serving, and ModelMesh for multi-framework inference. On the workshop hub, `default-dsc` enables DS projects, workbenches, and serving runtimes consumed by downstream modules.
+        "en": """OpenShift AI on the hub runs **ModelMesh + Serverless (Knative)** via `default-dsc`. Each user owns project **`ai-%USER_NAME%`** with pre-provisioned **Jupyter notebook** `workshop-notebook`, MaaS secret, and Developer Hub catalog entity.
 
-Model-as-a-Service (MaaS) provides a shared OpenAI-compatible endpoint (`OPENAI_API_BASE`) stored in `openshift-ai-maas-credentials` — NeuroFace, Developer Hub Lightspeed, and DevSpaces Continue AI all consume this endpoint instead of public cloud keys. Plan B demo `demo-ods-workspace` opens a pre-provisioned DS workspace if your template quota is exhausted.
+**Overview-only (~10 min):** Catalog → **OpenShift AI — %USER_NAME%** → open dashboard; show Playground in `maas-workshop` (do not run notebook).
 
-As `%USER_NAME%`, confirm `oc get dsc` reports Ready and locate the MaaS URL in the maas-workshop namespace. This hub-spoke AI pattern mirrors ROSA customers who centralize inference on a governance cluster while edge spokes run lightweight consumers.""",
-        "es": """OpenShift AI unifica flujos de data science en OpenShift mediante el operador DataScienceCluster: notebooks, runtime de pipelines, model serving y ModelMesh para inferencia multi-framework. En el hub del taller, `default-dsc` habilita proyectos DS, workbenches y runtimes de serving consumidos por módulos posteriores.
+**Hands-on (~30 min):** Launch **workshop-notebook**, run `maas-smoke-test.ipynb`, open **AI Assistants → MCP Servers** and add `ods-maas-mcp-server` URL from ConfigMap `ods-mcp-server-registration`. In **ai-%USER_NAME%** → **Models**, confirm **`workshop-sklearn`** InferenceService (ModelMesh) is Ready; test predict from dashboard or `curl` the internal predictor URL.
 
-Model-as-a-Service (MaaS) ofrece un endpoint compartido compatible OpenAI (`OPENAI_API_BASE`) almacenado en `openshift-ai-maas-credentials` — NeuroFace, Developer Hub Lightspeed y DevSpaces Continue AI consumen este endpoint en lugar de claves cloud públicas. El demo Plan B `demo-ods-workspace` abre un workspace DS pre-provisionado si tu quota de plantilla se agotó.
+GitOps: `components/openshift-ai-hub/` (`user-projects.yaml`, `dashboard-config.yaml`, `ods-mcp-server.yaml`). Verify: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.""",
+        "es": """OpenShift AI en el hub ejecuta **ModelMesh + Serverless (Knative)** vía `default-dsc`. Cada usuario tiene **`ai-%USER_NAME%`** con **notebook Jupyter** `workshop-notebook`, secret MaaS y entidad en Developer Hub.
 
-Como `%USER_NAME%`, confirma que `oc get dsc` reporta Ready y localiza la URL MaaS en el namespace maas-workshop. Este patrón IA hub-spoke refleja clientes ROSA que centralizan inferencia en un cluster de gobernanza mientras spokes edge ejecutan consumidores ligeros.""",
+**Solo visualización (~10 min):** Catálogo → **OpenShift AI — %USER_NAME%**; mostrar Playground en `maas-workshop`.
+
+**Hands-on (~30 min):** Abrir **workshop-notebook**, ejecutar `maas-smoke-test.ipynb`, registrar **MCP Server** `ods-maas-mcp-server` en extensiones OpenShift AI. En **ai-%USER_NAME%** → **Models**, confirmar **`workshop-sklearn`** (ModelMesh) Ready y probar inferencia.
+
+GitOps: `components/openshift-ai-hub/`. Verificar: `oc get notebook,inferenceservice -n ai-%USER_NAME%`.""",
+    },
+    "ai-gateway": {
+        "en": """The **AI Gateway** (`workshop-apis.%HUB_DOMAIN%`) fronts external MaaS with **Gateway API HTTPRoute**, Istio hub gateway, and **Kuadrant** (`AuthPolicy`, `TokenRateLimitPolicy`, API keys). GitOps: `components/workshop-kuadrant-apis/templates/routes.yaml` + `policies.yaml`.
+
+**Overview-only (~5 min):** Catalog → **workshop-ai-gateway**; Kuadrant UI → show API key shape.
+
+**Hands-on (~25 min):** Mint key for `%USER_NAME%`, `curl -H "Authorization: Bearer $KEY" https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` with JSON body; compare to direct MaaS from notebook.""",
+        "es": """El **AI Gateway** (`workshop-apis.%HUB_DOMAIN%`) expone MaaS externo con **Gateway API**, Istio y **Kuadrant**. GitOps: `components/workshop-kuadrant-apis/`.
+
+**Solo visualización (~5 min):** Catálogo → **workshop-ai-gateway**; UI Kuadrant.
+
+**Hands-on (~25 min):** Crear API key, `curl` a `/llm/v1/chat/completions`, comparar con MaaS directo.""",
+    },
+    "mcp-gateway": {
+        "en": """**MCP Gateway** deploys Kuadrant community CRDs (`MCPGatewayExtension`, `MCPServerRegistration`), `mcp-controller`, Gateway API `Gateway`, **ArgoCD MCP**, and **k8s MCP** — pattern from test-drive-pe-oscg. Public URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
+
+**Overview-only (~8 min):** Catalog → **workshop-mcp-gateway**; `oc get mcpserverregistration -n mcp-system`; Lightspeed demo prompt.
+
+**Hands-on (~30 min):** Developer Hub **/lightspeed** — activity: "List Argo CD apps in OutOfSync state and suggest sync." Llama-stack uses `remote::mcp` to gateway (`components/developer-hub/files/lightspeed/llama-stack-run.yaml`).""",
+        "es": """**MCP Gateway** despliega CRDs Kuadrant, controlador, Gateway API, **ArgoCD MCP** y **k8s MCP** — patrón test-drive-pe-oscg. URL: `https://mcp-gateway.%HUB_DOMAIN%/mcp`.
+
+**Solo visualización (~8 min):** Catálogo → **workshop-mcp-gateway**; demo Lightspeed.
+
+**Hands-on (~30 min):** **/lightspeed** — actividad: listar apps Argo CD OutOfSync y proponer sync.""",
     },
     "llm-rag": {
         "en": """Large language models and retrieval-augmented generation (RAG) on OpenShift combine centralized inference with domain-specific context from factory docs, runbooks, and sensor logs — without exporting proprietary data to public SaaS. Red Hat Developer Hub Lightspeed assists developers in-catalog; Kairos Console agents answer scaling questions; Continue AI in DevSpaces suggests code inline using the same MaaS backend.
@@ -575,16 +615,18 @@ Recursos opcionales KServe InferenceService en el hub demuestran model serving c
 Conecta alertas predictivas al módulo 26 de apps finales: rutas Camel pueden distribuir eventos de anomalía a overlays line-dashboard y notificaciones NeuroFace. Esto cierra el loop telemetría → detección ML/estadística → respuesta humana + IA generativa en el mismo footprint OpenShift.""",
     },
     "neuroface": {
-        "en": """NeuroFace delivers computer vision and conversational AI on OpenShift without bundling LibreChat: browser webcam feeds YOLO object detection and face recognition pipelines while `/api/chat` proxies to the shared MaaS LLM (llama-scout-17b). OVMS ModelMesh serves vision models locally; chat stays centralized for token governance — the hybrid AI pattern manufacturing customers request for quality inspection lines.
+        "en": """NeuroFace combines **OVMS local vision** (face/object detection via `components/neuroface/` with `ovms.enabled: true`) and **MaaS chat** at `/api/chat`. Hub **ModelMesh** serves platform models; NeuroFace OVMS handles low-latency webcam inference on the app namespace.
 
-Access NeuroFace at `https://neuroface.%HUB_DOMAIN%` after registering as `%USER_NAME%`. Helm values in `components/neuroface/` disable LiteLLM and external LibreChat dependencies; model endpoint and modelName align with maas-workshop credentials. Plan B catalog entity `demo-neuroface` maps to the same route if you skip scaffolding.
+**Overview-only (~10 min):** Developer Hub → **neuroface-workshop** → Topology; open UI without webcam.
 
-In the lab, test webcam inference latency on spoke network paths and ask chat questions about detected objects — simulating a shop-floor assistant that explains vision alerts in natural language. Module 26 wires these signals into Industrial Edge dashboards for unified operator experience.""",
-        "es": """NeuroFace entrega visión por computadora e IA conversacional en OpenShift sin empaquetar LibreChat: webcam del navegador alimenta detección de objetos YOLO y pipelines de reconocimiento facial mientras `/api/chat` proxy al LLM MaaS compartido (llama-scout-17b). OVMS ModelMesh sirve modelos de visión localmente; el chat permanece centralizado para gobernanza de tokens — el patrón IA híbrido que clientes de manufactura piden para líneas de inspección de calidad.
+**Hands-on (~30 min):** Register as `%USER_NAME%`, test webcam + chat, inspect OVMS Service/route in namespace `neuroface`.
 
-Accede a NeuroFace en `https://neuroface.%HUB_DOMAIN%` tras registrarte como `%USER_NAME%`. Valores Helm en `components/neuroface/` deshabilitan LiteLLM y dependencias LibreChat externas; modelEndpoint y modelName alinean con credenciales maas-workshop. La entidad catálogo Plan B `demo-neuroface` mapea a la misma ruta si omites scaffolding.
+Catalog: System `hybrid-mesh-ai-platform` → Component **neuroface-workshop** (links UI + OpenShift AI dashboard).""",
+        "es": """NeuroFace combina **visión OVMS local** (`ovms.enabled: true`) y **chat MaaS** en `/api/chat`. **ModelMesh** en el hub sirve modelos de plataforma; OVMS NeuroFace maneja inferencia webcam de baja latencia.
 
-En el lab, prueba latencia de inferencia webcam en rutas de red spoke y haz preguntas chat sobre objetos detectados — simulando un asistente de planta que explica alertas de visión en lenguaje natural. El módulo 26 cablea estas señales en dashboards Industrial Edge para experiencia unificada del operador.""",
+**Solo visualización (~10 min):** Developer Hub → **neuroface-workshop** → Topology.
+
+**Hands-on (~30 min):** Probar webcam + chat; inspeccionar Service OVMS en namespace `neuroface`.""",
     },
     "ai-end-user-apps": {
         "en": """End-user applications — operator dashboards, mobile alerts, MES integrations — consume AI insights where work happens, not only in data science notebooks. line-dashboard on the east spoke visualizes Kafka sensor streams; Camel integrations route anomaly events; NeuroFace and MaaS summaries embed into the same UX `%USER_NAME%` sees in production rollouts.
@@ -679,9 +721,15 @@ SHOW_TELL_EN: dict[str, str] = {
     "finops-kubecost": """. Kubecost UI: allocation by namespace for `%USER_NAME%`.
 . Show federated cluster dropdown (hub + spokes).
 . Compare idle cost with Kairos over-provision narrative.""",
-    "openshift-ai": """. `oc get dsc` — confirm Ready; open DS workspace or Plan B demo-ods-workspace.
-. Show MaaS endpoint URL in maas-workshop (no keys on screen).
-. Explain hub-centralized inference, spoke consumers pattern.""",
+    "ai-gateway": """. Catalog → **workshop-ai-gateway** → inspect HTTPRoute in Topology.
+. Kuadrant UI: create API key; curl `/llm/v1/chat/completions` with Bearer token.
+. Show AuthPolicy + TokenRateLimitPolicy YAML paths in GitOps.""",
+    "mcp-gateway": """. `oc get mcpgatewayextension,mcpserverregistration -n mcp-system`.
+. Developer Hub `/lightspeed` — prompt: list Argo CD applications.
+. OpenShift AI dashboard → register MCP server URL from maas-workshop ConfigMap.""",
+    "openshift-ai": """. `oc get dsc` — confirm Ready; open **workshop-notebook** in ai-%USER_NAME%.
+. Developer Hub → **OpenShift AI — %USER_NAME%** + **Playground** in maas-workshop.
+. Show MCP server deployment `ods-maas-mcp-server` in maas-workshop.""",
     "llm-rag": """. Trigger Developer Hub Lightspeed on a catalog Component live.
 . Optional DevSpaces Continue AI inline suggestion using MaaS.
 . Discuss RAG index placement (customer choice) vs LLM on OpenShift AI.""",
@@ -757,9 +805,15 @@ SHOW_TELL_ES: dict[str, str] = {
     "finops-kubecost": """. UI Kubecost: asignación por namespace para `%USER_NAME%`.
 . Mostrar dropdown cluster federado (hub + spokes).
 . Comparar costo ocioso con narrativa sobreaprovisión Kairos.""",
-    "openshift-ai": """. `oc get dsc` — confirmar Ready; abrir workspace DS o Plan B demo-ods-workspace.
-. Mostrar URL endpoint MaaS en maas-workshop (sin keys en pantalla).
-. Explicar patrón inferencia centralizada hub, consumidores spoke.""",
+    "ai-gateway": """. Catálogo → **workshop-ai-gateway** → HTTPRoute en Topology.
+. UI Kuadrant: crear API key; curl `/llm/v1/chat/completions`.
+. Mostrar rutas GitOps AuthPolicy + TokenRateLimitPolicy.""",
+    "mcp-gateway": """. `oc get mcpgatewayextension,mcpserverregistration -n mcp-system`.
+. Developer Hub `/lightspeed` — prompt: listar apps Argo CD.
+. Dashboard OpenShift AI → registrar MCP server maas-workshop.""",
+    "openshift-ai": """. `oc get dsc` — confirmar Ready; abrir **workshop-notebook** en ai-%USER_NAME%.
+. Developer Hub → **OpenShift AI — %USER_NAME%** + **Playground** maas-workshop.
+. Mostrar deployment MCP `ods-maas-mcp-server`.""",
     "llm-rag": """. Disparar Developer Hub Lightspeed en Component catálogo en vivo.
 . Opcional sugerencia inline Continue AI DevSpaces usando MaaS.
 . Discutir ubicación índice RAG (elección cliente) vs LLM en OpenShift AI.""",
@@ -873,7 +927,20 @@ TODO_EN: dict[str, list[str]] = {
     ],
     "openshift-ai": [
         "* [ ] Run `oc get dsc` and confirm DataScienceCluster Ready",
-        "* [ ] Open DS workspace or Plan B `demo-ods-workspace`",
+        "* [ ] Launch **workshop-notebook** in project `ai-%USER_NAME%` and run MaaS smoke test",
+        "* [ ] Open Developer Hub catalog Component **ai-%USER_NAME%**",
+        "* [ ] Enable OpenShift AI **Playground** / **MCP Server** extension (maas-workshop)",
+        "* [ ] Save progress at the end of this module",
+    ],
+    "ai-gateway": [
+        "* [ ] Open catalog **workshop-ai-gateway** and Kuadrant UI",
+        "* [ ] Create API key and call `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions`",
+        "* [ ] Save progress at the end of this module",
+    ],
+    "mcp-gateway": [
+        "* [ ] Verify MCP CRDs and `MCPServerRegistration` in `mcp-system`",
+        "* [ ] Lightspeed: list Argo CD apps via MCP gateway tools",
+        "* [ ] Register OpenShift AI MCP server in dashboard",
         "* [ ] Save progress at the end of this module",
     ],
     "llm-rag": [
@@ -1001,7 +1068,20 @@ TODO_ES: dict[str, list[str]] = {
     ],
     "openshift-ai": [
         "* [ ] Ejecutar `oc get dsc` y confirmar DataScienceCluster Ready",
-        "* [ ] Abrir workspace DS o Plan B `demo-ods-workspace`",
+        "* [ ] Abrir **workshop-notebook** en `ai-%USER_NAME%` y ejecutar prueba MaaS",
+        "* [ ] Encontrar Component **ai-%USER_NAME%** en Developer Hub",
+        "* [ ] Habilitar extensión **Playground** / **MCP Server** OpenShift AI",
+        "* [ ] Guardar progreso al final de este módulo",
+    ],
+    "ai-gateway": [
+        "* [ ] Abrir catálogo **workshop-ai-gateway** y UI Kuadrant",
+        "* [ ] Crear API key y llamar `/llm/v1/chat/completions`",
+        "* [ ] Guardar progreso al final de este módulo",
+    ],
+    "mcp-gateway": [
+        "* [ ] Verificar CRDs MCP y `MCPServerRegistration` en `mcp-system`",
+        "* [ ] Lightspeed: listar apps Argo CD vía MCP gateway",
+        "* [ ] Registrar MCP server OpenShift AI en dashboard",
         "* [ ] Guardar progreso al final de este módulo",
     ],
     "llm-rag": [
@@ -1278,14 +1358,36 @@ LAB_ACCESS_EN: dict[str, str] = {
 | OpenShift Console — quotas | ACM → your namespace on `east` | {_WU_EN}
 |===
 """,
+    "ai-gateway": f"""
+[cols="2,3,2"]
+|===
+| Service | URL | Credentials
+
+| AI Gateway (MaaS LLM) | `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` | Kuadrant API key
+| Kuadrant UI | `https://developer-hub.%HUB_DOMAIN%/kuadrant` | {_WU_EN}
+| Catalog entity | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-ai-gateway` | {_WU_EN}
+|===
+""",
+    "mcp-gateway": f"""
+[cols="2,3,2"]
+|===
+| Service | URL | Credentials
+
+| MCP Gateway | `https://mcp-gateway.%HUB_DOMAIN%/mcp` | {_WU_EN}
+| Lightspeed | `https://developer-hub.%HUB_DOMAIN%/lightspeed` | {_WU_EN}
+| OpenShift AI MCP (in-cluster) | `ods-maas-mcp-server.maas-workshop.svc:8080/mcp` | {_OAUTH_EN}
+| Catalog entity | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-mcp-gateway` | {_WU_EN}
+|===
+""",
     "openshift-ai": f"""
 [cols="2,3,2"]
 |===
 | Service | URL | Credentials
 
 | OpenShift AI dashboard | `https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%` | {_OAUTH_EN}
-| DevSpaces (east) | `https://devspaces.%EAST_DOMAIN%` | {_WU_EN}
-| Plan B workspace | ACM → `east` → Workloads → `demo-ods-workspace` | {_WU_EN}
+| Your DS project | OpenShift AI → Projects → **ai-%USER_NAME%** | {_WU_EN} (project admin)
+| Developer Hub — your AI entity | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/ai-%USER_NAME%` | {_WU_EN}
+| Shared MaaS playground | OpenShift AI → **maas-workshop** (Plan B) | {_OAUTH_EN}
 |===
 """,
     "llm-rag": f"""
@@ -1573,14 +1675,36 @@ LAB_ACCESS_ES: dict[str, str] = {
 | Consola OpenShift — quotas | ACM → tu namespace en `east` | {_WU_ES}
 |===
 """,
+    "ai-gateway": f"""
+[cols="2,3,2"]
+|===
+| Servicio | URL | Credenciales
+
+| AI Gateway (MaaS LLM) | `https://workshop-apis.%HUB_DOMAIN%/llm/v1/chat/completions` | API key Kuadrant
+| UI Kuadrant | `https://developer-hub.%HUB_DOMAIN%/kuadrant` | {_WU_ES}
+| Entidad catálogo | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-ai-gateway` | {_WU_ES}
+|===
+""",
+    "mcp-gateway": f"""
+[cols="2,3,2"]
+|===
+| Servicio | URL | Credenciales
+
+| MCP Gateway | `https://mcp-gateway.%HUB_DOMAIN%/mcp` | {_WU_ES}
+| Lightspeed | `https://developer-hub.%HUB_DOMAIN%/lightspeed` | {_WU_ES}
+| MCP OpenShift AI (in-cluster) | `ods-maas-mcp-server.maas-workshop.svc:8080/mcp` | {_OAUTH_ES}
+| Entidad catálogo | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/workshop-mcp-gateway` | {_WU_ES}
+|===
+""",
     "openshift-ai": f"""
 [cols="2,3,2"]
 |===
 | Servicio | URL | Credenciales
 
 | Dashboard OpenShift AI | `https://rhods-dashboard-redhat-ods-applications.%HUB_DOMAIN%` | {_OAUTH_ES}
-| DevSpaces (east) | `https://devspaces.%EAST_DOMAIN%` | {_WU_ES}
-| Workspace Plan B | ACM → `east` → Workloads → `demo-ods-workspace` | {_WU_ES}
+| Tu proyecto DS | OpenShift AI → Projects → **ai-%USER_NAME%** | {_WU_ES} (admin proyecto)
+| Developer Hub — entidad IA | `https://developer-hub.%HUB_DOMAIN%/catalog/default/component/ai-%USER_NAME%` | {_WU_ES}
+| Playground MaaS compartido | OpenShift AI → **maas-workshop** (Plan B) | {_OAUTH_ES}
 |===
 """,
     "llm-rag": f"""

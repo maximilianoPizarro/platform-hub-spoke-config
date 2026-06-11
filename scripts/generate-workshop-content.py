@@ -111,8 +111,21 @@ GITOPS_REF: dict[str, tuple[str, str]] = {
         "oc get deploy -n kubecost 2>/dev/null | head -3",
     ),
     "openshift-ai": (
-        "| DSC | `components/openshift-ai-hub/` |\n| MaaS | values `litemaas` in hub `values.yaml` |",
-        "oc get dsc 2>/dev/null; oc get ns maas-workshop 2>/dev/null",
+        "| DSC + ModelMesh | `components/openshift-ai-hub/` |\n"
+        "| Notebooks | `user-projects.yaml` → `workshop-notebook` |\n"
+        "| ModelMesh ISVC | `workshop-sklearn` per `ai-userN` |\n"
+        "| MCP + Playground | `ods-mcp-server.yaml`, `dashboard-config.yaml` |",
+        "oc get dsc; oc get notebook,inferenceservice -n ai-%USER_NAME% 2>/dev/null",
+    ),
+    "ai-gateway": (
+        "| HTTPRoute + policies | `components/workshop-kuadrant-apis/` |\n"
+        "| Catalog | `catalog-ai-platform.yaml` → workshop-ai-gateway |",
+        "oc get httproute -n hub-gateway-system 2>/dev/null | grep workshop",
+    ),
+    "mcp-gateway": (
+        "| MCP CRDs + controller | `components/mcp-gateway/` |\n"
+        "| Lightspeed MCP | `llama-stack-run.yaml` tool_groups |",
+        "oc get mcpserverregistration -n mcp-system 2>/dev/null",
     ),
     "llm-rag": (
         "| Developer Hub Lightspeed | `components/developer-hub/` |\n| MaaS endpoint | hub `maas-workshop` |",
@@ -152,12 +165,14 @@ MODULES = [
     ("20", "acs-kuadrant", "ACS & Connectivity Link", "ACS y Kuadrant", "B", False),
     ("21", "finops-kubecost", "FinOps with Kubecost", "FinOps Kubecost", "B", False),
     ("22", "openshift-ai", "OpenShift AI Workshop", "Taller OpenShift AI", "B", False),
-    ("23", "llm-rag", "LLMs & RAG", "LLMs y RAG", "B", False),
-    ("24", "text-ai-predictive", "Generative & Predictive Text", "Texto gen y predictivo", "B", False),
-    ("25", "neuroface", "Face & Object AI + Chat", "NeuroFace", "B", False),
-    ("26", "ai-end-user-apps", "AI in End-User Apps", "IA en apps finales", "B", False, False),
-    ("27", "full-verification", "Full Stack Verification (facilitator)", "Verificación E2E (facilitador)", "F", False, True),
-    ("28", "agent-browser-recording", "Agent Browser (facilitator)", "Agent Browser (facilitador)", "F", False, True),
+    ("23", "ai-gateway", "AI Gateway — MaaS + Kuadrant", "AI Gateway — MaaS + Kuadrant", "B", False),
+    ("24", "mcp-gateway", "MCP Gateway + Lightspeed", "MCP Gateway + Lightspeed", "B", False),
+    ("25", "llm-rag", "LLMs & RAG", "LLMs y RAG", "B", False),
+    ("26", "text-ai-predictive", "Generative & Predictive Text", "Texto gen y predictivo", "B", False),
+    ("27", "neuroface", "Face & Object AI + Chat", "NeuroFace", "B", False),
+    ("28", "ai-end-user-apps", "AI in End-User Apps", "IA en apps finales", "B", False, False),
+    ("29", "full-verification", "Full Stack Verification (facilitator)", "Verificación E2E (facilitador)", "F", False, True),
+    ("30", "agent-browser-recording", "Agent Browser (facilitator)", "Agent Browser (facilitador)", "F", False, True),
 ]
 
 IMAGE_BY_SLUG = {
@@ -175,6 +190,8 @@ IMAGE_BY_SLUG = {
     "service-mesh": ("17-service-mesh.png", "OpenShift Service Mesh ambient"),
     "acs-kuadrant": ("20-acs-kuadrant.png", "ACS and Kuadrant API security"),
     "openshift-ai": ("22-openshift-ai.png", "OpenShift AI DataScienceCluster"),
+    "ai-gateway": ("23-ai-gateway.png", "AI Gateway Kuadrant MaaS"),
+    "mcp-gateway": ("24-mcp-gateway.png", "MCP Gateway federated tools"),
     "llm-rag": ("23-llm-rag.png", "LLM and RAG with MaaS"),
     "neuroface": ("25-neuroface-dashboard.png", "NeuroFace AI dashboard with webcam and chat"),
     "ai-end-user-apps": ("26-ai-end-user-apps.png", "AI in end-user applications"),
@@ -302,6 +319,18 @@ def time_badge(minutes: int, lang: str) -> str:
 """
 
 
+def track_pacing_section(lang: str) -> str:
+    if lang == "en":
+        return """
+NOTE: **Workshop pacing (~4 hours hands-on)** — Each module includes **Overview-only** steps (demo/visualization, ~5–10 min) and **Hands-on** steps (full lab). Skip Hands-on blocks to run a ~90-minute executive tour.
+
+"""
+    return """
+NOTE: **Ritmo del taller (~4 h hands-on)** — Cada módulo incluye pasos **Solo visualización** (~5–10 min) y **Hands-on** (lab completo). Omite Hands-on para un tour ejecutivo ~90 min.
+
+"""
+
+
 def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str:
     mid = "00-index" if is_index else f"{num}-{slug}"
     minutes = ESTIMATED_MIN.get(slug, 15)
@@ -342,16 +371,17 @@ def adoc_page(num: str, slug: str, title: str, lang: str, is_index: bool) -> str
 | 05 | Real Cases & Roadmap
 |===
 
-.Part B — Hands-on (10–26)
+.Part B — Hands-on (10–28, ~4 hours)
 [cols="1,3"]
 |===
 | 10–14 | Foundation — ACM, mesh, templates, IE, Kairos
 | 15–18 | Operations — observability, GitOps, mesh, scale
 | 19–21 | Security & FinOps — NP, ACS/Kuadrant, Kubecost
-| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace, end-user apps
+| 22–24 | OpenShift AI — projects, AI Gateway, MCP Gateway
+| 25–28 | LLM, NeuroFace (OVMS), end-user apps
 |===
 
-NOTE: Modules 27–28 (verification & Agent Browser) are **facilitator/agent tasks** only — see `showroom-hybrid-mesh-ai/verification/`. They are not part of the learner path.
+NOTE: Modules 29–30 (verification & Agent Browser) are **facilitator/agent tasks** only — see `showroom-hybrid-mesh-ai/verification/`. Each Part B module supports **Overview-only** (~90 min) vs **Hands-on** (~4 h).
 
 == Registration & Plan B demos
 
@@ -374,16 +404,17 @@ NOTE: Modules 27–28 (verification & Agent Browser) are **facilitator/agent tas
 | 05 | Casos reales y roadmap
 |===
 
-.Parte B — Hands-on (10–26)
+.Parte B — Hands-on (10–28, ~4 h)
 [cols="1,3"]
 |===
-| 10–14 | Foundation — ACM, mesh, templates, IE, Kairos
-| 15–18 | Operations — observabilidad, GitOps, mesh, escala
-| 19–21 | Security & FinOps — NP, ACS/Kuadrant, Kubecost
-| 22–26 | Hybrid Mesh AI — ODS, LLM, NeuroFace, apps finales
+| 10–14 | Foundation — ACM, mesh, plantillas, IE, Kairos
+| 15–18 | Operaciones — observabilidad, GitOps, mesh, escala
+| 19–21 | Seguridad y FinOps — NP, ACS/Kuadrant, Kubecost
+| 22–24 | OpenShift AI — proyectos, AI Gateway, MCP Gateway
+| 25–28 | LLM, NeuroFace (OVMS), apps finales
 |===
 
-NOTE: Los módulos 27–28 (verificación y Agent Browser) son **tareas de facilitador/agente** — ver `showroom-hybrid-mesh-ai/verification/`. No forman parte del recorrido del participante.
+NOTE: Los módulos 29–30 (verificación y Agent Browser) son **tareas de facilitador/agente**. Cada módulo Parte B admite **Solo visualización** (~90 min) o **Hands-on** (~4 h).
 
 == Registro y demos Plan B
 
@@ -426,7 +457,7 @@ NOTE: Los módulos 27–28 (verificación y Agent Browser) son **tareas de facil
         overview_section = f"""
 == {overview}
 
-{narrative.strip()}
+{track_pacing_section(lang) if (not is_index and num.isdigit() and int(num) >= 10) else ""}{narrative.strip()}
 """
     elif slug in FACILITATOR_ONLY_SLUGS:
         overview_section = module_context_section(slug, lang)

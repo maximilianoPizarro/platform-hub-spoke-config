@@ -15,7 +15,9 @@ neuroface:
     apiKey: ""
     autoServiceAccount: true
   ovms:
-    enabled: false
+    enabled: true
+    replicas: 1
+    modelName: "face-detection-retail-0005"
   litellm:
     enabled: false
   route:

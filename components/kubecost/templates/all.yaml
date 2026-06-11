@@ -58,6 +58,7 @@ spec:
   source: certified-operators
   sourceNamespace: openshift-marketplace
 ---
+{{- if .Values.federatedETL.enabled }}
 apiVersion: v1
 kind: Secret
 metadata:
@@ -77,6 +78,7 @@ stringData:
       secret_key: {{ .Values.federatedStore.secretKey }}
       insecure: true
 ---
+{{- end }}
 {{- $isAgent := or (eq .Values.role "agent") (eq .Values.clusterRole "spoke") }}
 apiVersion: charts.kubecost.com/v1alpha1
 kind: CostAnalyzer
@@ -89,6 +91,7 @@ metadata:
 spec:
   kubecostProductConfigs:
     clusterName: {{ .Values.clusterName | default "hub" }}
+  {{- if .Values.federatedETL.enabled }}
   federatedETL:
     federatedCluster: true
     agentOnly: {{ $isAgent }}
@@ -97,6 +100,7 @@ spec:
   {{- if not $isAgent }}
   kubecostAggregator:
     deployMethod: statefulset
+  {{- end }}
   {{- end }}
   prometheus:
     server:

@@ -90,13 +90,16 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: demo-ods-workspace
-  title: OpenShift AI (shared)
-  description: MaaS playground on hub
+  title: OpenShift AI (shared — legacy alias)
+  description: Plan B alias — use catalog System openshift-ai-workshop / maas-workshop-shared instead
   tags: [workshop, ai, plan-b]
   links:
     - url: https://rhods-dashboard-redhat-ods-applications.YOUR_HUB_DOMAIN
       title: ODS Dashboard
       icon: dashboard
+    - url: https://developer-hub.YOUR_HUB_DOMAIN/catalog/default/system/openshift-ai-workshop
+      title: OpenShift AI Workshop (per-user projects)
+      icon: catalog
 spec:
   type: service
   lifecycle: production

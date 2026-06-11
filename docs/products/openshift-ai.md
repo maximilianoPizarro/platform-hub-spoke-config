@@ -7,14 +7,35 @@ nav_order: 7
 
 # OpenShift AI
 
-Red Hat **OpenShift AI** on the **hub** provides dashboard, workbenches, KServe (RawDeployment), and MaaS-backed external models for the workshop.
+Red Hat **OpenShift AI** on the **hub** provides dashboard, workbenches, **ModelMesh** (multi-model), **Knative/Serverless** (via `serverless-operator`), KServe, and MaaS-backed external models for the workshop.
 
 ## Hub component
 
 | Path | Purpose |
 |------|---------|
-| `components/openshift-ai-hub/` | `DataScienceCluster`, `maas-workshop` project, MaaS proxies, playground config |
-| `components/industrial-edge-data-science-cluster/` | Spoke-only DSC (east/west ML) |
+| `components/openshift-ai-hub/` | `DataScienceCluster`, per-user `ai-userN` projects, `maas-workshop`, MaaS proxies |
+| `components/operators/` | `serverless-operator` (hub) + `rhods-operator` |
+| `components/developer-hub/templates/catalog-openshift-ai.yaml` | Catalog System `openshift-ai-workshop` — one Component per user |
+
+## Per-user projects
+
+| Pattern | Description |
+|---------|-------------|
+| Namespace | `ai-user1` … `ai-user50` (label `opendatahub.io/dashboard: "true"`) |
+| RBAC | `userN` → `admin` on `ai-userN` |
+| Developer Hub | Component `ai-userN` owned by `userN` in System `openshift-ai-workshop` |
+| MaaS | Secret `openshift-ai-maas-credentials` in each project (same `OPENAI_API_BASE`) |
+| ModelMesh ISVC | `workshop-sklearn` — sklearn example from hub MinIO (`anomaly-detection/model`) |
+
+## Model serving (hub workshop track)
+
+| Component | DSC setting |
+|-----------|-------------|
+| ModelMesh | `modelmeshserving.managementState: Managed` |
+| Knative / Serverless | `kserve.serving.managementState: Managed` + `serverless-operator` subscription |
+| Default ISVC mode | `defaultDeploymentMode: ModelMesh` (MaaS proxies in `maas-workshop` stay `RawDeployment`) |
+
+Spokes keep **RawDeployment** only (`components/industrial-edge-data-science-cluster/`).
 
 ## MaaS models (external)
 

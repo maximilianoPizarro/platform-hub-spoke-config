@@ -328,6 +328,14 @@ data:
           target: /opt/app-root/src/catalog-data/workshop-kuadrant/workshop-kuadrant-apis.yaml
           rules:
             - allow: [System, Component]
+        - type: file
+          target: /opt/app-root/src/catalog-data/openshift-ai/openshift-ai-workshop.yaml
+          rules:
+            - allow: [System, Component]
+        - type: file
+          target: /opt/app-root/src/catalog-data/ai-platform/ai-platform.yaml
+          rules:
+            - allow: [System, Component]
         - type: url
           target: https://raw.githubusercontent.com/maximilianopizarro/platform-hub-spoke-config/main/docs/assets/backstage/software-templates/templates-catalog.yaml
           rules:
@@ -827,6 +835,16 @@ spec:
         - name: developer-hub-catalog-workshop-kuadrant-apis
           key: workshop-kuadrant-apis.yaml
           mountPath: /opt/app-root/src/catalog-data/workshop-kuadrant
+          containers:
+            - "*"
+        - name: developer-hub-catalog-openshift-ai
+          key: openshift-ai-workshop.yaml
+          mountPath: /opt/app-root/src/catalog-data/openshift-ai
+          containers:
+            - "*"
+        - name: developer-hub-catalog-ai-platform
+          key: ai-platform.yaml
+          mountPath: /opt/app-root/src/catalog-data/ai-platform
           containers:
             - "*"
     route:

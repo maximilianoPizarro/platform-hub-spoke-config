@@ -95,3 +95,8 @@ tool_groups:
         embedding_model: sentence-transformers/all-mpnet-base-v2
         provider_id: rhdh-docs
         vector_db_id: rhdh-product-docs-1_9
+  - provider_id: mcp-gateway
+    provider_type: remote::mcp
+    config:
+      url: ${env.MCP_GATEWAY_URL:=http://mcp-gateway-istio.mcp-system.svc.cluster.local:8080/mcp}
+      timeout: 120

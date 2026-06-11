@@ -2,6 +2,10 @@
 {{- $endpoint := $maas.endpoint | default "https://maas-rhdp.apps.maas.redhatworkshops.io" -}}
 {{- $secretName := $maas.credentialsSecretName | default "openshift-ai-maas-credentials" -}}
 {{- $secretKey := $maas.credentialsSecretKey | default "api-key" -}}
+{{- $ms := .Values.modelServing | default dict -}}
+{{- $modelMesh := $ms.modelMeshEnabled | default false -}}
+{{- $serverless := $ms.serverlessEnabled | default false -}}
+{{- $deployMode := $ms.defaultDeploymentMode | default "RawDeployment" -}}
 ---
 apiVersion: datasciencecluster.opendatahub.io/v1
 kind: DataScienceCluster
@@ -17,11 +21,11 @@ spec:
       managementState: Managed
     kserve:
       managementState: Managed
-      defaultDeploymentMode: RawDeployment
+      defaultDeploymentMode: {{ $deployMode | quote }}
       serving:
-        managementState: Removed
+        managementState: {{ if $serverless }}Managed{{ else }}Removed{{ end }}
     modelmeshserving:
-      managementState: Removed
+      managementState: {{ if $modelMesh }}Managed{{ else }}Removed{{ end }}
     ray:
       managementState: Removed
     workbenches:
