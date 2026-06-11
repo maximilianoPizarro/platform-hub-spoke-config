@@ -278,6 +278,82 @@ spec:
           subPath: www
         - name: user-data
           mountPath: /user_data/
+      {{- if .Values.showroom.terminal.enabled }}
+      - name: terminal-cli-bootstrap
+        image: {{ .Values.showroom.terminal.image | quote }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+        env:
+        - name: CLUSTER_DOMAIN
+          value: {{ .Values.deployer.domain | quote }}
+        - name: EAST_DOMAIN
+          value: {{ .Values.clusters.east.domain | default "" | quote }}
+        - name: WEST_DOMAIN
+          value: {{ .Values.clusters.west.domain | default "" | quote }}
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            export HOME=/home/lab-user
+            BIN="/home/lab-user/.local/bin"
+            mkdir -p "$BIN"
+            if [ ! -f "$BIN/rosa" ]; then
+              curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/rosa/latest/rosa-linux.tar.gz" | tar xz -C "$BIN" rosa 2>/dev/null || true
+            fi
+            if [ ! -f "$BIN/yq" ]; then
+              curl -sL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" -o "$BIN/yq" && chmod +x "$BIN/yq" 2>/dev/null || true
+            fi
+            if [ ! -f "$BIN/argocd" ]; then
+              curl -sL "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64" -o "$BIN/argocd" && chmod +x "$BIN/argocd" 2>/dev/null || true
+            fi
+            if [ ! -f "$BIN/aws" ]; then
+              curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscli.zip && \
+              cd /tmp && unzip -qo awscli.zip && ./aws/install --bin-dir "$BIN" --install-dir "$BIN/aws-install" --update 2>/dev/null && rm -rf /tmp/aws* || true
+            fi
+            if [ ! -x "$BIN/az" ]; then
+              AZ_VENV="/home/lab-user/.local/lib/azure-cli"
+              python3 -m venv "$AZ_VENV" && \
+              "$AZ_VENV/bin/pip" install --quiet azure-cli && \
+              ln -sf "$AZ_VENV/bin/az" "$BIN/az" || true
+            fi
+            cat > /home/lab-user/.bashrc << 'BASHRC'
+            export HOME=/home/lab-user
+            export PATH="$HOME/.local/bin:$PATH"
+            export PS1='\[\e[1;31m\][\u@showroom]\[\e[0m\] \w \$ '
+
+            hub-login() {
+              oc login -u "${1:-user1}" -p Welcome123! "https://api.${CLUSTER_DOMAIN#apps.}:6443" --insecure-skip-tls-verify
+            }
+            east-login() {
+              oc login -u "${1:-user1}" -p Welcome123! "$EAST_API_URL" --insecure-skip-tls-verify
+            }
+            west-login() {
+              oc login -u "${1:-user1}" -p Welcome123! "$WEST_API_URL" --insecure-skip-tls-verify
+            }
+
+            echo "╔══════════════════════════════════════════════════════════════╗"
+            echo "║  Hybrid Mesh AI Workshop Terminal                            ║"
+            echo "╠══════════════════════════════════════════════════════════════╣"
+            echo "║  oc login:     hub-login userN   | east-login | west-login  ║"
+            echo "║  rosa login:   rosa login --token=<token>                   ║"
+            echo "║  az login:     az login --use-device-code                   ║"
+            echo "║  aws config:   aws configure                                ║"
+            echo "║  argocd:       argocd login argocd-server-openshift-gitops.. ║"
+            echo "╠══════════════════════════════════════════════════════════════╣"
+            echo "║  Hub: $CLUSTER_DOMAIN"
+            echo "║  East: $EAST_DOMAIN"
+            echo "║  West: $WEST_DOMAIN"
+            echo "╚══════════════════════════════════════════════════════════════╝"
+            BASHRC
+        volumeMounts:
+        - name: terminal-lab-user-home
+          mountPath: /home/lab-user
+      {{- end }}
       containers:
       - name: nginx
         image: "quay.io/rhpds/nginx:1.25"
@@ -336,68 +412,6 @@ spec:
       {{- if .Values.showroom.terminal.enabled }}
       - name: terminal
         image: {{ .Values.showroom.terminal.image | quote }}
-        lifecycle:
-          postStart:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - |
-                  export HOME=/home/lab-user
-                  BIN="/home/lab-user/.local/bin"
-                  mkdir -p "$BIN"
-                  export PATH="$BIN:$PATH"
-                  # Install extra CLIs if not already present (idempotent, uses PVC)
-                  if [ ! -f "$BIN/rosa" ]; then
-                    curl -sL "https://mirror.openshift.com/pub/openshift-v4/clients/rosa/latest/rosa-linux.tar.gz" | tar xz -C "$BIN" rosa 2>/dev/null || true
-                  fi
-                  if [ ! -f "$BIN/yq" ]; then
-                    curl -sL "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64" -o "$BIN/yq" && chmod +x "$BIN/yq" 2>/dev/null || true
-                  fi
-                  if [ ! -f "$BIN/argocd" ]; then
-                    curl -sL "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64" -o "$BIN/argocd" && chmod +x "$BIN/argocd" 2>/dev/null || true
-                  fi
-                  if [ ! -f "$BIN/aws" ]; then
-                    curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscli.zip && \
-                    cd /tmp && unzip -qo awscli.zip && ./aws/install --bin-dir "$BIN" --install-dir "$BIN/aws-install" --update 2>/dev/null && rm -rf /tmp/aws* || true
-                  fi
-                  if [ ! -x "$BIN/az" ]; then
-                    AZ_VENV="/home/lab-user/.local/lib/azure-cli"
-                    python3 -m venv "$AZ_VENV" 2>/dev/null && \
-                    "$AZ_VENV/bin/pip" install --quiet azure-cli 2>/dev/null && \
-                    ln -sf "$AZ_VENV/bin/az" "$BIN/az" || true
-                  fi
-                  # Write .bashrc with PATH and login helpers
-                  cat > /home/lab-user/.bashrc << 'BASHRC'
-                  export HOME=/home/lab-user
-                  export PATH="$HOME/.local/bin:$PATH"
-                  export PS1='\[\e[1;31m\][\u@showroom]\[\e[0m\] \w \$ '
-
-                  # --- Login helpers ---
-                  hub-login() {
-                    oc login -u "${1:-user1}" -p Welcome123! "https://api.${CLUSTER_DOMAIN#apps.}:6443" --insecure-skip-tls-verify
-                  }
-                  east-login() {
-                    oc login -u "${1:-user1}" -p Welcome123! "$EAST_API_URL" --insecure-skip-tls-verify
-                  }
-                  west-login() {
-                    oc login -u "${1:-user1}" -p Welcome123! "$WEST_API_URL" --insecure-skip-tls-verify
-                  }
-
-                  echo "╔══════════════════════════════════════════════════════════════╗"
-                  echo "║  Hybrid Mesh AI Workshop Terminal                            ║"
-                  echo "╠══════════════════════════════════════════════════════════════╣"
-                  echo "║  oc login:     hub-login userN   | east-login | west-login  ║"
-                  echo "║  rosa login:   rosa login --token=<token>                   ║"
-                  echo "║  az login:     az login --use-device-code                   ║"
-                  echo "║  aws config:   aws configure                                ║"
-                  echo "║  argocd:       argocd login argocd-server-openshift-gitops.. ║"
-                  echo "╠══════════════════════════════════════════════════════════════╣"
-                  echo "║  Hub: $CLUSTER_DOMAIN"
-                  echo "║  East: $EAST_DOMAIN"
-                  echo "║  West: $WEST_DOMAIN"
-                  echo "╚══════════════════════════════════════════════════════════════╝"
-                  BASHRC
         imagePullPolicy: IfNotPresent
         env:
         - name: NAMESPACE
