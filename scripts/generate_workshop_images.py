@@ -42,7 +42,7 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     ),
     (
         "01-hybrid-strategy.png",
-        "Executive hybrid cloud strategy infographic, OpenShift on-prem edge and public cloud unified, modernization security automation AI pillar icons, Red Hat red accents, flat professional design, 16:9, no text",
+        "Hybrid Mesh AI platform executive diagram, centralized hub edge cloud environments, AI security GitOps edge pillars, clean white background, Red Hat red accents, flat professional 16:9",
         "arch-overview.png",
     ),
     (
@@ -57,13 +57,13 @@ IMAGE_SPECS: list[tuple[str, str, str]] = [
     ),
     (
         "04-aws-ai-integration.png",
-        "AWS cloud and OpenShift AI integration, Bedrock SageMaker vs Kubernetes AI pipeline MaaS endpoint, professional 16:9 tech illustration, no text",
-        "",
+        "OpenShift AI inference architecture, DataScienceCluster KServe ModelMesh MaaS API OpenAI compatible, consumers NeuroFace DevSpaces Lightspeed, white background Red Hat red accents, 16:9",
+        "22-openshift-ai.png",
     ),
     (
         "05-cases-roadmap.png",
-        "Manufacturing IoT customer journey roadmap timeline, factory sensors to AI dashboard FinOps, automotive plant, 16:9 infographic, no text",
-        "",
+        "Industrial Edge data flow diagram, factory sensors MQTT Kafka Camel CDC PostgreSQL dashboard, workshop customer journey, white background Red Hat red accents, 16:9",
+        "arch-data-flow.png",
     ),
     (
         "10-acm-multicluster.png",

@@ -174,11 +174,11 @@ MODULES = [
 
 IMAGE_BY_SLUG = {
     "index": ("00-index-hybrid-mesh.png", "Hybrid Mesh AI hub-spoke architecture diagram"),
-    "hybrid-cloud-strategy": ("01-hybrid-strategy.png", "Hybrid cloud strategy overview"),
+    "hybrid-cloud-strategy": ("01-hybrid-strategy.png", "Hybrid Mesh AI platform — centralized hub, edge and cloud spokes"),
     "rosa-architecture": ("02-rosa-architecture.png", "Red Hat OpenShift hub-spoke topology — same fleet pattern as ROSA + ACM in production"),
     "security-scale-hybrid": ("03-security-scale-hybrid.png", "Hybrid cloud security and scale"),
-    "aws-ai-integration": ("04-aws-ai-integration.png", "AWS and AI integration on OpenShift"),
-    "cases-roadmap": ("05-cases-roadmap.png", "Customer cases and workshop roadmap"),
+    "aws-ai-integration": ("04-aws-ai-integration.png", "OpenShift AI inference architecture — portable alternative to Bedrock and SageMaker"),
+    "cases-roadmap": ("05-cases-roadmap.png", "Industrial Edge data flow — factory sensors through Kafka to dashboards and AI"),
     "acm-multicluster": ("10-acm-multicluster.png", "ACM multicluster fleet management"),
     "hybrid-mesh-architecture": ("11-hybrid-mesh.png", "Hybrid mesh traffic flow hub to spokes"),
     "software-templates": ("12-software-templates.png", "Developer Hub software templates"),
