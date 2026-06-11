@@ -45,7 +45,7 @@ subjects:
   namespace: {{ .Values.showroom.namespace }}
 ---
 # Showroom secret-reader — workshop namespaces (Industrial Edge, AI, demos)
-{{- $workshopNs := list "industrial-edge-tst-all" "industrial-edge-ci" "maas-workshop" "neuroface" "cnv-workshop" "workshop-demo-cdc-east" "workshop-demo-apis-east" }}
+{{- $workshopNs := list "industrial-edge-tst-all" "maas-workshop" "neuroface" "cnv-workshop" "workshop-demo-cdc-east" "workshop-demo-apis-east" }}
 {{- range $workshopNs }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
