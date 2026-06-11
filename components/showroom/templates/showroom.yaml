@@ -343,6 +343,7 @@ spec:
                 - /bin/sh
                 - -c
                 - |
+                  export HOME=/home/lab-user
                   BIN="/home/lab-user/.local/bin"
                   mkdir -p "$BIN"
                   export PATH="$BIN:$PATH"
@@ -360,11 +361,15 @@ spec:
                     curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscli.zip && \
                     cd /tmp && unzip -qo awscli.zip && ./aws/install --bin-dir "$BIN" --install-dir "$BIN/aws-install" --update 2>/dev/null && rm -rf /tmp/aws* || true
                   fi
-                  if ! command -v az >/dev/null 2>&1 && [ ! -f "$BIN/az" ]; then
-                    pip3 install --quiet --user azure-cli 2>/dev/null || true
+                  if [ ! -x "$BIN/az" ]; then
+                    AZ_VENV="/home/lab-user/.local/lib/azure-cli"
+                    python3 -m venv "$AZ_VENV" 2>/dev/null && \
+                    "$AZ_VENV/bin/pip" install --quiet azure-cli 2>/dev/null && \
+                    ln -sf "$AZ_VENV/bin/az" "$BIN/az" || true
                   fi
                   # Write .bashrc with PATH and login helpers
                   cat > /home/lab-user/.bashrc << 'BASHRC'
+                  export HOME=/home/lab-user
                   export PATH="$HOME/.local/bin:$PATH"
                   export PS1='\[\e[1;31m\][\u@showroom]\[\e[0m\] \w \$ '
 
